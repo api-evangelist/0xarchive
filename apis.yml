@@ -1,0 +1,99 @@
+name: 0xArchive Market Data API
+description: >-
+  Current and historical crypto market data across Hyperliquid (perpetuals, Spot, HIP-3, HIP-4) and Lighter venues,
+  offered via REST, WebSocket streaming with historical replay, Parquet exports, and agent-native access (hosted MCP
+  server).
+url: https://raw.githubusercontent.com/api-evangelist/0xarchive-market-data-api/refs/heads/main/apis.yml
+created: '2026-08-31'
+modified: '2026-08-31'
+specificationVersion: '0.21'
+tags:
+  - market data
+  - historical data
+  - crypto / DeFi
+  - perpetuals / derivatives
+  - Hyperliquid
+  - Lighter
+  - WebSocket / streaming
+  - REST / OpenAPI
+  - MCP
+  - agent-native
+  - x402
+apis:
+  - name: 0xArchive REST API
+    description: >-
+      Versioned REST API (/v1) for current and historical market data namespaced by venue family (Hyperliquid
+      core/Spot/HIP-3/HIP-4, Lighter). API key auth via X-API-Key header.
+    humanURL: https://docs.0xarchive.io/rest-api
+    baseURL: https://api.0xarchive.io
+    tags:
+      - market data
+      - historical data
+      - crypto / DeFi
+      - perpetuals / derivatives
+      - Hyperliquid
+      - Lighter
+      - WebSocket / streaming
+      - REST / OpenAPI
+      - MCP
+      - agent-native
+      - x402
+    properties:
+      - type: OpenAPI
+        url: https://0xarchive.io/openapi.json
+      - type: Documentation
+        url: https://docs.0xarchive.io/rest-api
+  - name: 0xArchive WebSocket API
+    description: >-
+      Real-time WebSocket streaming and historical replay. Bearer API key sent during handshake. Documented via
+      prose/schema pages; no AsyncAPI file published.
+    humanURL: https://docs.0xarchive.io/
+    baseURL: wss://api.0xarchive.io/ws
+    tags:
+      - market data
+      - historical data
+      - crypto / DeFi
+      - perpetuals / derivatives
+      - Hyperliquid
+      - Lighter
+      - WebSocket / streaming
+      - REST / OpenAPI
+      - MCP
+      - agent-native
+      - x402
+    properties:
+      - type: Documentation
+        url: https://docs.0xarchive.io/
+  - name: 0xArchive MCP Server
+    description: >-
+      Hosted, read-only MCP server (streamable-http transport, tools enabled) using client-managed OAuth bearer with
+      scope mcp:market.read. No 0xArchive API key required.
+    humanURL: https://docs.0xarchive.io/mcp-server
+    baseURL: https://mcp.0xarchive.io/mcp
+    tags:
+      - market data
+      - historical data
+      - crypto / DeFi
+      - perpetuals / derivatives
+      - Hyperliquid
+      - Lighter
+      - WebSocket / streaming
+      - REST / OpenAPI
+      - MCP
+      - agent-native
+      - x402
+    properties:
+      - type: MCPServer
+        url: https://mcp.0xarchive.io/mcp
+      - type: LLMsTxt
+        url: https://0xarchive.io/llms.txt
+      - type: Documentation
+        url: https://docs.0xarchive.io/mcp-server
+maintainers:
+  - FN: 0xArchive Market Data API
+    url: https://0xarchive.io/
+generated:
+  by: apis.io/add
+  model: claude-opus-4-8
+  confidence: 97
+  at: '2026-08-31T21:55:11.915Z'
