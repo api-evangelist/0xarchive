@@ -1,0 +1,145 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/rate-limits
+sources:
+- https://docs.0xarchive.io/rate-limits
+- https://docs.0xarchive.io/errors
+- https://docs.0xarchive.io/websocket/tier-limits
+- openapi/0xarchive-openapi.json (components.responses.RateLimited)
+limit_count: 6
+note: >-
+  0xArchive throttles on five separate axes rather than one - requests per second, concurrent
+  queries, monthly credits, WebSocket subscription count and replay speed - plus a plan-scoped
+  history window that behaves like a limit even though it is not a rate. All of them are
+  per-account and published per tier. The single caveat worth flagging for an agent: the
+  X-RateLimit-* headers below are DECLARED in the OpenAPI 429 response, but they were not
+  observable on an unauthenticated request - a 401 and a 200 /health response on 2026-09-01
+  carried x-request-id but no RateLimit family header, so an agent cannot read remaining budget
+  until it is authenticated and, on this evidence, may only see it on a 429.
+limits:
+- scope: per-account
+  control: requests per second
+  window: 1 second
+  limit:
+    Free: 15
+    Build: 50
+    Pro: 150
+    Scale: 500
+    Enterprise: from 1,000
+  burst: null
+  note: Burst rate across REST calls. The docs prescribe backoff and queuing rather than a stated burst allowance.
+- scope: per-account
+  control: concurrent queries
+  window: instantaneous
+  limit:
+    Free: 3
+    Build: 10
+    Pro: 20
+    Scale: 20
+    Enterprise: from 500
+  note: Applies to long-running or heavy history calls; the docs advise bounding worker pools.
+- scope: per-account
+  control: monthly API credits
+  window: calendar month
+  limit:
+    Free: 50000
+    Build: 80000000
+    Pro: 400000000
+    Scale: 2000000000
+    Enterprise: unlimited
+  note: >-
+    Credits are consumed by data volume and route cost, not by request count. L3/L4, replay and
+    deep-history routes cost materially more than shallow market-state routes.
+- scope: per-account
+  control: WebSocket subscriptions
+  window: concurrent
+  limit:
+    Free: 10
+    Build: 500
+    Pro: 3000
+    Scale: 20000
+    Enterprise: unlimited
+- scope: per-account
+  control: WebSocket replay speed multiplier
+  window: per replay stream
+  limit:
+    Free: 10x
+    Build: 50x
+    Pro: 100x
+    Scale: 300x
+    Enterprise: from 500x
+  note: >-
+    Hyperliquid core l4_diffs and l4_orders replay ignores the speed parameter entirely - it uses
+    a checkpoint-anchored bulk stream.
+- scope: per-account
+  control: history window / request span
+  window: per request or per replay
+  limit:
+    Free: most recent rolling 30 days, maximum 30-day span per request or replay
+    Build: full retained archive
+    Pro: full retained archive
+    Scale: full retained archive
+    Enterprise: full retained archive
+  note: >-
+    The only route-shaped restriction in the plan model. Every tier including Free reaches every
+    route family, schema and served depth; only the reachable time range differs.
+exhaustion:
+  status_code: 429
+  error_code: rate_limited
+  envelope: '{"success": false, "error": {"code": "rate_limited", "message": "Rate limit exceeded"}, "meta": {"request_id": "<uuid>"}}'
+  note: >-
+    429 is returned for rate, concurrency AND credit exhaustion - the status alone does not
+    distinguish which of the three was hit.
+response_headers:
+- header: X-RateLimit-Limit
+  type: integer
+  meaning: Requests per second limit
+  source: openapi/0xarchive-openapi.json components.responses.RateLimited.headers
+  observed_anonymously: false
+- header: X-RateLimit-Remaining
+  type: integer
+  meaning: Remaining requests this second
+  source: openapi/0xarchive-openapi.json components.responses.RateLimited.headers
+  observed_anonymously: false
+- header: X-RateLimit-Reset
+  type: integer
+  meaning: Unix timestamp when the limit resets
+  source: openapi/0xarchive-openapi.json components.responses.RateLimited.headers
+  observed_anonymously: false
+- header: Retry-After
+  meaning: >-
+    Documented as the authoritative retry signal on 429 - "Honor Retry-After when the response
+    includes it" - but the docs are explicit that it is not always present, and it does not appear
+    in the OpenAPI 429 response headers block.
+  source: https://docs.0xarchive.io/errors
+  observed_anonymously: false
+  conditional: true
+- header: x-request-id
+  meaning: Per-request correlation UUID, present on every response including errors.
+  source: probed live on https://api.0xarchive.io/health and an unauthenticated /v1/instruments call
+  observed_anonymously: true
+retry_policy:
+  retryable:
+  - 429
+  - transient 5xx
+  - network timeouts
+  non_retryable_unchanged:
+  - 400 malformed request or invalid parameter
+  - 401 missing or invalid API key
+  - 403 refused request
+  - 404 unknown route or symbol
+  strategy: >-
+    Honor Retry-After when present; when absent use capped exponential backoff with jitter,
+    reduce concurrency, and narrow the request window before widening the job again. Retry
+    within a bounded budget only.
+  source: https://docs.0xarchive.io/errors
+probe:
+  checked: '2026-09-01'
+  evidence:
+  - url: https://api.0xarchive.io/health
+    status: 200
+    ratelimit_headers_present: false
+    headers_observed: [x-request-id, strict-transport-security, x-content-type-options, x-frame-options, access-control-expose-headers]
+  - url: https://api.0xarchive.io/v1/instruments
+    status: 401
+    ratelimit_headers_present: false

@@ -1,0 +1,205 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/errors
+sources:
+- https://docs.0xarchive.io/errors
+- https://docs.0xarchive.io/rate-limits
+- https://docs.0xarchive.io/authentication
+- https://docs.0xarchive.io/rest-api/reliability
+- https://0xarchive.io/llms.txt
+- openapi/0xarchive-openapi.json
+note: >-
+  0xArchive is a READ-ONLY market-data API. All 149 published operations are GET except six POST
+  routes, and every one of those six is account/credential/payment management (SIWE challenge and
+  verify, list keys, revoke key, retired signup, x402 subscribe) - none of them writes market
+  data. That single fact governs three of the runtime-semantics dimensions below: idempotency,
+  dry-run and reversibility are all `na` for the market-data surface, and the two that are not
+  read-only (revoke a key, buy a subscription) are handled separately in reversibility[].
+auth:
+  style: api-key-header
+  parameter: X-API-Key
+  scheme_name: ApiKeyAuth
+  detail: authentication/0xarchive-authentication.yml
+  boundary: >-
+    The provider draws an explicit and repeated credential boundary that an agent must respect:
+    X-API-Key applies to direct REST market-data requests and to the SDK, CLI and Claude Code
+    skill, which all call REST. The hosted MCP server uses client-managed OAuth (scope
+    mcp:market.read) and requires NO 0xArchive API key. The WebSocket handshake uses a third
+    form - Authorization: Bearer <API_KEY> - with the same key as REST but a different header.
+  websocket: 'Authorization: Bearer <API_KEY> sent during the wss://api.0xarchive.io/ws handshake'
+  websocket_legacy: >-
+    A legacy ?apiKey= query parameter still works but the docs mark it compatibility-only for
+    private server-side scripts and warn against browser-facing URLs and logs.
+  wallet_auth: >-
+    SIWE (Sign-In With Ethereum) wallet authentication is available with NO API key at
+    POST /v1/auth/web3/challenge and /verify, for key management and x402 purchase.
+idempotency:
+  supported: na
+  header: null
+  scope: null
+  retention: null
+  note: >-
+    N/A rather than absent. The string "Idempotency" appears nowhere in the 568KB contract, and no
+    idempotency key is documented - but the market-data surface is entirely GET, which is
+    idempotent by HTTP semantics, so there is nothing for an idempotency key to protect. The two
+    genuinely non-idempotent operations are POST /v1/web3/keys/revoke and POST /v1/web3/subscribe;
+    neither documents a client-supplied idempotency key, and web3Subscribe is protected instead by
+    the EIP-3009 signed transfer's own replay protection at the settlement layer.
+dry_run_mode:
+  supported: na
+  note: >-
+    N/A on the same basis - a read-only query surface has nothing to rehearse. There is, however,
+    a genuine no-cost rehearsal path for the whole integration: the fixed public sample set at
+    /.well-known/data-samples.json requires no account and no key, so a client can validate its
+    parsing and reconstruction logic offline before it ever authenticates. Recorded in
+    sandbox/0xarchive-sandbox.yml.
+reversibility:
+  grade: na
+  note: >-
+    N/A for the market-data API: reading historical order books, trades, candles, funding and open
+    interest changes nothing that could be reversed. Recorded as `na` and not as a zero, because
+    an absent reversal path on a read-only API is correct design, not a gap. The two write
+    surfaces that DO exist are recorded below with what the docs actually state - and in both
+    cases the docs state no window, so neither is graded `verified`.
+  write_surfaces:
+  - operation: web3RevokeKey
+    path: POST /v1/web3/keys/revoke
+    action: Revoke an API key
+    reversal: none documented
+    window: null
+    grade: none
+    note: >-
+      No un-revoke, restore, or grace period is documented anywhere in the docs, the llms.txt or
+      the contract. An agent must treat key revocation as irreversible and mint a replacement key
+      instead. Mitigating factor: paid tiers allow 10-200 keys, so a revoked key can be replaced
+      without account-level disruption.
+  - operation: web3Subscribe
+    path: POST /v1/web3/subscribe
+    action: Start 30-day Build or Pro access via an x402 USDC payment on Base
+    reversal: none documented
+    window: null
+    grade: none
+    note: >-
+      No refund, cancel-before-settlement or void path is published for the x402 purchase. This is
+      the one place in this API where an agent can spend real money, and the docs state no
+      reversal window - so none is asserted here. What IS documented is a pre-settlement rejection
+      rule: disabled existing wallets are rejected BEFORE settlement, and an unknown wallet
+      receives an account and API key only AFTER successful settlement. Agent guidance:
+      the spend is a one-way door; gate it behind an explicit human-set budget.
+  - operation: web3Signup
+    path: POST /v1/web3/signup
+    action: retired
+    reversal: na
+    note: Always returns 410 and creates nothing, so there is nothing to reverse.
+pagination:
+  style: cursor
+  request_params:
+  - name: cursor
+    description: Opaque cursor (a timestamp) taken from meta.next_cursor of the previous page.
+  - name: limit
+    description: Page size.
+  - name: start
+    description: Window start, Unix milliseconds or ISO. Defaults to 24h ago on most history routes.
+  - name: end
+    description: Window end, Unix milliseconds or ISO. Defaults to now.
+  response_fields:
+    envelope: meta
+    count: meta.count
+    next_cursor: meta.next_cursor
+    terminator: meta.next_cursor is null when there are no further pages
+  offset_style:
+    present: true
+    note: >-
+      A small number of routes accept offset/order/sort instead of a cursor. Cursor pagination is
+      the dominant style (205 references to cursor in the contract against 8 to offset).
+  guidance: >-
+    The docs instruct callers to batch long historical pulls into independently-retryable time
+    windows rather than paging one unbounded stream, and to keep a request id per page.
+response_envelope:
+  shape: '{"data": <records>, "meta": {"count": <int>, "next_cursor": <string|null>, "request_id": "<uuid>"}}'
+  meta_schema: ApiMeta
+  meta_fields:
+  - name: count
+    meaning: Number of records returned
+  - name: next_cursor
+    meaning: Pagination cursor (a timestamp); null when exhausted
+  - name: request_id
+    meaning: UUID for support correlation
+  - name: coverage_from
+    meaning: >-
+      Earliest coverage for the requested symbol and data type. Present ONLY when the requested
+      window ends before coverage begins - i.e. the API tells a caller that an empty result is a
+      coverage boundary, not a data gap. This is a genuinely useful, uncommon field.
+  - name: notice
+    meaning: Human-readable advisory attached to the response, currently used for the coverage case.
+  error_envelope: See errors/0xarchive-problem-types.yml - three distinct shapes, split by route class.
+request_tracing:
+  header: x-request-id
+  in_body: meta.request_id (standard envelope) or top-level request_id (resource-specific envelope)
+  observed: true
+  observed_on: 2026-09-01 on both a 200 /health and a 401 /v1/instruments response
+  guidance: >-
+    The docs make request-id capture a first-class client requirement, not debug detail: persist
+    it per page of a paginated job, expose it on returned objects and thrown exceptions in
+    generated clients, and keep both failed-attempt ids and the final successful id in trace logs.
+field_expansion:
+  supported: false
+  note: No expand/fields/sparse-fieldset parameter is published. Responses are fixed-shape per route.
+filtering:
+  style: query parameters, per route
+  common_params:
+  - symbol
+  - start
+  - end
+  - limit
+  - cursor
+  - interval
+  - depth
+  - granularity
+  - exchange
+  - user
+  domain_params:
+  - name: interval
+    values: [1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w]
+  - name: aggregation interval
+    values: [5m, 15m, 30m, 1h, 4h, 1d]
+    note: Omit for raw ~1-minute data.
+symbol_conventions:
+  note: >-
+    The single most error-prone convention in this API, and the provider documents it explicitly
+    because it is the cause of most apparent 404s. Coin format is NOT uniform across venue
+    families.
+  families:
+  - family: Hyperliquid core
+    prefix: /v1/hyperliquid
+    format: UPPERCASE
+    examples: [BTC, ETH, SOL]
+    note: Auto-uppercased server-side.
+  - family: HIP-3 builder perps
+    prefix: /v1/hyperliquid/hip3
+    format: case-sensitive builder:NAME
+    examples: ['km:US500', 'xyz:GOLD', 'vntl:SPACEX']
+    note: Passed through as-is - NOT uppercased. A lowercase builder prefix is significant.
+  - family: HIP-4 outcome markets
+    prefix: /v1/hyperliquid/hip4
+    format: bare numeric <10*outcome_id + side>
+    examples: ['0', '1', '10', '11']
+    note: >-
+      0 is outcome 0 / side 0 (YES), 1 is outcome 0 / side 1 (NO). The legacy '#0' and '%230'
+      forms still work over REST; the WebSocket JSON still uses the raw '#0' form.
+  - family: Hyperliquid Spot
+    prefix: /v1/hyperliquid/spot
+    format: dashed canonical BASE-QUOTE
+    examples: [HYPE-USDC, PURR-USDC, AAPL-USDC]
+    note: The server resolves the dashed form to the wire format (PURR/USDC, @107) internally.
+  - family: Lighter
+    prefix: /v1/lighter
+    format: UPPERCASE
+    examples: [BTC, ETH]
+timestamps:
+  unit: Unix milliseconds
+  also_accepted: ISO 8601 on start/end parameters
+  note: All timestamps in requests and responses are Unix milliseconds.
+versioning: See lifecycle/0xarchive-lifecycle.yml
+rate_limit_signaling: See rate-limits/0xarchive-rate-limits.yml
+errors: See errors/0xarchive-problem-types.yml

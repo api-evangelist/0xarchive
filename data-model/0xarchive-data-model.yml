@@ -1,0 +1,263 @@
+generated: '2026-09-01'
+method: derived
+source: openapi/0xarchive-openapi.json
+note: >-
+  Derived from the 141 component schemas and the $ref graph in the published OpenAPI 3.0.3
+  contract, cross-checked against the coin-format rules the provider documents per venue family.
+  The shape of this model is unusual and worth stating plainly: 0xArchive has almost no mutable
+  entities. It is a time-series archive, so the "entities" are a small set of identity anchors
+  (venue family, instrument, outcome, wallet) and a large set of immutable, timestamped
+  observations keyed by (venue family, symbol, timestamp). There are no create/update/delete
+  relationships to model - the graph below is a read graph.
+identity:
+  primary_key: (venue_family, symbol, timestamp)
+  note: >-
+    Symbol alone is NOT a key. The same string means different instruments in different families,
+    and the format itself differs per family - this is the model's central subtlety and the
+    documented cause of most 404s.
+  symbol_domains:
+  - family: hyperliquid
+    format: UPPERCASE ticker
+    example: BTC
+  - family: hyperliquid/hip3
+    format: case-sensitive builder:NAME
+    example: 'km:US500'
+  - family: hyperliquid/hip4
+    format: numeric <10*outcome_id + side>
+    example: '11'
+  - family: hyperliquid/spot
+    format: dashed BASE-QUOTE
+    example: HYPE-USDC
+  - family: lighter
+    format: UPPERCASE ticker
+    example: BTC
+id_domains:
+- field: symbol
+  domain: instrument identity within a venue family
+  appears_in_schemas: 20
+- field: coin
+  domain: venue-native coin identifier; the wire form of symbol
+  appears_in_schemas: 16
+- field: trade_id
+  alias: tid
+  domain: fill identity
+  note: >-
+    A single trade emits TWO records (maker and taker) paired by tid. The docs instruct clients
+    subscribing to both trades and liquidations channels to dedupe on tid, because a liquidation
+    fill flows on both.
+- field: order_id
+  domain: venue order identity, present on L4 order-level records
+- field: cloid
+  domain: client-assigned order id, joins fills back to submissions
+- field: twap_id
+  domain: TWAP parent-order identity; joins child fills to the parent TWAP order
+- field: outcome_id
+  domain: HIP-4 outcome market identity; symbol = 10*outcome_id + side
+- field: question_id
+  domain: HIP-4 question identity; groups outcomes
+- field: user_address
+  aliases: [wallet_address, maker_address, taker_address, counterparty_address]
+  domain: EVM wallet address
+- field: builder_address
+  domain: HIP-3 builder / order-routing relay identity
+- field: tx_hash
+  domain: EVM transaction hash; present on spot fills and HIP-4 settlement provenance
+- field: key_id
+  domain: API key identity, used by the wallet key-revocation path
+- field: request_id
+  domain: response correlation UUID, not a data identifier
+entities:
+- name: VenueFamily
+  kind: conceptual
+  values: [hyperliquid, hyperliquid/spot, hyperliquid/hip3, hyperliquid/hip4, lighter]
+  note: >-
+    Not a schema, but the top-level partition of the entire model - it is the route prefix, it
+    determines symbol format, and it determines which data families exist at all.
+- name: Instrument
+  schemas: [Instrument, LighterInstrument, Hip3Instrument]
+  key: symbol
+  note: Leverage, decimals, active status. One schema variant per venue family.
+- name: SpotPair
+  key: symbol (dashed BASE-QUOTE)
+  note: Hyperliquid Spot pair metadata; a separate resource from perpetual instruments.
+- name: Hip4Outcome
+  schemas: [Hip4Outcome, Hip4OutcomeAggregate, Hip4SideSpec, Hip4AggregatedOi]
+  key: outcome_id
+  note: >-
+    The only genuinely relational entity in the model. An outcome aggregates its two sides
+    (YES = 10*id, NO = 10*id+1), carries an aggregated_oi paired-set snapshot across both sides,
+    and records settlement provenance (block_number, block_time, oracle_tx_hash) once settled.
+- name: Hip4Question
+  key: question_id
+  note: Groups one or more outcomes.
+- name: OrderBook
+  schemas: [OrderBook, PriceLevel, OrderbookDelta]
+  key: (venue_family, symbol, timestamp)
+  depths: [L2 aggregated, L3 order-level (Lighter native), L4 order-level (Hyperliquid reconstruction)]
+- name: Trade
+  schemas: [Trade]
+  key: (venue_family, symbol, trade_id)
+  note: >-
+    Carries the extended fee breakdown added in 1.9.0 - builder_address, builder_fee, deployer_fee,
+    priority_gas, cloid, twap_id, fee_token, tx_hash - so a fill can be attributed to its builder,
+    its TWAP parent and its on-chain transaction.
+- name: Candle
+  schemas: [Candle]
+  key: (venue_family, symbol, interval, timestamp)
+  note: For HIP-4, candle prices are implied probabilities in [0,1], not USD.
+- name: FundingRate
+  schemas: [FundingRate]
+  key: (venue_family, symbol, timestamp)
+  absent_for: [hyperliquid/spot, hyperliquid/hip4]
+- name: OpenInterest
+  schemas: [OpenInterest, Hip4OpenInterestRecord]
+  key: (venue_family, symbol, timestamp)
+  absent_for: [hyperliquid/spot]
+- name: Liquidation
+  schemas: [Liquidation, LiquidationVolume]
+  key: (venue_family, symbol, trade_id)
+  absent_for: [hyperliquid/spot, hyperliquid/hip4]
+  note: >-
+    A liquidation IS a fill with is_liquidation true - identical wire shape to Trade. LiquidationVolume
+    is the aggregated bucket form the docs recommend as the default for dashboards and scans.
+- name: LiquidationLevels
+  key: (venue_family, symbol, timestamp)
+  note: >-
+    Projected forced-liquidation price buckets computed from clearinghouse positions and margin
+    state, refreshed about every 5 minutes. A derived analytic, not a venue observation.
+- name: TriggerLevels
+  key: (venue_family, symbol, timestamp)
+  note: Pending stop-loss / take-profit trigger map with an as_of freshness timestamp.
+- name: Order
+  key: (venue_family, symbol, order_id)
+  note: Order lifecycle (history), order flow, and TP/SL surfaces on L4-capable families.
+- name: TwapOrder
+  key: twap_id
+  note: Hyperliquid Spot only; queryable by symbol or by user.
+- name: CoinFreshness
+  schemas: [CoinFreshness, DataTypeFreshness]
+  key: (venue_family, symbol)
+  note: Per-symbol, per-data-type freshness - the "is this safe to use right now" check.
+- name: CoinSummary
+  schemas: [CoinSummary]
+  key: (venue_family, symbol)
+  note: Multi-signal snapshot joining mark/oracle/mid price, funding, OI and 24h volume.
+- name: Coverage
+  schemas: [CoverageResponse, ExchangeCoverageResponse, DataTypeCoverage, SymbolCoverageResponse, SymbolDataTypeCoverage, CoverageGap]
+  note: >-
+    The archive's self-description - what exists, from when, and where the gaps are. CoverageGap
+    is a first-class schema, which is a meaningful design choice for an archive: missing data is
+    modelled explicitly rather than being indistinguishable from an empty result.
+- name: Incident / Sla / Latency
+  schemas: [StatusResponse, ExchangeStatus, DataTypeStatus]
+  note: Operational health as queryable data rather than only a status page.
+- name: ApiKey
+  key: key_id
+  note: Managed only through the SIWE wallet routes; listed and revoked, never read back.
+relationships:
+- from: VenueFamily
+  to: Instrument
+  type: has_many
+  via: symbol
+- from: Instrument
+  to: OrderBook
+  type: has_many
+  via: symbol + timestamp
+- from: Instrument
+  to: Trade
+  type: has_many
+  via: symbol
+- from: Instrument
+  to: Candle
+  type: has_many
+  via: symbol + interval
+- from: Instrument
+  to: FundingRate
+  type: has_many
+  via: symbol
+  applies_to: [hyperliquid, hyperliquid/hip3, lighter]
+- from: Instrument
+  to: OpenInterest
+  type: has_many
+  via: symbol
+- from: Instrument
+  to: Liquidation
+  type: has_many
+  via: symbol
+  applies_to: [hyperliquid, hyperliquid/hip3, lighter]
+- from: Instrument
+  to: CoinFreshness
+  type: has_one
+  via: symbol
+- from: Instrument
+  to: CoinSummary
+  type: has_one
+  via: symbol
+- from: Hip4Question
+  to: Hip4Outcome
+  type: has_many
+  via: question_id
+- from: Hip4Outcome
+  to: Hip4SideSpec
+  type: has_many
+  via: outcome_id
+  cardinality: exactly 2 (YES = 10*outcome_id, NO = 10*outcome_id + 1)
+- from: Hip4Outcome
+  to: Hip4AggregatedOi
+  type: has_one
+  via: outcome_id
+- from: Hip4Outcome
+  to: Instrument
+  type: has_many
+  via: 'symbol = 10*outcome_id + side'
+  note: The join is arithmetic, not a foreign key - an unusual and easy-to-get-wrong relationship.
+- from: Trade
+  to: Trade
+  type: has_one
+  via: trade_id (tid)
+  note: Maker/taker pairing - one economic trade is two records sharing a tid.
+- from: TwapOrder
+  to: Trade
+  type: has_many
+  via: twap_id
+- from: Order
+  to: Trade
+  type: has_many
+  via: cloid
+- from: Wallet (user_address)
+  to: Liquidation
+  type: has_many
+  via: user
+  note: Exposed directly as /v1/hyperliquid/liquidations/user/{user}.
+- from: Wallet (user_address)
+  to: TwapOrder
+  type: has_many
+  via: user
+  applies_to: [hyperliquid/spot]
+- from: Builder (builder_address)
+  to: Trade
+  type: has_many
+  via: builder_address
+  note: Present on HIP-3 and Spot fills; builder_fee attributes revenue to the routing builder.
+- from: OrderBook
+  to: PriceLevel
+  type: has_many
+  via: '$ref'
+- from: OrderBook
+  to: OrderbookDelta
+  type: has_many
+  via: diffs stream
+- from: VenueFamily
+  to: Coverage
+  type: has_one
+  via: exchange
+- from: Coverage
+  to: CoverageGap
+  type: has_many
+envelope:
+  wrapper_schemas: 26
+  pattern: ApiResponse<Type> and ApiResponse<Type>Array
+  note: >-
+    Every payload schema has one or two generated envelope wrappers pairing it with ApiMeta.
+    26 of the 141 component schemas are envelope wrappers rather than domain types, so the real
+    domain vocabulary is closer to 115 schemas.

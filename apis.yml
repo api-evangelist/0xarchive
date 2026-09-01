@@ -1,99 +1,295 @@
-name: 0xArchive Market Data API
-description: >-
-  Current and historical crypto market data across Hyperliquid (perpetuals, Spot, HIP-3, HIP-4) and Lighter venues,
-  offered via REST, WebSocket streaming with historical replay, Parquet exports, and agent-native access (hosted MCP
-  server).
-url: https://raw.githubusercontent.com/api-evangelist/0xarchive-market-data-api/refs/heads/main/apis.yml
-created: '2026-08-31'
-modified: '2026-08-31'
-specificationVersion: '0.21'
-tags:
-  - market data
-  - historical data
-  - crypto / DeFi
-  - perpetuals / derivatives
-  - Hyperliquid
-  - Lighter
-  - WebSocket / streaming
-  - REST / OpenAPI
-  - MCP
-  - agent-native
-  - x402
-apis:
-  - name: 0xArchive REST API
-    description: >-
-      Versioned REST API (/v1) for current and historical market data namespaced by venue family (Hyperliquid
-      core/Spot/HIP-3/HIP-4, Lighter). API key auth via X-API-Key header.
-    humanURL: https://docs.0xarchive.io/rest-api
-    baseURL: https://api.0xarchive.io
-    tags:
-      - market data
-      - historical data
-      - crypto / DeFi
-      - perpetuals / derivatives
-      - Hyperliquid
-      - Lighter
-      - WebSocket / streaming
-      - REST / OpenAPI
-      - MCP
-      - agent-native
-      - x402
-    properties:
-      - type: OpenAPI
-        url: https://0xarchive.io/openapi.json
-      - type: Documentation
-        url: https://docs.0xarchive.io/rest-api
-  - name: 0xArchive WebSocket API
-    description: >-
-      Real-time WebSocket streaming and historical replay. Bearer API key sent during handshake. Documented via
-      prose/schema pages; no AsyncAPI file published.
-    humanURL: https://docs.0xarchive.io/
-    baseURL: wss://api.0xarchive.io/ws
-    tags:
-      - market data
-      - historical data
-      - crypto / DeFi
-      - perpetuals / derivatives
-      - Hyperliquid
-      - Lighter
-      - WebSocket / streaming
-      - REST / OpenAPI
-      - MCP
-      - agent-native
-      - x402
-    properties:
-      - type: Documentation
-        url: https://docs.0xarchive.io/
-  - name: 0xArchive MCP Server
-    description: >-
-      Hosted, read-only MCP server (streamable-http transport, tools enabled) using client-managed OAuth bearer with
-      scope mcp:market.read. No 0xArchive API key required.
-    humanURL: https://docs.0xarchive.io/mcp-server
-    baseURL: https://mcp.0xarchive.io/mcp
-    tags:
-      - market data
-      - historical data
-      - crypto / DeFi
-      - perpetuals / derivatives
-      - Hyperliquid
-      - Lighter
-      - WebSocket / streaming
-      - REST / OpenAPI
-      - MCP
-      - agent-native
-      - x402
-    properties:
-      - type: MCPServer
-        url: https://mcp.0xarchive.io/mcp
-      - type: LLMsTxt
-        url: https://0xarchive.io/llms.txt
-      - type: Documentation
-        url: https://docs.0xarchive.io/mcp-server
+aid: 0xarchive
+name: 0xArchive
+description: '0xArchive is a replayable market-data archive for two decentralised perpetuals venues, Hyperliquid and Lighter,
+  delivered as one REST API, one WebSocket API that carries both live subscriptions and historical replay on a single connection,
+  bulk Parquet export, and a hosted MCP server. Hyperliquid coverage is split into four route families - core perpetuals,
+  Spot, HIP-3 builder perps and HIP-4 binary outcome markets - each with its own symbol format and its own set of available
+  data types. Beyond order books, trades, candles, funding, open interest and liquidations, the archive reconstructs order-level
+  depth that the venues do not serve directly: L4 for the Hyperliquid families and L3 for Lighter. Access is unusually flat
+  - every plan including Free reaches every route family, schema and served depth, and plans gate capacity and Free''s rolling
+  30-day history window rather than route access. An agent can buy its own 30-day Build or Pro access with an x402 USDC payment
+  on Base and receive an API key on settlement, with no human signup step.'
+image: https://0xarchive.io/logo-mark.svg
+url: https://0xarchive.io/apis.json
+created: '2026-08-30'
+modified: '2026-09-01'
+specificationVersion: '0.23'
 maintainers:
-  - FN: 0xArchive Market Data API
-    url: https://0xarchive.io/
-generated:
-  by: apis.io/add
-  model: claude-opus-4-8
-  confidence: 97
-  at: '2026-08-31T21:55:11.915Z'
+- FN: 0xArchive Support
+  email: support@0xarchive.io
+tags:
+- market data
+- historical data
+- crypto
+- DeFi
+- perpetuals
+- derivatives
+- order book
+- Hyperliquid
+- Lighter
+- HIP-3
+- HIP-4
+- prediction markets
+- WebSocket
+- streaming
+- historical replay
+- Parquet
+- bulk data
+- MCP
+- agent-native
+- x402
+- OpenAPI
+- REST
+tags_raw:
+- market-data
+- historical-data
+- crypto
+- defi
+- perpetuals
+- derivatives
+- order-book
+- hyperliquid
+- lighter
+- hip-3
+- hip-4
+- prediction-markets
+- websocket
+- streaming
+- historical-replay
+- parquet
+- bulk-data
+- mcp
+- agent-native
+- x402
+- openapi
+- rest
+apis:
+- name: 0xArchive REST API
+  description: Current and historical market data across Hyperliquid core, Spot, HIP-3, HIP-4, and Lighter. Direct market-data
+    requests use X-API-Key.
+  image: https://0xarchive.io/logo-mark.svg
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - REST
+  - OpenAPI
+  - market data
+  properties:
+  - type: OpenAPI
+    url: https://0xarchive.io/openapi.json
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: MCPServer
+    url: https://mcp.0xarchive.io/mcp
+    description: 'Live MCP, gated: initialize returns 401 "Missing Authorization". Present and auth-required, not absent.
+      Found via their own .well-known/mcp.json descriptor. Verified 2026-09-01.'
+  - type: OpenAPI
+    url: openapi/0xarchive-openapi.json
+  - type: Overlay
+    url: overlays/0xarchive-openapi-overlay.yaml
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- name: 0xArchive WebSocket API
+  description: Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid and Lighter.
+    Clients authenticate during the handshake with a bearer API key.
+  image: https://0xarchive.io/logo-mark.svg
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - WebSocket
+  - streaming
+  - replay
+  properties:
+  - type: Documentation
+    url: https://docs.0xarchive.io/websocket
+  - type: Authentication
+    url: https://docs.0xarchive.io/websocket/connection
+  - type: Schema
+    url: https://docs.0xarchive.io/websocket/schema
+  - type: RateLimits
+    url: https://docs.0xarchive.io/websocket/tier-limits
+  - type: Replay
+    url: https://docs.0xarchive.io/websocket/replay
+  - type: Channels
+    url: asyncapi/0xarchive-websocket-channels.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/websocket/real-time
+- name: 0xArchive Hosted MCP
+  description: Read-only market-data discovery and retrieval for MCP clients. Hosted MCP uses client-managed OAuth and requires
+    no 0xArchive API key.
+  image: https://0xarchive.io/logo-mark.svg
+  humanURL: https://docs.0xarchive.io/mcp-server
+  baseURL: https://mcp.0xarchive.io/mcp
+  tags:
+  - MCP
+  - agents
+  - OAuth
+  properties:
+  - type: MCPServerCard
+    url: https://0xarchive.io/.well-known/mcp/server-card.json
+  - type: OAuthProtectedResource
+    url: https://mcp.0xarchive.io/.well-known/oauth-protected-resource
+  - type: Documentation
+    url: https://docs.0xarchive.io/mcp-server
+  - type: Authentication
+    url: https://docs.0xarchive.io/mcp-server
+  - type: MCPServer
+    url: mcp/0xarchive-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/0xarchive-tool-crosswalk.yml
+  - type: OAuthScopes
+    url: scopes/0xarchive-scopes.yml
+  - type: AgentCard
+    url: a2a/0xarchive-a2a.yml
+  - type: AgentSkill
+    url: skills/_index.yml
+common:
+- type: Website
+  url: https://0xarchive.io/
+- type: Portal
+  url: https://docs.0xarchive.io/
+- type: APICatalog
+  url: https://0xarchive.io/.well-known/api-catalog
+- type: APIOnboarding
+  url: https://0xarchive.io/.well-known/api-onboarding
+- type: SpectralRules
+  url: https://0xarchive.io/.well-known/spectral-ruleset.yaml
+- type: AICatalog
+  url: https://0xarchive.io/.well-known/ai-catalog.json
+- type: LLMSTxt
+  url: https://0xarchive.io/llms.txt
+- type: x402Facilitator
+  url: https://0xarchive.io/facilitator
+- type: Pricing
+  url: https://0xarchive.io/pricing
+- type: TermsOfService
+  url: https://0xarchive.io/terms
+- type: PrivacyPolicy
+  url: https://0xarchive.io/privacy
+- type: DataLicense
+  url: https://docs.0xarchive.io/data-rights
+- type: Security
+  url: https://0xarchive.io/.well-known/security.txt
+- type: Status
+  url: https://0xarchive.io/status
+- type: ChangeLog
+  url: https://0xarchive.io/changelog
+- type: Support
+  url: mailto:support@0xarchive.io
+- type: VulnerabilityDisclosure
+  url: security/0xarchive-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/0xarchive-domain-security.yml
+- type: Authentication
+  url: authentication/0xarchive-authentication.yml
+- type: OpenAPI
+  url: openapi/0xarchive-openapi.json
+- type: Overlay
+  url: overlays/0xarchive-openapi-overlay.yaml
+- type: LLMsTxt
+  url: llms/0xarchive-llms.txt
+- type: WellKnown
+  url: well-known/0xarchive-well-known.yml
+- type: SecurityTxt
+  url: well-known/0xarchive-security.txt
+- type: AgentCard
+  url: a2a/0xarchive-a2a.yml
+- type: MCPServer
+  url: mcp/0xarchive-mcp.yml
+- type: ToolCrosswalk
+  url: mcp/0xarchive-tool-crosswalk.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Packages
+  url: packages/0xarchive-packages.yml
+- type: SDKs
+  url: packages/0xarchive-packages.yml
+- type: CLI
+  url: cli/0xarchive-cli.yml
+- type: Conformance
+  url: conformance/0xarchive-conformance.yml
+- type: ErrorCatalog
+  url: errors/0xarchive-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/0xarchive-lifecycle.yml
+- type: StatusPage
+  url: https://0xarchive.io/status
+- type: OAuthScopes
+  url: scopes/0xarchive-scopes.yml
+- type: Security
+  url: security/0xarchive-vulnerability-disclosure.yml
+- type: Conventions
+  url: conventions/0xarchive-conventions.yml
+- type: Sandbox
+  url: sandbox/0xarchive-sandbox.yml
+- type: DataModel
+  url: data-model/0xarchive-data-model.yml
+- type: Plans
+  url: plans/0xarchive-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/0xarchive-rate-limits.yml
+- type: ChangeLog
+  url: changelog/0xarchive-changelog.yml
+- type: DeveloperPortal
+  url: https://docs.0xarchive.io/
+- type: Documentation
+  url: https://docs.0xarchive.io/
+- type: APIReference
+  url: https://docs.0xarchive.io/api-reference
+- type: GettingStarted
+  url: https://docs.0xarchive.io/quickstart
+- type: Support
+  url: https://0xarchive.io/contact
+- type: Blog
+  url: https://0xarchive.io/blog
+- type: GitHubOrganization
+  url: https://github.com/0xArchiveIO
+- type: SignUp
+  url: https://0xarchive.io/signup
+- type: Login
+  url: https://0xarchive.io/login
+- type: Examples
+  url: https://github.com/0xArchiveIO/examples
+x-enrichment:
+  date: '2026-09-01'
+  status: enriched
+  artifacts_added: 41
+  pass: local-v1

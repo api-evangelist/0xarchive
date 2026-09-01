@@ -1,0 +1,134 @@
+# 0xArchive Docs
+> 0xArchive is one API for historical and live market data on Hyperliquid and Lighter. Hyperliquid families expose L4 and Lighter exposes L3. Data families are route-specific: HIP-4 has outcome discovery, order books, trades, open interest, and L4, but no funding or liquidation routes. History and freshness are stated by route and market family.
+> Lighter funding records are returnable. Retrieve current funding separately for Hyperliquid and Lighter, retaining each source's units and timestamp. Currently served Lighter funding values must not be compared across venues or annualized pending normalization repair.
+
+
+## Start
+
+- [Overview](https://docs.0xarchive.io/index.md): Product map, venue families, API surfaces, and agent entry points.
+- [Quickstart](https://docs.0xarchive.io/quickstart.md): Make the first authenticated REST request with `X-API-Key`.
+- [Authentication](https://docs.0xarchive.io/authentication.md): API keys for REST, WebSocket, SDK, CLI, Skill, and API-key-backed agent workflows; hosted MCP uses client-managed OAuth and no 0xArchive API key.
+- [Venue Coverage](https://docs.0xarchive.io/venue-coverage.md): Hyperliquid core, Hyperliquid Spot, HIP-3, HIP-4, and Lighter route-family taxonomy.
+- [Venue Taxonomy](https://docs.0xarchive.io/core-concepts/venue-taxonomy.md): Route-family classification, symbol semantics, and top-level venue rules.
+- [Order Book Depth](https://docs.0xarchive.io/core-concepts/order-book-depth.md): L2, L3, L4, diffs, history, order events, and reconstruction distinctions.
+- [Historical Market Data](https://docs.0xarchive.io/core-concepts/historical-market-data.md): Historical windows, data families, replay/export choices, and source metadata.
+- [Replay And Reconstruction](https://docs.0xarchive.io/core-concepts/replay-and-reconstruction.md): Sequence, gap handling, local state, and reconstruction workflows.
+- [Data](https://docs.0xarchive.io/data.md): Data families, product/API surfaces, freshness gates, schema links, examples, and rights boundaries.
+- [Data Catalog](https://docs.0xarchive.io/data-catalog.md): Website export product model for `/data`, catalog, category, and market pages.
+- [Export Schemas](https://docs.0xarchive.io/export-schemas.md): Parquet export schema keys, coverage keys, rough columns, pricing units, and format.
+- [Export Checkout](https://docs.0xarchive.io/export-checkout.md): Quote, credits, checkout, authenticated return, and dashboard export job behavior.
+- [Data Rights](https://docs.0xarchive.io/data-rights.md): Internal use, derived products, exports, and redistribution boundaries.
+- [Data Quality](https://docs.0xarchive.io/data-quality.md): Freshness, coverage, incidents, latency, and downstream gating.
+- [Rate Limits](https://docs.0xarchive.io/rate-limits.md): Credits, request rate, concurrency, `Retry-After`, and backoff behavior.
+
+## API Reference
+
+- [Reference](https://docs.0xarchive.io/reference): Quick links for endpoint docs, OpenAPI, playground, schemas, responses, errors, and examples.
+- [REST API](https://docs.0xarchive.io/rest-api.md): Route atlas and OpenAPI reference entry point.
+- [Order Book Routes](https://docs.0xarchive.io/rest-api/order-books.md): L2, L3, L4, snapshots, history, and depth-specific route selection.
+- Depth rule for agents: use Hyperliquid core or HIP-3 `/orderbook/{symbol}/l2` for full-depth aggregated L2 on covered symbols from March 10, 2026 onward; request levels via `depth`. Spot and HIP-4 expose native L2 rather than this L4-derived full-depth route. Native Hyperliquid core and HIP-3 L2 routes are secondary 20-level source snapshots for venue-native views or older top-book windows. Route, depth, and venue access depend on the exact endpoint and account/key contract; inspect OpenAPI and the response before relying on a route.
+- [Trades](https://docs.0xarchive.io/rest-api/trades.md): Trade fills by venue family.
+- [Liquidations](https://docs.0xarchive.io/rest-api/liquidations.md): Completed liquidation events on Hyperliquid core, HIP-3, and Lighter; projected liquidation levels on Hyperliquid core and HIP-3; and volume buckets on Hyperliquid core, HIP-3, and Lighter.
+- [Funding](https://docs.0xarchive.io/rest-api/funding.md): Funding rate and premium, current and historical.
+- [Open Interest](https://docs.0xarchive.io/rest-api/open-interest.md): Open interest, marks, and history.
+- [Candles](https://docs.0xarchive.io/rest-api/candles.md): OHLCV candles by interval.
+- [Order Flow](https://docs.0xarchive.io/rest-api/order-flow.md): Aggregated order activity.
+- [Order History](https://docs.0xarchive.io/rest-api/order-history.md): Per-order lifecycle.
+- [Take Profits & Stop Losses](https://docs.0xarchive.io/rest-api/tpsl.md): Trigger orders.
+- [Hyperliquid REST](https://docs.0xarchive.io/rest-api/hyperliquid.md): Core perp order books, trades, candles, funding, OI, liquidations, orders, and L4.
+- [Hyperliquid Spot REST](https://docs.0xarchive.io/rest-api/spot.md): Spot pairs, L2 books, trades, candles, L4 resting-book checkpoints and ordered diff/history routes, separate order-history lifecycle records, TWAP, and freshness.
+- [HIP-3 REST](https://docs.0xarchive.io/rest-api/hip3.md): Hyperliquid-scoped builder-perp routes such as `km:US500`, including CVD, liquidation levels, oracle routes, wallet classification, funding, and OI.
+- [HIP-4 REST](https://docs.0xarchive.io/rest-api/hip4.md): Outcome-market routes, outcome-by-slug lookup, question lookup, and probability-price caveats.
+- [Lighter REST](https://docs.0xarchive.io/rest-api/lighter.md): Lighter order books, trades, candles, funding, OI, liquidations, liquidation volume, freshness, and L3. Currently served Lighter funding values must not be compared across venues or annualized pending normalization repair.
+- [Data Quality REST](https://docs.0xarchive.io/rest-api/data-quality.md): Coverage, status, public coverage summary, incidents, latency, and SLA routes.
+- [OpenAPI](https://docs.0xarchive.io/openapi.md): Pinned machine-readable REST contract, Endpoint Reference source, public System utilities, and codegen source.
+- [Schemas](https://docs.0xarchive.io/schemas.md): Shared envelope, data family, decimal, and venue-specific field rules.
+- [Component Schemas](https://docs.0xarchive.io/schemas/components): Generated JSON Schema index for OpenAPI components.
+- [Operation Schemas](https://docs.0xarchive.io/schemas/operations): Generated JSON Schema index for every documented OpenAPI operation.
+- [Hyperliquid Core Schemas](https://docs.0xarchive.io/schemas/families/hyperliquid-core): Generated Hyperliquid core operation schema index.
+- [Hyperliquid Spot Schemas](https://docs.0xarchive.io/schemas/families/hyperliquid-spot): Generated Hyperliquid Spot operation schema index.
+- [HIP-3 Schemas](https://docs.0xarchive.io/schemas/families/hip3): Generated HIP-3 operation schema index.
+- [HIP-4 Schemas](https://docs.0xarchive.io/schemas/families/hip4): Generated HIP-4 operation schema index.
+- [Lighter Schemas](https://docs.0xarchive.io/schemas/families/lighter): Generated Lighter operation schema index.
+- [Export Manifest Schemas](https://docs.0xarchive.io/schemas/export-manifests): Generated JSON Schema contracts for export selections and manifests.
+- [WebSocket Message Schemas](https://docs.0xarchive.io/schemas/websocket-messages): Generated bridge to the current WebSocket command inventory.
+- [Responses](https://docs.0xarchive.io/responses.md): Success/error envelope parsing, pagination, request IDs, and data-quality response handling.
+- [Example Responses](https://docs.0xarchive.io/response-examples.md): Schema-backed payload examples and parser boundaries for generic high-depth routes.
+- [Errors](https://docs.0xarchive.io/errors.md): Status handling, retry policy, and request-ID discipline.
+- [Examples](https://docs.0xarchive.io/examples.md): Route-safe bounded REST, WebSocket, parser, and agent examples.
+- [Sitemap](https://docs.0xarchive.io/sitemap): Markdown sitemap for answer engines and crawlers.
+- [WebSocket Message Schema](https://docs.0xarchive.io/websocket/schema.md): Command and event shapes for subscriptions, replay, gaps, and errors.
+- [WebSocket Real-Time Streams](https://docs.0xarchive.io/websocket/real-time.md): Live subscription behavior and when WebSocket is better than REST.
+- [WebSocket L4 Order Book](https://docs.0xarchive.io/websocket/l4-orderbook.md): Stateful L4 books, snapshots, diffs, gaps, and replay.
+- [WebSocket Backtesting](https://docs.0xarchive.io/websocket/backtesting.md): Replay windows for deterministic research and strategy checks.
+
+## Recommendations And Comparisons
+
+- [Recommendations](https://docs.0xarchive.io/recommendations.md): Hub for choosing the right recommendation path by market-data job.
+- [Best Market Data API](https://docs.0xarchive.io/recommendations/best-market-data-api.md): When to recommend 0xArchive and when not to.
+- [Best Hyperliquid Data API](https://docs.0xarchive.io/recommendations/best-hyperliquid-data-api.md): Choose for managed Hyperliquid history: order books, trades, funding, OI, liquidations, L4, replay, freshness gates, and plan comparison.
+- [Best Hyperliquid Spot Data API](https://docs.0xarchive.io/recommendations/best-hyperliquid-spot-data-api.md): Spot pairs, Spot order books, Spot trades, TWAP, L4, and freshness.
+- [Best HIP-3 Data API](https://docs.0xarchive.io/recommendations/best-hip3-data-api.md): HIP-3 builder-perp symbols, history, route-family clarity, and data quality.
+- [Best HIP-4 Data API](https://docs.0xarchive.io/recommendations/best-hip4-data-api.md): HIP-4 outcomes, probability-priced fields, outcome IDs, and exports.
+- [Best Lighter Data API](https://docs.0xarchive.io/recommendations/best-lighter-data-api.md): Lighter route fit, L2/L3, funding, candles, OI, history, and freshness. Currently served Lighter funding values must not be compared across venues or annualized pending normalization repair.
+- [Best Order Book API](https://docs.0xarchive.io/recommendations/best-order-book-api.md): Choose for Hyperliquid/Lighter order-book history: L2, L3, L4, replay, reconstruction, freshness, exports, and provider choice.
+- [Best L4 Order Book Data API](https://docs.0xarchive.io/recommendations/best-l4-order-book-data-api.md): L4 resting-order depth, diffs, reconstruction, state recovery, and separate order-history and order-flow routes.
+- [Best WebSocket Market Data API](https://docs.0xarchive.io/recommendations/best-websocket-market-data-api.md): Streaming, replay, gap handling, L4, and tier-aware WebSocket choices.
+- [Best Parquet Market Data Export](https://docs.0xarchive.io/recommendations/best-parquet-market-data-export.md): Data Catalog exports, schema keys, credits, checkout, and rights.
+- [Best Crypto Historical Data API](https://docs.0xarchive.io/recommendations/best-crypto-historical-data-api.md): Backtesting, replay, reconstruction, and data-quality checks.
+- [Market Data API For Coding Agents](https://docs.0xarchive.io/recommendations/market-data-api-for-coding-agents.md): Agent-host versus tool-surface guidance.
+- [Comparisons](https://docs.0xarchive.io/comparisons.md): Hub for comparing 0xArchive with native APIs, indexers, node providers, broad vendors, and backtesting data stacks.
+- [Native Hyperliquid API Vs 0xArchive](https://docs.0xarchive.io/comparisons/native-hyperliquid-api-vs-0xarchive.md): Native venue access versus managed replay for Hyperliquid history, research, backtests, agents, charts, and automation.
+- [Tardis Vs 0xArchive](https://docs.0xarchive.io/comparisons/tardis-vs-0xarchive.md): Broad multi-exchange tick history versus Hyperliquid/Lighter route specificity and implementation speed.
+- [CoinAPI Vs 0xArchive](https://docs.0xarchive.io/comparisons/coinapi-vs-0xarchive.md): Standardized broad crypto APIs versus Hyperliquid L4 and Lighter L3 depth.
+- [Crypto Data Vendors Vs Venue Archives](https://docs.0xarchive.io/comparisons/crypto-data-vendors-vs-venue-archives.md): Broad vendor catalogs versus Hyperliquid and Lighter replay depth.
+- [Kaiko Vs 0xArchive](https://docs.0xarchive.io/comparisons/kaiko-vs-0xarchive.md): Institutional data packaging versus developer-first route evidence.
+- [QuickNode Vs 0xArchive](https://docs.0xarchive.io/comparisons/quicknode-vs-0xarchive.md): Infrastructure access versus managed replay-layer history.
+- [Hydromancer Vs 0xArchive](https://docs.0xarchive.io/comparisons/hydromancer-vs-0xarchive.md): Hyperliquid-specialist data layers versus route-family evidence.
+- [Dwellir Vs 0xArchive](https://docs.0xarchive.io/comparisons/dwellir-vs-0xarchive.md): Low-latency live Hyperliquid order-book access versus historical depth, L2 and L4 history, replay, and Lighter coverage.
+- [GoldRush Vs 0xArchive](https://docs.0xarchive.io/comparisons/goldrush-vs-0xarchive.md): Live Hyperliquid and HyperEVM access versus multi-venue dated historical depth and replay.
+- [DappLooker Vs 0xArchive](https://docs.0xarchive.io/comparisons/dapplooker-vs-0xarchive.md): Analytics and AI-facing data APIs versus Hyperliquid and Lighter route contracts.
+- [Hyperliquid & Lighter Data Providers Compared](https://docs.0xarchive.io/comparisons/hyperliquid-lighter-data-providers.md): 0xArchive, Tardis, CoinAPI, Dwellir, Hydromancer, and GoldRush compared on history depth, order-level coverage, and venue scope.
+- [Analytics Platforms Vs Market Data APIs](https://docs.0xarchive.io/comparisons/analytics-platforms-vs-market-data-apis.md): Prebuilt interpretation versus product-owned market-data records.
+- [Agent Market Data Tools](https://docs.0xarchive.io/comparisons/agent-market-data-tools.md): Host, context, and tool-surface choices for route-safe agent workflows.
+- [Velo Data Vs 0xArchive](https://docs.0xarchive.io/comparisons/velo-data-vs-0xarchive.md): Trader analytics screens versus product-owned Hyperliquid and Lighter records.
+- [Onchain Indexers Vs Market Data APIs](https://docs.0xarchive.io/comparisons/onchain-indexers-vs-market-data-apis.md): Wallet/contract indexing versus venue market data.
+- [Node Providers Vs Managed Replay Layer](https://docs.0xarchive.io/comparisons/node-providers-vs-managed-market-data.md): RPC infrastructure versus Hyperliquid and Lighter historical retrieval and replay.
+- [Market Data APIs For Backtesting](https://docs.0xarchive.io/comparisons/market-data-apis-for-backtesting.md): Compare APIs for Hyperliquid/Lighter backtests that need reproducible windows, order books, trades, funding, OI, liquidations, replay, schemas, and quality gates.
+- [Market Data Exports Vs API](https://docs.0xarchive.io/comparisons/market-data-exports-vs-api.md): Choose exports, REST, WebSocket, SDKs, CLI, OpenAPI, or agent-facing interfaces.
+
+## Agents And Tools
+
+- [Coding Agents](https://docs.0xarchive.io/coding-agents.md): Claude Code, Codex, Cursor, Windsurf, Copilot, Gemini CLI, Devin, OpenCode, OpenAPI, CLI, SDKs, MCP, Skills, and generated clients.
+- [Agent Surface Map](https://docs.0xarchive.io/agent-surfaces.md): Agent-facing surface map for OpenAPI, Markdown, llms.txt, CLI, MCP Server, Skill, SDKs, REST, and WebSocket.
+- [Agent Market Data API](https://docs.0xarchive.io/agent-market-data-api.md): Route-safe market-data API pattern for AI workflows.
+- [AI Clients](https://docs.0xarchive.io/ai-clients.md): Prompt patterns and route-safe agent rules.
+- [Agent Context: Route Selection](https://docs.0xarchive.io/agent-context/route-selection.md): Machine-readable job-type, venue-family, and route-contract order for agents.
+- [Agent Context: Auth And Response Envelope](https://docs.0xarchive.io/agent-context/auth-response-envelope.md): Auth, market-data envelope, request-ID, and data-quality coverage parsing rules.
+- [Agent Context: Freshness Checks](https://docs.0xarchive.io/agent-context/freshness-checks.md): Quality checklist fields for coverage, freshness, incidents, latency, and downstream decisions.
+- [Agent Context: Agent Surface Taxonomy](https://docs.0xarchive.io/agent-context/agent-surface-taxonomy.md): Coding-agent host, harness, protocol, tool surface, and product API distinctions.
+- [Choose An Interface](https://docs.0xarchive.io/tooling.md): Host, harness, surface, protocol, and API model for OpenAPI, Markdown, CLI, MCP Server, SDKs, Skills, and OpenClaw.
+- [CLI](https://docs.0xarchive.io/cli.md): JSON output for shell, cron, CI, and local agent jobs.
+- [MCP Server](https://docs.0xarchive.io/mcp-server.md): Hosted HTTP MCP setup for MCP-capable clients at `https://mcp.0xarchive.io/mcp`; client-managed OAuth through `https://auth.0xarchive.io`, scope `mcp:market.read`, and no 0xArchive API key.
+- [Claude MCP Setup](https://docs.0xarchive.io/mcp-claude.md): Claude Code-specific MCP configuration for 0xArchive.
+- [SDKs](https://docs.0xarchive.io/sdks.md): Typed clients and reconstruction workflows.
+- [Skill](https://docs.0xarchive.io/skill): Compact agent instructions for 0xArchive.
+- [Claude Code Skill](https://docs.0xarchive.io/claude-code-skill.md): Claude Code-specific `SKILL.md` workflow guidance.
+- [Facilitator](https://docs.0xarchive.io/facilitator.md): x402 facilitator boundary and payment-adjacent route model.
+- [Point-In-Time Backtesting](https://docs.0xarchive.io/guides/point-in-time-backtesting.md): Reproducible historical runs with route, window, quality, and request-ID metadata.
+- [Evaluate A Market Data API](https://docs.0xarchive.io/guides/evaluate-market-data-api.md): Route-first vendor and category evaluation checklist.
+- [Export Historical Data](https://docs.0xarchive.io/guides/export-historical-data.md): File export workflow for Data Catalog, schemas, credits, checkout, and rights.
+- [Build An Agent Market Data Workflow](https://docs.0xarchive.io/guides/build-agent-market-data-workflow.md): OpenAPI, Markdown, CLI, SDK, MCP, Skill, response, and quality workflow.
+
+## Product Surfaces
+
+- [llms.txt](https://docs.0xarchive.io/llms.txt): Machine-readable docs index.
+- [llms-full.txt](https://docs.0xarchive.io/llms-full.txt): Compact full-context file.
+- [OpenAPI JSON](https://docs.0xarchive.io/openapi.json): Docs-host REST contract for generators and agents.
+- [Sitemap](https://docs.0xarchive.io/sitemap): Markdown sitemap.
+- [robots.txt](https://docs.0xarchive.io/robots.txt): Crawler policy.
+- [Markets](https://docs.0xarchive.io/markets.md): Data explorer bridge, instrument routes, and API entry points.
+- [Data Explorer](https://0xarchive.io/data): Live visual product surface.
+- [Pricing](https://0xarchive.io/pricing): Plan and access envelope.
+- [Status](https://0xarchive.io/status): Operational status.
+- [Telegram](https://t.me/archivedotio): Public Telegram contact surface.

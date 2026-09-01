@@ -1,0 +1,75 @@
+generated: '2026-09-01'
+method: searched
+source: https://api.0xarchive.io/.well-known/oauth-authorization-server
+docs: https://docs.0xarchive.io/mcp-server
+sources:
+- https://api.0xarchive.io/.well-known/oauth-authorization-server
+- https://mcp.0xarchive.io/.well-known/oauth-protected-resource
+- https://docs.0xarchive.io/mcp-server
+- https://0xarchive.io/llms.txt
+note: >-
+  These scopes govern the hosted MCP surface ONLY, not the REST API. The REST API uses an
+  X-API-Key header with no scope model at all - 0-working/derive-oauth-scopes.py correctly found
+  zero oauth2 securitySchemes in the OpenAPI, because there are none. The scopes below are read
+  from the provider's live RFC 8414 authorization-server metadata, which is why this file is
+  method: searched rather than derived.
+  Two facts about this list are worth reading together. First, the authorization server advertises
+  SIX scopes covering market data, account bootstrap and creation, key read and revoke, and
+  billing subscription - a full self-serve account-lifecycle scope set. Second, the MCP resource
+  itself advertises exactly ONE of them: scopes_supported is ["mcp:market.read"] in the
+  protected-resource metadata, and both the docs and llms.txt state twice that "the server
+  advertises mcp:market.read only". So an agent connecting to the hosted MCP today gets read-only
+  market data and nothing else; the remaining five scopes exist at the authorization server but
+  are not reachable through the MCP resource. That is a deliberately narrow blast radius for an
+  autonomous client, and it should be described as such rather than as five missing capabilities.
+issuer: https://auth.0xarchive.io
+authorization_endpoint: https://auth.0xarchive.io/oauth/authorize
+token_endpoint: https://auth.0xarchive.io/oauth/token
+revocation_endpoint: https://auth.0xarchive.io/oauth/revoke
+registration_endpoint: https://auth.0xarchive.io/oauth/register
+jwks_uri: https://auth.0xarchive.io/.well-known/jwks.json
+grant_types:
+- authorization_code
+- refresh_token
+response_types:
+- code
+pkce:
+  required_methods:
+  - S256
+token_endpoint_auth_methods:
+- none
+dynamic_client_registration: true
+resource: https://mcp.0xarchive.io/mcp
+resource_scopes_supported:
+- mcp:market.read
+scopes:
+- name: mcp:market.read
+  description: >-
+    Read market data through the hosted MCP server - instruments, order books (L2/L3/L4), trades,
+    candles, funding, open interest, liquidations, outcome markets, spot and data-quality routes.
+  reachable_via_mcp: true
+  grants: read
+- name: mcp:account.bootstrap
+  description: Bootstrap an account for a caller that does not yet have one.
+  reachable_via_mcp: false
+  grants: write
+- name: mcp:account.create
+  description: Create a 0xArchive account.
+  reachable_via_mcp: false
+  grants: write
+- name: mcp:keys.read
+  description: List the API keys on the account.
+  reachable_via_mcp: false
+  grants: read
+- name: mcp:keys.revoke
+  description: Revoke an API key. Irreversible - see the reversibility block in conventions/.
+  reachable_via_mcp: false
+  grants: write
+- name: mcp:billing.subscribe
+  description: Start a paid subscription. Spends money - see the reversibility block in conventions/.
+  reachable_via_mcp: false
+  grants: write
+service_documentation: https://0xarchive.io/docs/mcp
+extras:
+  authorization_response_iss_parameter_supported: true
+  note: RFC 9207 issuer identification is enabled, which defends against mix-up attacks on a multi-AS client.

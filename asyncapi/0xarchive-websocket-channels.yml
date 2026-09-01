@@ -1,0 +1,268 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/websocket/schema
+sources:
+- https://docs.0xarchive.io/websocket/schema
+- https://docs.0xarchive.io/websocket/real-time
+- https://docs.0xarchive.io/websocket/replay
+- https://0xarchive.io/llms.txt
+- https://0xarchive.io/changelog
+asyncapi_published: false
+asyncapi_probe:
+- url: https://0xarchive.io/asyncapi.yaml
+  status: 404
+  checked: '2026-09-01'
+- url: https://0xarchive.io/asyncapi.json
+  status: 404
+  checked: '2026-09-01'
+webhooks_published: false
+note: >-
+  This is NOT an AsyncAPI document and no canonical AsyncAPI pointer is claimed for it. 0xArchive
+  publishes no machine-readable event contract - the provider says so itself on the schema page:
+  "REST route map stays in OpenAPI; WebSocket message shape lives here until a standalone machine
+  contract is published." The event surface is nevertheless real, substantial and carefully
+  documented in prose and tables, so this file captures the command/event vocabulary and the
+  channel catalog as data. It is the one clear artifact gap in an otherwise unusually complete
+  agent surface: everything else this provider ships is machine-readable, and its streaming API
+  is not. The provider also publishes no webhooks or callbacks of any kind - this is a
+  client-initiated streaming surface only.
+endpoint:
+  url: wss://api.0xarchive.io/ws
+  alternate: wss://stream.0xarchive.io/ws
+  alternate_source: changelog 2.1.0 (2026-05-04) names both hosts for the liquidations channels
+  auth: 'Authorization: Bearer <API_KEY> during the handshake'
+  auth_legacy: >-
+    A ?apiKey= query parameter still works but the docs mark it compatibility-only for private
+    server-side scripts and warn against browser-facing URLs and logs.
+  model: One connection carries both live subscriptions and historical replay.
+  tier_access: WebSocket is available on every tier including Free; subscription counts and replay speed are tier-scoped.
+client_commands:
+- op: subscribe
+  purpose: Start a live stream for one channel
+  required: [op, channel]
+  conditional: symbol for coin-specific channels
+- op: unsubscribe
+  purpose: Stop a live stream
+  required: [op, channel]
+- op: replay
+  purpose: Replay a historical stream window
+  required: [op, one of channel or channels, symbol, start]
+  optional: [end, speed]
+- op: replay.pause
+  purpose: Pause standard or core L4 replay
+  required: [op]
+- op: replay.resume
+  purpose: Resume standard or core L4 replay
+  required: [op]
+- op: replay.seek
+  purpose: Move standard replay to a timestamp
+  required: [op, timestamp]
+  note: Standard replay only - core L4 replay REJECTS seek.
+- op: replay.stop
+  purpose: Stop standard or core L4 replay
+  required: [op]
+- op: ping
+  purpose: Keep-alive where the client does not rely on native ping/pong
+  required: [op]
+server_events:
+- type: subscribed
+  purpose: Confirms a live subscription
+- type: unsubscribed
+  purpose: Confirms a stopped subscription
+- type: data
+  purpose: Live stream data for ordinary channels
+- type: l4_snapshot
+  purpose: Initial L4 state for an order-level channel
+  client_action: Replace local L4 state for that channel.
+- type: l4_batch
+  purpose: Ordered L4 diffs following a snapshot
+  client_action: >-
+    Apply in order and stop on an unsafe sequence or block gap. An optional insert_before field
+    means insert the new order ahead of that order id within its price level rather than appending.
+- type: replay_started
+  purpose: Confirms replay window and standard replay speed
+- type: replay_snapshot
+  purpose: Initial state before replay timeline data
+- type: historical_data
+  purpose: Replay timeline records
+- type: historical_tick_data
+  purpose: Lighter tick-mode checkpoint and deltas
+  client_action: Apply the checkpoint before the deltas and preserve ordering metadata.
+- type: replay_paused
+  purpose: Confirms replay pause
+- type: replay_resumed
+  purpose: Confirms replay resume
+- type: replay_completed
+  purpose: Replay reached the configured end
+- type: replay_stopped
+  purpose: Confirms replay stop
+- type: gap_detected
+  purpose: Marks a missing or discontinuous interval
+  client_action: Mark output incomplete or rebuild.
+  note: >-
+    A first-class gap event is the most agent-relevant thing on this surface. A replay consumer is
+    told explicitly when the timeline is discontinuous rather than silently receiving a shorter
+    series - so "incomplete" is a state the client can represent instead of a bug it has to detect.
+- type: error
+  purpose: Command, authentication, access or data error
+naming_convention: >-
+  Client commands use dotted names (replay.pause, replay.resume, replay.seek, replay.stop);
+  server events use underscore names (replay_paused, replay_resumed, replay_snapshot,
+  historical_data, replay_completed). The two vocabularies are deliberately distinct.
+channels:
+- name: orderbook
+  family: hyperliquid
+  realtime: true
+  replay: timed
+- name: trades
+  family: hyperliquid
+  realtime: true
+  replay: timed
+  note: Liquidation fills also flow here with is_liquidation true; dedupe on tid if also subscribed to liquidations.
+- name: candles
+  family: hyperliquid
+  realtime: true
+  replay: timed
+- name: funding
+  family: hyperliquid
+  realtime: true
+  replay: timed
+- name: open_interest
+  family: hyperliquid
+  realtime: true
+  replay: timed
+- name: liquidations
+  family: hyperliquid
+  realtime: true
+  replay: timed
+  since: changelog 2.1.0 (2026-05-04)
+- name: l4_diffs
+  family: hyperliquid
+  realtime: true
+  replay: checkpoint-anchored bulk
+  note: Replay speed is IGNORED on core L4 channels; the stream is a single-channel bulk stream.
+- name: l4_orders
+  family: hyperliquid
+  realtime: true
+  replay: checkpoint-anchored bulk
+  note: Replay speed is IGNORED.
+- name: ticker
+  family: hyperliquid
+  realtime: true
+  replay: false
+- name: all_tickers
+  family: hyperliquid
+  realtime: true
+  replay: false
+- name: hip3_orderbook
+  family: hip3
+  realtime: true
+  replay: timed
+- name: hip3_trades
+  family: hip3
+  realtime: true
+  replay: timed
+- name: hip3_candles
+  family: hip3
+  realtime: true
+  replay: timed
+- name: hip3_funding
+  family: hip3
+  realtime: true
+  replay: timed
+- name: hip3_open_interest
+  family: hip3
+  realtime: true
+  replay: timed
+- name: hip3_liquidations
+  family: hip3
+  realtime: true
+  replay: timed
+  since: changelog 2.1.0 (2026-05-04)
+- name: hip3_l4_diffs
+  family: hip3
+  realtime: true
+  replay: false
+- name: hip3_l4_orders
+  family: hip3
+  realtime: true
+  replay: false
+- name: hip4_orderbook
+  family: hip4
+  realtime: true
+  replay: timed
+- name: hip4_trades
+  family: hip4
+  realtime: true
+  replay: timed
+- name: hip4_open_interest
+  family: hip4
+  realtime: true
+  replay: timed
+- name: hip4_l4_diffs
+  family: hip4
+  realtime: true
+  replay: false
+- name: hip4_l4_orders
+  family: hip4
+  realtime: true
+  replay: false
+- name: spot_orderbook
+  family: spot
+  realtime: true
+  replay: false
+- name: spot_trades
+  family: spot
+  realtime: true
+  replay: false
+- name: spot_l4_diffs
+  family: spot
+  realtime: true
+  replay: false
+- name: spot_l4_orders
+  family: spot
+  realtime: true
+  replay: false
+- name: spot_twap
+  family: spot
+  realtime: true
+  replay: false
+- name: orderbook
+  family: lighter
+  realtime: false
+  replay: timed
+  note: Lighter channels are replay-only - live subscriptions are not supported on Lighter.
+- name: l3_orderbook
+  family: lighter
+  realtime: false
+  replay: timed
+- name: trades
+  family: lighter
+  realtime: false
+  replay: timed
+- name: candles
+  family: lighter
+  realtime: false
+  replay: timed
+- name: funding
+  family: lighter
+  realtime: false
+  replay: timed
+- name: open_interest
+  family: lighter
+  realtime: false
+  replay: timed
+replay_semantics:
+  timed:
+    speed_range: 10x (Free) to 300x (Scale), from 500x on Enterprise
+    controls: [replay.pause, replay.resume, replay.seek, replay.stop]
+  checkpoint_anchored_bulk:
+    applies_to: [l4_diffs, l4_orders]
+    speed: ignored
+    seek: rejected
+    ordering: process l4_snapshot before l4_batch
+  lighter_tick_mode:
+    event: historical_tick_data
+    ordering: checkpoint first, then deltas
+  rest_only:
+    - Lighter liquidation events are REST-only and have no WebSocket channel.

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-31T23:42:37.422Z",
+  "source": "https://api.0xarchive.io/v1/symbols",
+  "venues": [
+    {
+      "venue": "hyperliquid",
+      "markets": [
+        {
+          "symbol": "BTC",
+          "active": true,
+          "coverage_from": "2023-04-15T00:00:00Z",
+          "data_types": [
+            {
+              "key": "trades",
+              "coverage_from": "2023-04-19T00:00:00Z"
+            },
+            {
+              "key": "orderbook",
+              "coverage_from": "2023-04-15T00:00:00Z"
+            },
+            {
+              "key": "candles",
+              "coverage_from": null
+            },
+            {
+              "key": "funding",
+              "coverage_from": "2023-05-20T00:00:00Z"
+            },
+            {
+              "key": "open_interest",
+              "coverage_from": "2023-05-20T00:00:00Z"
+            },
+            {
+              "key": "liquidations",
+              "coverage_from": "2025-07-27T00:00:00Z"
+            },
+            {
+              "key": "l4_orderbook",
+              "coverage_from": "2026-03-10T00:00:00Z"
+            },
+            {
+              "key": "l4_orders",
+              "coverage_from": "2026-03-10T00:00:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "venue": "lighter",
+      "markets": [
+        {
+          "symbol": "BTC",
+          "active": true,
+          "coverage_from": "2025-08-25T00:00:00Z",
+          "data_types": [
+            {
+              "key": "trades",
+              "coverage_from": "2025-08-27T00:00:00Z"
+            },
+            {
+              "key": "orderbook",
+              "coverage_from": "2026-01-29T00:00:00Z"
+            },
+            {
+              "key": "candles",
+              "coverage_from": null
+            },
+            {
+              "key": "funding",
+              "coverage_from": "2025-08-25T00:00:00Z"
+            },
+            {
+              "key": "open_interest",
+              "coverage_from": "2025-08-25T00:00:00Z"
+            },
+            {
+              "key": "l3_orderbook",
+              "coverage_from": "2026-03-05T00:00:00Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

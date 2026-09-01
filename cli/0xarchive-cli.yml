@@ -1,0 +1,128 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/cli
+fetched: '2026-09-01'
+http_status: 200
+name: 0xArchive CLI
+package: '@0xarchive/cli'
+binary: oxa
+version: 1.7.0
+published: '2026-05-08'
+repository: https://github.com/0xArchiveIO/0xarchive-cli
+license: null
+runtime:
+  node: '>=18'
+  node_for_streaming: '22+'
+  note: Streaming commands require a newer Node than the rest of the CLI.
+install:
+- method: npm global
+  command: npm install -g @0xarchive/cli
+- method: npx (no install)
+  command: npx @0xarchive/cli <command>
+authentication:
+  env: OXA_API_KEY
+  note: >-
+    Note the env-var split across the provider's own agent surfaces: the CLI reads OXA_API_KEY,
+    while the Claude Code skill and the retired stdio MCP server both read OXARCHIVE_API_KEY.
+    An agent configuring more than one 0xArchive surface must set both.
+  verify: oxa auth test --exchange hyperliquid --symbol BTC --format json
+output:
+  default_flag: --format json
+  guidance: >-
+    The docs treat JSON as the machine default and are explicit about the stream contract - stdout
+    is the data channel, stderr is the control channel, and unattended jobs should parse JSON from
+    stdout only and branch on the exit code before retrying.
+exit_codes:
+- code: 0
+  meaning: Command completed
+- code: 2
+  meaning: Validation or argument error
+  retry: false
+- code: 3
+  meaning: Authentication error
+  retry: false
+- code: 4
+  meaning: Network, upstream API, or rate-limit error
+  retry: bounded
+- code: 5
+  meaning: Internal CLI error
+note: >-
+  A distinct, typed exit-code contract is the single most useful thing about this CLI for an agent
+  or a CI job: 2/3 mean stop, 4 means retry with a budget, and the distinction is documented rather
+  than inferred from stderr text. Few provider CLIs publish this.
+scopes:
+- flag: --exchange hyperliquid
+  family: Hyperliquid core perpetuals
+- flag: --exchange lighter
+  family: Lighter
+- flag: --exchange hip3
+  family: HIP-3 builder perps
+- flag: --exchange hip4
+  family: HIP-4 outcome markets
+- flag: oxa spot ...
+  family: Hyperliquid Spot
+  note: Spot is a command group rather than an --exchange value.
+common_flags:
+- --exchange
+- --symbol
+- --start
+- --end
+- --interval
+- --limit
+- --cursor
+- --format
+commands:
+- command: oxa auth test
+  coverage: Verify the key and optionally test a venue/symbol pair
+- command: oxa orderbook get
+  coverage: Current L2 order-book snapshot
+- command: oxa orderbook history
+  coverage: Historical L2 snapshots
+- command: oxa trades fetch
+  coverage: Trade history with cursor pagination
+- command: oxa candles
+  coverage: OHLCV candles
+- command: oxa funding current / oxa funding history
+  coverage: Current and historical funding
+- command: oxa oi current / oxa oi history
+  coverage: Current and historical open interest
+- command: oxa instruments
+  coverage: Venue instrument list
+- command: oxa liquidations
+  coverage: Liquidation history on Hyperliquid core, HIP-3 and Lighter
+- command: oxa summary
+  coverage: Multi-signal market snapshot
+- command: oxa prices
+  coverage: Price history
+- command: oxa freshness
+  coverage: Per-symbol freshness
+- command: oxa orders history / flow / tpsl
+  coverage: Order lifecycle and flow routes for configured venue scopes
+- command: oxa l4 get / diffs / history
+  coverage: L4 reconstruction and checkpoint routes
+- command: oxa l3 get / history
+  coverage: Lighter L3 depth
+- command: oxa hip4 ...
+  coverage: Outcome-market discovery, books, trades, candles, OI, prices, summaries and orders
+- command: oxa spot ...
+  coverage: Hyperliquid Spot pairs, books, trades, L4, orders, TWAP and freshness
+- command: oxa stream ...
+  coverage: Live and replay streaming jobs
+pagination:
+  field: nextCursor
+  flag: --cursor
+  guidance: >-
+    Pass the returned nextCursor back with --cursor and keep the venue, symbol, window and format
+    arguments unchanged.
+positioning:
+  provider_guidance: >-
+    The docs place the CLI deliberately against the other surfaces rather than selling it: use it
+    for shell automation, CI, cron, notebooks, incident terminals and coding-agent shells; use an
+    SDK or REST client inside a long-running application server; use the hosted MCP when the host
+    supports MCP and typed tools fit better; use the Data Catalog for large historical exports.
+  currency_note: >-
+    At 1.7.0 / 2026-05-08 the CLI is one minor version and roughly three months behind the three
+    language SDKs, which shipped 1.8.0 together on 2026-07-28. The 2.7.0 changelog entry lists new
+    typed SDK methods for the liquidation-levels and trigger-levels families but does not mention
+    corresponding CLI commands, and no `oxa` command for those families appears in the published
+    command inventory - so the CLI does not currently reach the newest route families.

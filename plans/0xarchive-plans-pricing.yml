@@ -1,0 +1,126 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/rate-limits
+sources:
+- https://docs.0xarchive.io/rate-limits
+- https://0xarchive.io/pricing
+- https://0xarchive.io/llms.txt
+note: >-
+  Prices and quotas are transcribed verbatim from the provider's published capacity table on the
+  rate-limits documentation page, which 0xArchive itself labels "a capacity-planning reference,
+  not a live pricing or route-entitlement guarantee". The distinctive thing about this pricing
+  model, and the provider says so explicitly, is that plans gate CAPACITY and Free's history
+  window - not route access: "Self-serve plans share every market, route family, schema, and
+  served depth across REST and WebSocket." Every tier including Free reaches every endpoint,
+  every schema, full served depth, and WebSocket.
+plan_count: 5
+currency: USD
+billing_periods:
+- monthly
+- annual
+plans:
+- name: Free
+  price: 0
+  currency: USD
+  period: month
+  included_quota: 50,000 API credits/month
+  limits:
+    requests_per_second: 15
+    concurrent_queries: 3
+    websocket_subscriptions: 10
+    api_keys: 1
+    replay_speed: 10x
+    data_catalog_credits: 0
+    archive_coverage: most recent rolling 30 days; maximum 30-day span per request or replay
+  overage: none - capacity controls apply rather than metered overage
+  best_fit: Fit checks and auth testing
+- name: Build
+  price: 49
+  price_annual_per_month: 39
+  currency: USD
+  period: month
+  included_quota: 80,000,000 API credits/month
+  limits:
+    requests_per_second: 50
+    concurrent_queries: 10
+    websocket_subscriptions: 500
+    api_keys: 10
+    replay_speed: 50x
+    data_catalog_credits: $50/mo
+    archive_coverage: full retained archive
+  best_fit: Notebooks, dashboards, backtests
+- name: Pro
+  price: 199
+  price_annual_per_month: 159
+  currency: USD
+  period: month
+  included_quota: 400,000,000 API credits/month
+  limits:
+    requests_per_second: 150
+    concurrent_queries: 20
+    websocket_subscriptions: 3000
+    api_keys: 100
+    replay_speed: 100x
+    data_catalog_credits: $300/mo
+    archive_coverage: full retained archive
+  support: priority email support
+  best_fit: Production systems, heavier usage
+- name: Scale
+  price: 799
+  price_annual_per_month: 639
+  currency: USD
+  period: month
+  included_quota: 2,000,000,000 API credits/month
+  limits:
+    requests_per_second: 500
+    concurrent_queries: 20
+    websocket_subscriptions: 20000
+    api_keys: 200
+    replay_speed: 300x
+    data_catalog_credits: $1,500/mo
+    archive_coverage: full retained archive
+  support: priority email support
+  best_fit: High-throughput, large WebSocket fan-out
+- name: Enterprise
+  price: null
+  currency: USD
+  period: month
+  included_quota: unlimited credits
+  limits:
+    requests_per_second: from 1,000
+    concurrent_queries: from 500
+    websocket_subscriptions: unlimited
+    api_keys: 200
+    replay_speed: from 500x
+    data_catalog_credits: custom
+    archive_coverage: full retained archive; contract-specific terms
+  support: dedicated support, dedicated infrastructure, SLA from 99.5%
+  note: Custom pricing; named route, delivery, SLA and dedicated-infrastructure terms are negotiated.
+usage_based:
+  name: Data Catalog bulk export
+  model: per-GB Parquet file purchase, independent of subscription
+  note: >-
+    Subscriber export credits apply before card charge; no subscription is required for a one-off
+    Data Catalog export. Volume discounts start at $500+.
+  units:
+  - dataset: L4 Order Book / L4 Orders
+    price_per_gb: 8
+    minimum: $25
+  - dataset: Trades / Liquidations
+    price_per_gb: 8
+    minimum: $15-$25
+  - dataset: L2 / L3 Order Book
+    price_per_gb: 6
+    minimum: $10
+  - dataset: Funding / Open Interest
+    price_per_gb: 1
+    minimum: $5
+alternative_payment:
+  scheme: x402
+  description: >-
+    Autonomous 30-day Build or Pro access purchased by an agent with a USDC payment on Base
+    (EIP-3009 signed transfer sent as a payment-signature header to POST /v1/web3/subscribe).
+    No human signup step; an unknown wallet receives an account and API key only after
+    successful settlement.
+  facilitator: https://0xarchive.io/facilitator
+  operation: web3Subscribe

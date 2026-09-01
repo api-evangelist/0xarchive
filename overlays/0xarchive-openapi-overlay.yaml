@@ -1,0 +1,188 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enrichment overlay for the 0xArchive API
+  version: 1.0.0
+extends: https://0xarchive.io/openapi.json
+x-generated: '2026-09-01'
+x-method: generated
+x-source: >-
+  Generated from artifacts in this repository. Every value below is either transcribed from
+  0xArchive's own published documentation (docs.0xarchive.io, llms.txt, the changelog, the
+  /.well-known/ documents) or observed in a live probe on 2026-09-01. Nothing is invented, and
+  the original contract at openapi/0xarchive-openapi.json is never mutated.
+x-note: >-
+  This overlay records what the published contract does not carry: the three other agent surfaces
+  that share the same data (WebSocket, hosted MCP, bulk Parquet export), the runtime error and
+  rate-limit semantics that live only in prose, the credential boundary between REST, WebSocket
+  and MCP, and the per-family symbol-format rules that are the documented cause of most 404s.
+actions:
+- target: $.info
+  description: Record the sibling agent surfaces, the credential boundary and the enrichment index.
+  update:
+    x-agent-surfaces:
+      rest:
+        base_url: https://api.0xarchive.io
+        auth: X-API-Key header
+        contract: https://0xarchive.io/openapi.json
+      websocket:
+        base_url: wss://api.0xarchive.io/ws
+        alternate_host: wss://stream.0xarchive.io/ws
+        auth: 'Authorization: Bearer <API_KEY> at handshake'
+        contract: none published - prose and schema pages only
+        capability: real-time subscribe plus historical replay on one connection
+      mcp:
+        endpoint: https://mcp.0xarchive.io/mcp
+        transport: streamable-http
+        auth: OAuth 2.0 + PKCE, scope mcp:market.read, no API key
+        tools: 110
+        crosswalk: mcp/0xarchive-tool-crosswalk.yml
+      bulk_export:
+        entrypoint: https://0xarchive.io/data
+        format: Parquet over S3
+        pricing: per-GB, see plans/0xarchive-plans-pricing.yml
+      agent_skills:
+        count: 4
+        index: skills/_index.yml
+      public_samples:
+        url: https://0xarchive.io/.well-known/data-samples.json
+        auth: none
+    x-credential-boundary: >-
+      Three credentials, not one. X-API-Key authenticates direct REST market-data requests and the
+      SDK, CLI and Claude Code skill (all of which call REST). The WebSocket handshake uses the
+      same key but as Authorization: Bearer. The hosted MCP server uses client-managed OAuth and
+      requires NO 0xArchive API key at all.
+    x-api-evangelist-artifacts:
+      authentication: authentication/0xarchive-authentication.yml
+      conventions: conventions/0xarchive-conventions.yml
+      errors: errors/0xarchive-problem-types.yml
+      rate_limits: rate-limits/0xarchive-rate-limits.yml
+      lifecycle: lifecycle/0xarchive-lifecycle.yml
+      plans: plans/0xarchive-plans-pricing.yml
+      data_model: data-model/0xarchive-data-model.yml
+      conformance: conformance/0xarchive-conformance.yml
+      scopes: scopes/0xarchive-scopes.yml
+      packages: packages/0xarchive-packages.yml
+      mcp: mcp/0xarchive-mcp.yml
+      a2a: a2a/0xarchive-a2a.yml
+      well_known: well-known/0xarchive-well-known.yml
+      sandbox: sandbox/0xarchive-sandbox.yml
+      cli: cli/0xarchive-cli.yml
+      changelog: changelog/0xarchive-changelog.yml
+- target: $.info
+  description: Record the symbol-format rules that the contract's path templates cannot express.
+  update:
+    x-symbol-conventions:
+      note: >-
+        The {symbol} path parameter is NOT one domain. Format and case-sensitivity differ per
+        venue family, and the provider documents this as the main cause of apparent 404s.
+      families:
+      - prefix: /v1/hyperliquid
+        format: UPPERCASE ticker (auto-uppercased server-side)
+        example: BTC
+      - prefix: /v1/hyperliquid/hip3
+        format: case-sensitive builder:NAME, passed through verbatim
+        example: 'km:US500'
+      - prefix: /v1/hyperliquid/hip4
+        format: bare numeric 10*outcome_id + side; legacy '#0' and '%230' also accepted
+        example: '11'
+      - prefix: /v1/hyperliquid/spot
+        format: dashed canonical BASE-QUOTE
+        example: HYPE-USDC
+      - prefix: /v1/lighter
+        format: UPPERCASE ticker (auto-uppercased server-side)
+        example: BTC
+- target: $.info
+  description: Record runtime error semantics that live only in the docs.
+  update:
+    x-error-semantics:
+      rfc9457: false
+      envelopes: 3
+      envelope_note: >-
+        Most application errors use {"success":false,"error":{"code","message"},"meta":{"request_id"}};
+        auth, health, wallet, data-quality and all parameter-validation responses instead use a
+        flat {"code","error","error_code","request_id"} body where request_id sits at the TOP
+        level, not under meta; unsupported parameter VALUES use a third shape carrying param and
+        valid_values and no error_code at all.
+      correlation_header: x-request-id
+      correlation_observed: true
+      retry_signal: Retry-After when present, otherwise capped exponential backoff with jitter
+      catalog: errors/0xarchive-problem-types.yml
+- target: $.info
+  description: Record rate-limit and credit semantics.
+  update:
+    x-rate-limit-semantics:
+      axes: [requests_per_second, concurrent_queries, monthly_credits, websocket_subscriptions, replay_speed, history_window]
+      billing: >-
+        REST credits are metered PER ROW, not per call - charged = max(1, ceil(rows_returned /
+        rows_per_credit)) since changelog 2.3.0. Roughly 1 credit per 1,000 rows for trades and
+        book history, 1 per 10,000 candle rows, 1 per 5,000 L4 rows, and 1 credit flat for
+        single-value endpoints. WebSocket and replay bill 1 credit per message.
+      route_access_note: >-
+        Plans gate CAPACITY and Free's 30-day history window, not route access. Every tier
+        including Free reaches every market, route family, schema and served depth. A 403 must
+        therefore not be interpreted as "upgrade required".
+      headers_declared: [X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset]
+      headers_observed_anonymously: false
+      catalog: rate-limits/0xarchive-rate-limits.yml
+- target: $.info
+  description: Record the read-only posture and the two write surfaces that can spend or destroy.
+  update:
+    x-agent-safety:
+      surface: read-only market data
+      reversibility: na
+      reversibility_note: >-
+        Nothing on the market-data surface can be reversed because nothing on it changes state.
+        Two operations are exceptions and neither documents a reversal window - POST
+        /v1/web3/keys/revoke (irreversible key revocation) and POST /v1/web3/subscribe (spends
+        real USDC on Base mainnet with no published refund path). Treat both as one-way doors.
+      idempotency: na
+      dry_run: na
+      free_rehearsal: >-
+        A complete integration can be rehearsed with no credential against the checksummed public
+        sample set at /.well-known/data-samples.json, which ships offline reconstruction proofs
+        for Hyperliquid L4 and Lighter L3.
+- target: $.paths[?(@['get'] && @['get']['deprecated'] == true)]
+  description: >-
+    Flag the ten Legacy unversioned routes with the reason for their deprecation. Each already
+    carries deprecated:true and names its replacement in prose; this adds the machine-readable
+    cause and the release that deprecated them.
+  update:
+    get:
+      x-deprecation-cause: >-
+        Pre-multi-venue flat route. When Lighter was added as a second top-level venue API, the
+        unqualified /v1/<resource>/{symbol} shape became ambiguous and each route was superseded
+        by a venue-namespaced equivalent under /v1/hyperliquid/* or /v1/lighter/*.
+      x-deprecated-in: '2.6.0'
+      x-deprecated-on: '2026-07-02'
+      x-sunset-announced: false
+      x-sunset-note: >-
+        The 2.6.0 changelog entry states "Sunset timing has not been announced; no routes are
+        being removed in this release", and no RFC 8594 Sunset or Deprecation header is declared
+        anywhere in the contract.
+- target: $.components.securitySchemes.ApiKeyAuth
+  description: Record the credential boundary on the scheme itself.
+  update:
+    x-applies-to:
+    - direct REST market-data requests
+    - '@0xarchive/sdk, oxarchive (Python), oxarchive (Rust)'
+    - '@0xarchive/cli (reads OXA_API_KEY)'
+    - the Claude Code skill (reads OXARCHIVE_API_KEY)
+    x-does-not-apply-to:
+    - the hosted MCP server at https://mcp.0xarchive.io/mcp, which uses client-managed OAuth
+    x-websocket-form: 'Authorization: Bearer <API_KEY> during the wss://api.0xarchive.io/ws handshake'
+    x-key-prefix: 0xa_
+- target: $.components.responses.RateLimited
+  description: Note that the declared headers were not observable anonymously.
+  update:
+    x-headers-observed-anonymously: false
+    x-observation: >-
+      A 200 on /health and a 401 on /v1/instruments, both probed 2026-09-01, returned x-request-id
+      but no X-RateLimit-* header. The declared headers may only appear on an authenticated 429.
+- target: $.components.schemas.ApiMeta
+  description: Highlight the two advisory fields an agent should branch on.
+  update:
+    x-agent-guidance: >-
+      coverage_from and notice are the fields that distinguish "no data exists for this window"
+      from "your window predates coverage". coverage_from is present ONLY when the requested
+      window ends before coverage begins, so an empty result WITH coverage_from is a boundary
+      condition to correct, not a gap to retry.

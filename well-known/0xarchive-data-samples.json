@@ -1,0 +1,1249 @@
+{
+  "schema_version": "1.0",
+  "sample_version": "v1",
+  "published_at": "2026-08-21T00:00:00Z",
+  "source_window": {
+    "start": "2026-08-10T00:00:00Z",
+    "end": "2026-08-11T00:00:00Z"
+  },
+  "symbol": "BTC",
+  "artifacts": [
+    {
+      "id": "hyperliquid-btc-trades-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "trades",
+      "label": "Trades",
+      "row_count": 14,
+      "time_range": {
+        "start": "2026-08-10T00:00:00.511Z",
+        "end": "2026-08-10T00:00:14.524Z"
+      },
+      "schema": [
+        {
+          "name": "builder_address",
+          "type": "string"
+        },
+        {
+          "name": "builder_fee",
+          "type": "string"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "crossed",
+          "type": "boolean"
+        },
+        {
+          "name": "direction",
+          "type": "string"
+        },
+        {
+          "name": "fee",
+          "type": "string"
+        },
+        {
+          "name": "fee_token",
+          "type": "string"
+        },
+        {
+          "name": "order_id",
+          "type": "integer"
+        },
+        {
+          "name": "price",
+          "type": "string"
+        },
+        {
+          "name": "side",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "trade_id",
+          "type": "integer"
+        },
+        {
+          "name": "tx_hash",
+          "type": "string"
+        },
+        {
+          "name": "user_address",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/trades/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "71d3f4ad91a22a3c6a3242f9d84d05dca34fd0ef1c61539677192b622fc78ac0"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/trades/preview.json",
+        "sha256": "f16a8672fa3e033742d3a0fadc2394c535f1a12c2ea3bd66507f373b24c2e4d4",
+        "bytes": 7270
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/trades/0xarchive-hyperliquid-btc-trades-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-trades-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "98b1a36dc23a44bcfdff9633ffa65ff20c7c51a452f2d3a83bd6264dd42976b5",
+        "bytes": 5105
+      }
+    },
+    {
+      "id": "hyperliquid-btc-orderbook-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "orderbook",
+      "label": "Native order book",
+      "row_count": 20,
+      "time_range": {
+        "start": "2026-08-10T00:00:00.443Z",
+        "end": "2026-08-10T00:00:09Z"
+      },
+      "schema": [
+        {
+          "name": "asks",
+          "type": "array"
+        },
+        {
+          "name": "bids",
+          "type": "array"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "mid_price",
+          "type": "string"
+        },
+        {
+          "name": "spread",
+          "type": "string"
+        },
+        {
+          "name": "spread_bps",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/orderbook/BTC/history",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 20,
+          "depth": 10
+        },
+        "data_sha256": "4b205db5962838241f4178674caa888cb3a1be352b8063f1bd24c0b684873515"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/orderbook/preview.json",
+        "sha256": "881f06e337c0b4ddebe7985954a28529cb7c5922415f7c67f537ec7dc38cada4",
+        "bytes": 18212
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/orderbook/0xarchive-hyperliquid-btc-orderbook-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-orderbook-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "828cadd58c9965e288b9b0225817d62d8f3cabcab1bf6d372e3d8b89717c1fb4",
+        "bytes": 6938
+      }
+    },
+    {
+      "id": "hyperliquid-btc-candles-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "candles",
+      "label": "Candles",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T00:00:00Z",
+        "end": "2026-08-10T16:35:00Z"
+      },
+      "schema": [
+        {
+          "name": "close",
+          "type": "number"
+        },
+        {
+          "name": "high",
+          "type": "number"
+        },
+        {
+          "name": "low",
+          "type": "number"
+        },
+        {
+          "name": "open",
+          "type": "number"
+        },
+        {
+          "name": "quote_volume",
+          "type": "number"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "trade_count",
+          "type": "integer"
+        },
+        {
+          "name": "volume",
+          "type": "number"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/candles/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200,
+          "interval": "5m"
+        },
+        "data_sha256": "7f6d11a313fde767bfddd2bcda81fbf7b5eb911b682c36777b913892cabdb9c3"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/candles/preview.json",
+        "sha256": "7c4d7df5a90ce6f6cae188a58303e557a4663ed5347826a847fe829ae4a3540b",
+        "bytes": 16622
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/candles/0xarchive-hyperliquid-btc-candles-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-candles-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "b16c96c9a6075cecd39f60b5df254a8c4612e5bacd7a1103d002e3d9a5ffcb75",
+        "bytes": 10766
+      }
+    },
+    {
+      "id": "hyperliquid-btc-funding-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "funding",
+      "label": "Funding",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T00:00:25.289Z",
+        "end": "2026-08-10T03:21:17.843Z"
+      },
+      "schema": [
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "funding_rate",
+          "type": "string"
+        },
+        {
+          "name": "premium",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/funding/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "030a773beb371094fd0c436142a23023ea57fb3909b6c802c56e4550dd0f36f8"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/funding/preview.json",
+        "sha256": "019d4ad748fc5fc3ef991e2c6dfbfc47f6c19da9d7650b3393429df70ee65d90",
+        "bytes": 12827
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/funding/0xarchive-hyperliquid-btc-funding-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-funding-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "facd71e75a771272e0a3e9c88448e052e1729601affeb0f4d3cc6d1677d3c836",
+        "bytes": 5186
+      }
+    },
+    {
+      "id": "hyperliquid-btc-open_interest-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "open_interest",
+      "label": "Open interest",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T00:00:25.289Z",
+        "end": "2026-08-10T03:21:17.843Z"
+      },
+      "schema": [
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "day_ntl_volume",
+          "type": "string"
+        },
+        {
+          "name": "impact_ask_price",
+          "type": "string"
+        },
+        {
+          "name": "impact_bid_price",
+          "type": "string"
+        },
+        {
+          "name": "mark_price",
+          "type": "string"
+        },
+        {
+          "name": "mid_price",
+          "type": "string"
+        },
+        {
+          "name": "open_interest",
+          "type": "string"
+        },
+        {
+          "name": "oracle_price",
+          "type": "string"
+        },
+        {
+          "name": "prev_day_price",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/openinterest/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "d571d411a0577d7a562b1002326c99fef1803652fa62f195edc0cc631873450c"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/open-interest/preview.json",
+        "sha256": "6e8a1892c7f00e01d96701b601e1cf76a1816694c563324b21aff8aa643f2ba7",
+        "bytes": 28841
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/open-interest/0xarchive-hyperliquid-btc-open-interest-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-open-interest-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "fd5b7b0990d2fc475455a566dff6ce7d31f1609f7191ab5ce428b807929ec9c9",
+        "bytes": 12331
+      }
+    },
+    {
+      "id": "hyperliquid-btc-liquidations-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "liquidations",
+      "label": "Liquidations",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T05:38:17.682Z",
+        "end": "2026-08-10T15:24:39.637Z"
+      },
+      "schema": [
+        {
+          "name": "closed_pnl",
+          "type": "string"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "direction",
+          "type": "string"
+        },
+        {
+          "name": "liquidated_user",
+          "type": "string"
+        },
+        {
+          "name": "mark_price",
+          "type": "string"
+        },
+        {
+          "name": "price",
+          "type": "string"
+        },
+        {
+          "name": "side",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "trade_id",
+          "type": "integer"
+        },
+        {
+          "name": "tx_hash",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/liquidations/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "91e1d32dae0e0448f86661930b7b56a7d563f286e60dcf555f83cd9897041b55"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/liquidations/preview.json",
+        "sha256": "62b00a00b2ff1fb126bf3be926a6fbde5b4800210075ec78e203944f5577a5d6",
+        "bytes": 35840
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/liquidations/0xarchive-hyperliquid-btc-liquidations-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-liquidations-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "cf1fed687f3f04d44f0ad3eecb869c346a3f2d2dadc993280ed0912a884342b4",
+        "bytes": 13856
+      }
+    },
+    {
+      "id": "hyperliquid-btc-l4_orderbook-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "l4_orderbook",
+      "label": "L4 order book",
+      "row_count": 1,
+      "time_range": {
+        "start": "2026-08-10T00:00:42.644Z",
+        "end": "2026-08-10T00:00:42.644Z"
+      },
+      "schema": [
+        {
+          "name": "ask_count",
+          "type": "integer"
+        },
+        {
+          "name": "asks",
+          "type": "array"
+        },
+        {
+          "name": "bid_count",
+          "type": "integer"
+        },
+        {
+          "name": "bids",
+          "type": "array"
+        },
+        {
+          "name": "checkpoint_timestamp",
+          "type": "string"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "diffs_applied",
+          "type": "integer"
+        },
+        {
+          "name": "last_block_number",
+          "type": "integer"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "total_ask_size",
+          "type": "number"
+        },
+        {
+          "name": "total_bid_size",
+          "type": "number"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/orderbook/BTC/l4/history",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 1
+        },
+        "data_sha256": "9e2b0eacba47dc20c1d84065d1e7f9a03d68c148b092d10e44f048a81a61b72e"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/l4-orderbook/preview.json",
+        "sha256": "3c3a9b67846834074352eedef31ad12f69c382b44c575c01ae4e5fa4ebea5106",
+        "bytes": 6816
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/l4-orderbook/0xarchive-hyperliquid-btc-l4-orderbook-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-l4-orderbook-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "bd4abd5d8740d5a0fbdeeadb8a47bc9f91eaa2b2f09f17b7b3e5d730f07e9285",
+        "bytes": 730289
+      },
+      "replay": {
+        "preview": {
+          "url": "/samples/v1/hyperliquid/btc/l4-orderbook/replay-preview.json",
+          "sha256": "058c1933baf350f307b493c88093b0aaa5429d129c5761c95deb69c64ca72f17",
+          "bytes": 34550
+        },
+        "download": {
+          "url": "/samples/v1/hyperliquid/btc/l4-orderbook/replay-proof.zip",
+          "filename": "replay-proof.zip",
+          "media_type": "application/zip",
+          "sha256": "a868e72fe236974198a3608f530bec6286b26f1b7732ac3d147e9eff42c33079",
+          "bytes": 448871
+        },
+        "event_count": 1000,
+        "final_order_count": 50860,
+        "final_book_sha256": "6d760d9312665abf623022bbb155bc86983195ba85ed7bc0cab9b894c93d6846",
+        "limitations": []
+      }
+    },
+    {
+      "id": "hyperliquid-btc-l4_orders-v1",
+      "venue": "hyperliquid",
+      "symbol": "BTC",
+      "dataset": "l4_orders",
+      "label": "L4 orders",
+      "row_count": 89,
+      "time_range": {
+        "start": "2026-08-10T00:00:00.029Z",
+        "end": "2026-08-10T00:00:00.249Z"
+      },
+      "schema": [
+        {
+          "name": "block_number",
+          "type": "integer"
+        },
+        {
+          "name": "block_time",
+          "type": "string"
+        },
+        {
+          "name": "cloid",
+          "type": "string"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "is_position_tpsl",
+          "type": "boolean"
+        },
+        {
+          "name": "is_trigger",
+          "type": "boolean"
+        },
+        {
+          "name": "limit_price",
+          "type": "number"
+        },
+        {
+          "name": "oid",
+          "type": "integer"
+        },
+        {
+          "name": "order_type",
+          "type": "string"
+        },
+        {
+          "name": "orig_size",
+          "type": "number"
+        },
+        {
+          "name": "reduce_only",
+          "type": "boolean"
+        },
+        {
+          "name": "seq",
+          "type": "integer"
+        },
+        {
+          "name": "side",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "number"
+        },
+        {
+          "name": "status",
+          "type": "string"
+        },
+        {
+          "name": "tif",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "tx_hash",
+          "type": "string"
+        },
+        {
+          "name": "user_address",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/hyperliquid/orders/BTC/history",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "fb8637faff63a1540b1a2235293f36e2cb53bec400416b7e5d2c65a3633eb80e"
+      },
+      "preview": {
+        "url": "/samples/v1/hyperliquid/btc/l4-orders/preview.json",
+        "sha256": "a9bdd73d1a621a8b6ddb410c0d4490a6c0fb1f774999e28553cbc352a37cffc7",
+        "bytes": 46666
+      },
+      "download": {
+        "url": "/samples/v1/hyperliquid/btc/l4-orders/0xarchive-hyperliquid-btc-l4-orders-v1.parquet",
+        "filename": "0xarchive-hyperliquid-btc-l4-orders-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "b0c285a5097688ce7504c6a1cdc74a107b74f56b96e15ef62c7f09981b53689a",
+        "bytes": 11875
+      }
+    },
+    {
+      "id": "lighter-btc-trades-v1",
+      "venue": "lighter",
+      "symbol": "BTC",
+      "dataset": "trades",
+      "label": "Trades",
+      "row_count": 74,
+      "time_range": {
+        "start": "2026-08-10T00:00:00.195Z",
+        "end": "2026-08-10T00:00:07.798Z"
+      },
+      "schema": [
+        {
+          "name": "account_index",
+          "type": "string"
+        },
+        {
+          "name": "allocated_margin_after",
+          "type": "number"
+        },
+        {
+          "name": "allocated_margin_before",
+          "type": "number"
+        },
+        {
+          "name": "client_id",
+          "type": "integer"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "counterparty_address",
+          "type": "string"
+        },
+        {
+          "name": "crossed",
+          "type": "boolean"
+        },
+        {
+          "name": "entry_quote_before",
+          "type": "number"
+        },
+        {
+          "name": "fee",
+          "type": "string"
+        },
+        {
+          "name": "fee_account_id",
+          "type": "integer"
+        },
+        {
+          "name": "initial_margin_fraction_before",
+          "type": "number"
+        },
+        {
+          "name": "integrator_fee",
+          "type": "number"
+        },
+        {
+          "name": "is_maker",
+          "type": "boolean"
+        },
+        {
+          "name": "l2_block_height",
+          "type": "integer"
+        },
+        {
+          "name": "order_id",
+          "type": "integer"
+        },
+        {
+          "name": "position_sign_changed",
+          "type": "boolean"
+        },
+        {
+          "name": "position_size_after",
+          "type": "number"
+        },
+        {
+          "name": "position_size_before",
+          "type": "number"
+        },
+        {
+          "name": "price",
+          "type": "string"
+        },
+        {
+          "name": "realized_pnl",
+          "type": "number"
+        },
+        {
+          "name": "side",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "string"
+        },
+        {
+          "name": "source",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "trade_id",
+          "type": "integer"
+        },
+        {
+          "name": "trade_type",
+          "type": "string"
+        },
+        {
+          "name": "transaction_time_us",
+          "type": "integer"
+        },
+        {
+          "name": "tx_hash",
+          "type": "string"
+        },
+        {
+          "name": "usdc_amount",
+          "type": "number"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/lighter/trades/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "a9b2bb16a650e7bb5b3fbbd981910f79fd340d2f9bf436ef4e3c88fb5342d6f0"
+      },
+      "preview": {
+        "url": "/samples/v1/lighter/btc/trades/preview.json",
+        "sha256": "4c609f06e4edd1ee66b1c27ee9fb09bbdf5dcf3ff719472ec6f30dd87d21f602",
+        "bytes": 61025
+      },
+      "download": {
+        "url": "/samples/v1/lighter/btc/trades/0xarchive-lighter-btc-trades-v1.parquet",
+        "filename": "0xarchive-lighter-btc-trades-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "d88762bb31d78412a64a1d8e86a817558e59a8bb7583cc78958cf7c495df5a18",
+        "bytes": 15018
+      }
+    },
+    {
+      "id": "lighter-btc-orderbook-v1",
+      "venue": "lighter",
+      "symbol": "BTC",
+      "dataset": "orderbook",
+      "label": "Native order book",
+      "row_count": 20,
+      "time_range": {
+        "start": "2026-08-10T00:00:05.407Z",
+        "end": "2026-08-10T00:19:05.906Z"
+      },
+      "schema": [
+        {
+          "name": "asks",
+          "type": "array"
+        },
+        {
+          "name": "bids",
+          "type": "array"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "mid_price",
+          "type": "string"
+        },
+        {
+          "name": "spread",
+          "type": "string"
+        },
+        {
+          "name": "spread_bps",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/lighter/orderbook/BTC/history",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 20,
+          "depth": 10,
+          "granularity": "checkpoint"
+        },
+        "data_sha256": "3f5175ae9281e993160b7dd5786a46d1a8efe957746dd634933fb8fcdb3595e1"
+      },
+      "preview": {
+        "url": "/samples/v1/lighter/btc/orderbook/preview.json",
+        "sha256": "956117167a0b021f4b76721e687db77096ea6bbff694bba6afaf6d6ed0f29151",
+        "bytes": 19053
+      },
+      "download": {
+        "url": "/samples/v1/lighter/btc/orderbook/0xarchive-lighter-btc-orderbook-v1.parquet",
+        "filename": "0xarchive-lighter-btc-orderbook-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "6cb680be7f0fa40291d280da8ff304399882516fcedc6a46483baff85774b42d",
+        "bytes": 7222
+      }
+    },
+    {
+      "id": "lighter-btc-candles-v1",
+      "venue": "lighter",
+      "symbol": "BTC",
+      "dataset": "candles",
+      "label": "Candles",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T00:00:00Z",
+        "end": "2026-08-10T16:35:00Z"
+      },
+      "schema": [
+        {
+          "name": "close",
+          "type": "number"
+        },
+        {
+          "name": "high",
+          "type": "number"
+        },
+        {
+          "name": "low",
+          "type": "number"
+        },
+        {
+          "name": "open",
+          "type": "number"
+        },
+        {
+          "name": "quote_volume",
+          "type": "number"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "trade_count",
+          "type": "integer"
+        },
+        {
+          "name": "volume",
+          "type": "number"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/lighter/candles/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200,
+          "interval": "5m"
+        },
+        "data_sha256": "52c0bda2d0297cb0653b9693c2d0e39e171b4f196b5d38ea2e71e6a2fdcdb778"
+      },
+      "preview": {
+        "url": "/samples/v1/lighter/btc/candles/preview.json",
+        "sha256": "dcf2a917d2fc349d8eeb6d94a41c298ac66840f46f18e0685f5e07fe8e684873",
+        "bytes": 16797
+      },
+      "download": {
+        "url": "/samples/v1/lighter/btc/candles/0xarchive-lighter-btc-candles-v1.parquet",
+        "filename": "0xarchive-lighter-btc-candles-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "29791e18bf1d68ed3fb4c6de706a6257599b89c8e2b3901b2a4a7afebcd5096f",
+        "bytes": 11958
+      }
+    },
+    {
+      "id": "lighter-btc-funding-v1",
+      "venue": "lighter",
+      "symbol": "BTC",
+      "dataset": "funding",
+      "label": "Funding",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T00:00:04.920Z",
+        "end": "2026-08-10T00:33:38.380Z"
+      },
+      "schema": [
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "funding_rate",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/lighter/funding/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "dfae4f329ab7194047b8547867886212b2a7faab44f51ff609b26b5ef7af9c79"
+      },
+      "preview": {
+        "url": "/samples/v1/lighter/btc/funding/preview.json",
+        "sha256": "147dc2043f02f816ea4c8c3a8e8a16d8ddd46603b87cf16436ebd526742449ae",
+        "bytes": 9816
+      },
+      "download": {
+        "url": "/samples/v1/lighter/btc/funding/0xarchive-lighter-btc-funding-v1.parquet",
+        "filename": "0xarchive-lighter-btc-funding-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "9f52e466b671000c66e44d4147809c5400cbcae4e0719a148f8ba45ada4613cb",
+        "bytes": 2358
+      }
+    },
+    {
+      "id": "lighter-btc-open_interest-v1",
+      "venue": "lighter",
+      "symbol": "BTC",
+      "dataset": "open_interest",
+      "label": "Open interest",
+      "row_count": 200,
+      "time_range": {
+        "start": "2026-08-10T00:00:04.920Z",
+        "end": "2026-08-10T00:33:38.380Z"
+      },
+      "schema": [
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "mark_price",
+          "type": "string"
+        },
+        {
+          "name": "open_interest",
+          "type": "string"
+        },
+        {
+          "name": "oracle_price",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/lighter/openinterest/BTC",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 200
+        },
+        "data_sha256": "4e287c149829924747ed7e217eeae7ce13f0cfc900d71f1c5c8efabd56d8bfef"
+      },
+      "preview": {
+        "url": "/samples/v1/lighter/btc/open-interest/preview.json",
+        "sha256": "e49978399897d1a61d02312dbc1d9a9f94c544061131991b9239d24aea5825de",
+        "bytes": 15537
+      },
+      "download": {
+        "url": "/samples/v1/lighter/btc/open-interest/0xarchive-lighter-btc-open-interest-v1.parquet",
+        "filename": "0xarchive-lighter-btc-open-interest-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "203f870d64c4a7fb407bc6b4e1d41f6960e8247f2eacbedae32eb5a6fcf22434",
+        "bytes": 6810
+      }
+    },
+    {
+      "id": "lighter-btc-l3_orderbook-v1",
+      "venue": "lighter",
+      "symbol": "BTC",
+      "dataset": "l3_orderbook",
+      "label": "L3 order book",
+      "row_count": 10,
+      "time_range": {
+        "start": "2026-08-10T00:03:07.089Z",
+        "end": "2026-08-10T00:37:29.873Z"
+      },
+      "schema": [
+        {
+          "name": "ask_count",
+          "type": "integer"
+        },
+        {
+          "name": "bid_count",
+          "type": "integer"
+        },
+        {
+          "name": "coin",
+          "type": "string"
+        },
+        {
+          "name": "mid_price",
+          "type": "string"
+        },
+        {
+          "name": "orders",
+          "type": "array"
+        },
+        {
+          "name": "spread",
+          "type": "string"
+        },
+        {
+          "name": "spread_bps",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "string"
+        },
+        {
+          "name": "total_ask_size",
+          "type": "number"
+        },
+        {
+          "name": "total_bid_size",
+          "type": "number"
+        },
+        {
+          "name": "truncated",
+          "type": "boolean"
+        }
+      ],
+      "source": {
+        "url": "https://api.0xarchive.io/v1/lighter/l3orderbook/BTC/history",
+        "query": {
+          "start": 1786320000000,
+          "end": 1786406400000,
+          "limit": 10
+        },
+        "data_sha256": "692514f646b783c991d5ae0ab0df99075009705afff41e9ff669933f63a28ccb"
+      },
+      "preview": {
+        "url": "/samples/v1/lighter/btc/l3-orderbook/preview.json",
+        "sha256": "d3c6b5729e197e15d8037b06de5ece91d2ffda7ad0cd2de1c6e8777f62102a38",
+        "bytes": 60455
+      },
+      "download": {
+        "url": "/samples/v1/lighter/btc/l3-orderbook/0xarchive-lighter-btc-l3-orderbook-v1.parquet",
+        "filename": "0xarchive-lighter-btc-l3-orderbook-v1.parquet",
+        "media_type": "application/vnd.apache.parquet",
+        "sha256": "5a5356863eb1ade6fbd613ec4de84a138398174c8d1eb7a9a4e7d079a2bc4516",
+        "bytes": 93355
+      },
+      "limitations": [
+        {
+          "code": "truncated_source_frames",
+          "description": "Each source frame reports truncated=true and contains 250 bids plus 250 asks. The sample is a bounded L3 view, not a complete venue book."
+        }
+      ],
+      "replay": {
+        "preview": {
+          "url": "/samples/v1/lighter/btc/l3-orderbook/replay-preview.json",
+          "sha256": "4d096c86cd00571a12aa49630d0a365f35a352aa40dd9687b9571e2520b5f1e9",
+          "bytes": 22508
+        },
+        "download": {
+          "url": "/samples/v1/lighter/btc/l3-orderbook/replay-proof.zip",
+          "filename": "replay-proof.zip",
+          "media_type": "application/zip",
+          "sha256": "9390e9ff713943ee6da148e39032004b6efcf3f1caf7725df21ff6d2fa85ae34",
+          "bytes": 99003
+        },
+        "event_count": 8366,
+        "final_order_count": 500,
+        "final_book_sha256": "b23f92a1fae6c2e4195c80586f692613b22127fdf150cfdad1e721d7ff5f9f33",
+        "limitations": [
+          {
+            "code": "truncated_source_frames",
+            "description": "Each source frame reports truncated=true and contains 250 bids plus 250 asks. The replay verifies this bounded L3 view, not a complete venue book."
+          }
+        ]
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "public-samples-v1-hyperliquid",
+      "scope": "hyperliquid",
+      "filename": "0xarchive-public-samples-v1-hyperliquid.zip",
+      "media_type": "application/zip",
+      "url": "/samples/v1/bundles/0xarchive-public-samples-v1-hyperliquid.zip",
+      "sha256": "c7509af5dc56b4570ad39ec49f40c873c62550935ff7e7e7a0c2122e9788e9df",
+      "bytes": 1208067,
+      "members": [
+        "hyperliquid/btc/candles/0xarchive-hyperliquid-btc-candles-v1.parquet",
+        "hyperliquid/btc/funding/0xarchive-hyperliquid-btc-funding-v1.parquet",
+        "hyperliquid/btc/l4-orderbook/0xarchive-hyperliquid-btc-l4-orderbook-v1.parquet",
+        "hyperliquid/btc/l4-orderbook/replay-proof.zip",
+        "hyperliquid/btc/l4-orders/0xarchive-hyperliquid-btc-l4-orders-v1.parquet",
+        "hyperliquid/btc/liquidations/0xarchive-hyperliquid-btc-liquidations-v1.parquet",
+        "hyperliquid/btc/open-interest/0xarchive-hyperliquid-btc-open-interest-v1.parquet",
+        "hyperliquid/btc/orderbook/0xarchive-hyperliquid-btc-orderbook-v1.parquet",
+        "hyperliquid/btc/trades/0xarchive-hyperliquid-btc-trades-v1.parquet"
+      ]
+    },
+    {
+      "id": "public-samples-v1-lighter",
+      "scope": "lighter",
+      "filename": "0xarchive-public-samples-v1-lighter.zip",
+      "media_type": "application/zip",
+      "url": "/samples/v1/bundles/0xarchive-public-samples-v1-lighter.zip",
+      "sha256": "64ca1868af74653316c0d8e7b4399231f7e2b3bbbd6129bb98cd5fe80cf1d1b1",
+      "bytes": 221507,
+      "members": [
+        "lighter/btc/candles/0xarchive-lighter-btc-candles-v1.parquet",
+        "lighter/btc/funding/0xarchive-lighter-btc-funding-v1.parquet",
+        "lighter/btc/l3-orderbook/0xarchive-lighter-btc-l3-orderbook-v1.parquet",
+        "lighter/btc/l3-orderbook/replay-proof.zip",
+        "lighter/btc/open-interest/0xarchive-lighter-btc-open-interest-v1.parquet",
+        "lighter/btc/orderbook/0xarchive-lighter-btc-orderbook-v1.parquet",
+        "lighter/btc/trades/0xarchive-lighter-btc-trades-v1.parquet"
+      ]
+    },
+    {
+      "id": "public-samples-v1-all",
+      "scope": "all",
+      "filename": "0xarchive-public-samples-v1-all.zip",
+      "media_type": "application/zip",
+      "url": "/samples/v1/bundles/0xarchive-public-samples-v1-all.zip",
+      "sha256": "6def32e9d7478044d1305de29d56db71d34d3fa48e60adba02780dea7e04f04a",
+      "bytes": 1429552,
+      "members": [
+        "hyperliquid/btc/candles/0xarchive-hyperliquid-btc-candles-v1.parquet",
+        "hyperliquid/btc/funding/0xarchive-hyperliquid-btc-funding-v1.parquet",
+        "hyperliquid/btc/l4-orderbook/0xarchive-hyperliquid-btc-l4-orderbook-v1.parquet",
+        "hyperliquid/btc/l4-orderbook/replay-proof.zip",
+        "hyperliquid/btc/l4-orders/0xarchive-hyperliquid-btc-l4-orders-v1.parquet",
+        "hyperliquid/btc/liquidations/0xarchive-hyperliquid-btc-liquidations-v1.parquet",
+        "hyperliquid/btc/open-interest/0xarchive-hyperliquid-btc-open-interest-v1.parquet",
+        "hyperliquid/btc/orderbook/0xarchive-hyperliquid-btc-orderbook-v1.parquet",
+        "hyperliquid/btc/trades/0xarchive-hyperliquid-btc-trades-v1.parquet",
+        "lighter/btc/candles/0xarchive-lighter-btc-candles-v1.parquet",
+        "lighter/btc/funding/0xarchive-lighter-btc-funding-v1.parquet",
+        "lighter/btc/l3-orderbook/0xarchive-lighter-btc-l3-orderbook-v1.parquet",
+        "lighter/btc/l3-orderbook/replay-proof.zip",
+        "lighter/btc/open-interest/0xarchive-lighter-btc-open-interest-v1.parquet",
+        "lighter/btc/orderbook/0xarchive-lighter-btc-orderbook-v1.parquet",
+        "lighter/btc/trades/0xarchive-lighter-btc-trades-v1.parquet"
+      ]
+    }
+  ]
+}

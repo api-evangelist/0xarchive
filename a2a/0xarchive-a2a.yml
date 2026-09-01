@@ -1,0 +1,69 @@
+generated: '2026-09-01'
+method: probed
+source: https://docs.0xarchive.io/.well-known/agent-card.json
+card: a2a/0xarchive-agent-card.json
+discovery:
+  path: /.well-known/agent-card.json
+  canonical: true
+  host: docs.0xarchive.io
+  note: >-
+    The card is served from the developer-portal host, not the apex. The apex (0xarchive.io),
+    the API host (api.0xarchive.io) and the MCP host (mcp.0xarchive.io) were all probed on
+    2026-09-01 and none serves an agent card; docs.0xarchive.io is the only host that does.
+    docs.0xarchive.io is a host 0xArchive controls and the card's provider.organization is
+    "0xArchive", so ownership is not in question.
+x-evidence:
+  fetched: '2026-09-01'
+  url: https://docs.0xarchive.io/.well-known/agent-card.json
+  http_status: 200
+  content_type: application/json
+  body_parses_as: JSON object with AgentCard shape
+agent_card:
+  name: 0xArchive
+  url: https://docs.0xarchive.io/
+  version: 1.0.0
+  protocol_version: '0.3'
+  preferred_transport: HTTP+JSON
+  provider:
+    organization: 0xArchive
+    url: https://docs.0xarchive.io/
+  documentation_url: https://docs.0xarchive.io/
+  capabilities:
+    streaming: false
+    push_notifications: false
+  default_input_modes:
+  - text/plain
+  default_output_modes:
+  - text/plain
+  skill_count: 3
+  skills:
+  - id: 0xarchive-market-data
+    url: https://docs.0xarchive.io/.well-known/agent-skills/0xarchive-market-data/skill.md
+  - id: 0xarchive-openapi
+    url: https://docs.0xarchive.io/.well-known/agent-skills/0xarchive-openapi/skill.md
+  - id: 0xarchive-websocket
+    url: https://docs.0xarchive.io/.well-known/agent-skills/0xarchive-websocket/skill.md
+grade: conformant
+grade_basis: >-
+  Graded against A2A 1.0.0 hard checks: capabilities is an OBJECT (pass), protocolVersion is
+  present (pass), skills is an ARRAY (pass). The optional fields that usually separate
+  near-conformant from conformant are all present as well - preferredTransport (HTTP+JSON),
+  defaultInputModes and defaultOutputModes are each declared.
+deviations:
+- field: protocolVersion
+  observed: '0.3'
+  note: >-
+    Declares A2A protocol 0.3 rather than 1.0.0. This is a version statement, not a shape
+    failure, and it is the version the card itself asserts - it is recorded, not penalised.
+- field: skills[].tags
+  observed: empty array on all three skills
+  note: >-
+    Each skill carries id, name, description and url but an empty tags[] array, so the card
+    supplies no routing taxonomy for skill selection.
+- field: supportedInterfaces[0].url
+  observed: https://docs.0xarchive.io/
+  note: >-
+    The single declared interface points at the documentation site rather than at a callable
+    A2A endpoint. The card is a discovery surface over 0xArchive's documented skills; the
+    provider's actual callable agent surface is the hosted MCP server at
+    https://mcp.0xarchive.io/mcp, which the card does not reference.

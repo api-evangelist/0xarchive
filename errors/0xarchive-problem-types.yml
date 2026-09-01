@@ -1,0 +1,122 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/errors
+sources:
+- https://docs.0xarchive.io/errors
+- openapi/0xarchive-openapi.json (components.responses + components.schemas.Error)
+format: vendor-json
+rfc9457: false
+note: >-
+  0xArchive does NOT use RFC 9457 application/problem+json - the string "problem+json" appears
+  nowhere in the 568KB OpenAPI document and no route declares that media type. It uses two
+  distinct vendor JSON error envelopes, and the docs are unusually candid about the split, which
+  is the practical thing an agent needs to know: a client that only parses one of them will drop
+  the request id on half of all failures.
+envelopes:
+- name: standard envelope
+  shape: '{"success": false, "error": {"code": "<slug>", "message": "<text>"}, "meta": {"request_id": "<uuid>"}}'
+  request_id_at: meta.request_id
+  used_by: most application errors
+- name: resource-specific envelope
+  shape: '{"code": <int>, "error": "<text>", "error_code": "<slug>", "request_id": "<uuid>"}'
+  request_id_at: top-level request_id, or the x-request-id response header
+  used_by: auth, health, wallet and data-quality responses, and all parameter-validation errors
+  note: >-
+    request_id sits at the TOP LEVEL here, not under meta. The docs say so explicitly: "Note that
+    request_id sits at the top level of these bodies, not under meta."
+- name: field-value envelope
+  shape: '{"code": 400, "error": "<text>", "param": "<parameter>", "valid_values": [...]}'
+  used_by: parameters that parse but carry an unsupported value (e.g. an unrecognized candle interval)
+  note: These value-level bodies carry no error_code at all.
+correlation:
+  header: x-request-id
+  observed: true
+  observed_on: every response including 200 /health and 401 /v1/instruments, probed 2026-09-01
+  guidance: >-
+    The docs instruct clients to persist the request id per page of a paginated job, not just the
+    final one, and to expose it on the returned object or thrown exception in generated clients.
+status_codes:
+- status: 400
+  title: Bad request, invalid parameter, unsupported symbol, or invalid time range
+  error_codes:
+  - invalid_query_params
+  - invalid_path_params
+  remediation: >-
+    Fix the request before retrying. Unparseable parameters carry error_code invalid_query_params
+    or invalid_path_params and the error string names the failing field and the exact parse
+    failure. Unsupported values instead return param naming the parameter, plus valid_values where
+    the accepted set is small. Do not retry unchanged.
+  operations_declaring: 130
+  example: '{"code":400,"error":"Failed to deserialize query string: limit: invalid digit found in string","error_code":"invalid_query_params","request_id":"<uuid>"}'
+- status: 401
+  title: Missing or invalid API key
+  remediation: Check the X-API-Key header and the key's status. Stop the job; do not retry unchanged.
+  operations_declaring: 142
+  example: '{"code":401,"error":"Missing or invalid API key. Provide X-API-Key header."}'
+- status: 402
+  title: Payment required
+  remediation: >-
+    Returned on the x402 subscription path. Settle the EIP-3009 USDC transfer on Base and resend
+    with the payment-signature header. The API host advertises access-control-expose-headers:
+    payment-required on every response, so a browser client can read the x402 challenge.
+  operations_declaring: 1
+- status: 403
+  title: The server refused the request
+  remediation: >-
+    Check the exact endpoint, selected account and key status, then read the body to distinguish
+    credentials, route/family/symbol/schema availability, and capacity. The docs are emphatic that
+    plans govern capacity and request windows, NOT route access - so a 403 must not be read as
+    "upgrade required". An unknown wallet hitting POST /v1/auth/web3/verify gets 403
+    wallet_account_required.
+  error_codes:
+  - wallet_account_required
+  operations_declaring: 2
+- status: 404
+  title: Route, symbol, or resource not found
+  remediation: >-
+    Check the venue namespace and symbol format first. The docs state that many apparent 404s are
+    market-family mistakes - a Hyperliquid symbol sent to a Lighter route, an uppercase symbol
+    sent to case-sensitive HIP-3, or a dashed Spot pair sent to a perps route.
+  operations_declaring: 36
+- status: 410
+  title: Gone - retired endpoint
+  error_codes:
+  - wallet_free_signup_retired
+  remediation: >-
+    POST /v1/web3/signup always returns 410 wallet_free_signup_retired and creates nothing. Use
+    https://0xarchive.io/signup for a standard Free account, or the x402 path for autonomous
+    paid access.
+  operations_declaring: 1
+- status: 429
+  title: Rate, concurrency, or credit limit reached
+  error_codes:
+  - rate_limited
+  remediation: >-
+    Honor Retry-After when present; otherwise capped exponential backoff with jitter and reduced
+    concurrency. Detailed in rate-limits/0xarchive-rate-limits.yml.
+  operations_declaring: 139
+  headers:
+  - X-RateLimit-Limit
+  - X-RateLimit-Remaining
+  - X-RateLimit-Reset
+- status: 5xx
+  title: Server or upstream issue
+  remediation: >-
+    Retry with jitter within a bounded budget, then check https://0xarchive.io/status and the
+    /v1/data-quality/* routes before assuming the data is missing rather than delayed.
+next_call_routing:
+  note: >-
+    The provider publishes an explicit error-class-to-next-action table, which is unusual and
+    directly useful to an agent - it tells a caller which DIFFERENT route to try, not just how
+    long to wait.
+  rules:
+  - error_class: repeated liquidation raw-event pressure (429)
+    next_call: >-
+      Switch from the raw liquidation event route to the aggregate bucket route -
+      /v1/hyperliquid/liquidations/{symbol}/volume?interval=1h (getHyperliquidLiquidationVolume)
+      or the matching HIP-3 /volume route (getHip3LiquidationVolume) - when the workflow only
+      needs aggregate exposure.
+  - error_class: wrong venue or symbol family (404)
+    next_call: Consult https://docs.0xarchive.io/venue-coverage and switch namespaces before retrying.
+  - error_class: missing or invalid auth (401)
+    next_call: Stop the job, fix X-API-Key, then retry one small authenticated market-data route.

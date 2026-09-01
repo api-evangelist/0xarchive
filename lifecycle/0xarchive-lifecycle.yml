@@ -1,0 +1,129 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.0xarchive.io/rest-api/reliability
+sources:
+- https://docs.0xarchive.io/rest-api/reliability
+- https://0xarchive.io/changelog
+- https://0xarchive.io/status
+- https://docs.0xarchive.io/rate-limits
+- openapi/0xarchive-openapi.json (deprecated flags on the Legacy tag)
+versioning:
+  scheme: url-path
+  current: v1
+  spec_version: 1.6.1
+  spec_version_source: info.version in https://0xarchive.io/openapi.json
+  note: >-
+    Every route is namespaced under /v1. There is no header- or query-based version negotiation
+    and no dated-version scheme. The contract's info.version (1.6.1) moves independently of the
+    /v1 path version, so the path version has never changed while the contract has.
+status_page:
+  url: https://0xarchive.io/status
+  http_status: 200
+  checked: '2026-09-01'
+  type: first-party page on the provider's own domain
+  note: >-
+    Not a third-party status vendor (no Statuspage/Instatus/Better Stack host). status.0xarchive.io
+    does not resolve - the status page lives at the apex path /status. It is complemented by nine
+    machine-readable data-quality routes under /v1/data-quality/*, which is materially better
+    than a status page alone: an agent can query /v1/data-quality/status, /coverage/{exchange},
+    /latency, /incidents and /sla programmatically rather than scraping an HTML page.
+  machine_readable_health:
+  - operationId: healthCheck
+    path: /health
+    auth: none
+    note: The only unauthenticated route on api.0xarchive.io; probed 200 on 2026-09-01.
+  - operationId: getDataQualityStatus
+    path: /v1/data-quality/status
+  - operationId: getDataQualityCoverage
+    path: /v1/data-quality/coverage
+  - operationId: getLatencyMetrics
+    path: /v1/data-quality/latency
+  - operationId: listIncidents
+    path: /v1/data-quality/incidents
+  - operationId: getSlaMetrics
+    path: /v1/data-quality/sla
+changelog:
+  url: https://0xarchive.io/changelog
+  http_status: 200
+  checked: '2026-09-01'
+  detail: changelog/0xarchive-changelog.yml
+deprecation:
+  policy_published: true
+  policy_location: >-
+    In-contract - every superseded operation carries OpenAPI `deprecated: true` and a description
+    that names its replacement route by path.
+  sunset_header: false
+  deprecation_header: false
+  note: >-
+    No RFC 8594 Sunset or Deprecation response headers are declared anywhere in the contract
+    (neither string appears in the 568KB document), and no dated retirement policy is published.
+    What 0xArchive does instead is stronger than most: the machine-readable contract itself flags
+    every deprecated operation AND states the exact replacement path in the description, and the
+    provider has demonstrated a real retirement with a 410 tombstone rather than a silent removal.
+    The gap is timing, not intent - a caller can see WHAT is deprecated but not WHEN it goes away.
+  deprecated_operations:
+  - operationId: getOrderbook
+    path: /v1/orderbook/{symbol}
+    replacement: /v1/hyperliquid/orderbook/{symbol}
+  - operationId: getOrderbookHistory
+    path: /v1/orderbook/{symbol}/history
+    replacement: /v1/hyperliquid/orderbook/{symbol}/history
+  - operationId: getTrades
+    path: /v1/trades/{symbol}
+    replacement: /v1/hyperliquid/trades/{symbol} or /v1/lighter/trades/{symbol}
+  - operationId: getTradesCursor
+    path: /v1/trades/{symbol}/cursor
+    replacement: /v1/hyperliquid/trades/{symbol} or /v1/lighter/trades/{symbol}
+  - operationId: listInstruments
+    path: /v1/instruments
+    replacement: /v1/hyperliquid/instruments or /v1/lighter/instruments
+  - operationId: getInstrument
+    path: /v1/instruments/{symbol}
+    replacement: /v1/hyperliquid/instruments/{symbol} or /v1/lighter/instruments/{symbol}
+  - operationId: getOpenInterest
+    path: /v1/openinterest/{symbol}
+    replacement: /v1/hyperliquid/openinterest/{symbol} or /v1/lighter/openinterest/{symbol}
+  - operationId: getCurrentOpenInterest
+    path: /v1/openinterest/{symbol}/current
+    replacement: /v1/hyperliquid/openinterest/{symbol}/current or /v1/lighter/openinterest/{symbol}/current
+  - operationId: getFundingHistory
+    path: /v1/funding/{symbol}
+    replacement: /v1/hyperliquid/funding/{symbol} or /v1/lighter/funding/{symbol}
+  - operationId: getCurrentFunding
+    path: /v1/funding/{symbol}/current
+    replacement: /v1/hyperliquid/funding/{symbol}/current or /v1/lighter/funding/{symbol}/current
+  deprecated_count: 10
+  deprecation_cause: >-
+    All ten are the pre-multi-venue flat routes. When Lighter was added as a second top-level
+    venue API, the unqualified /v1/<resource>/{symbol} shape became ambiguous, so each was
+    superseded by a venue-namespaced route. They remain live and are still tagged "Legacy" in
+    the contract.
+  retired_operations:
+  - operationId: web3Signup
+    path: POST /v1/web3/signup
+    status: 410
+    error_code: wallet_free_signup_retired
+    behaviour: >-
+      A compatibility tombstone. Always returns 410 and creates nothing. This is a genuine
+      retirement done correctly - the route still answers with a machine-readable reason rather
+      than 404ing, so an existing client learns why it broke.
+sla:
+  published: true
+  tiers:
+    Enterprise: from 99.5% availability, contract-specific terms
+  self_serve: >-
+    No availability SLA is published for Free, Build, Pro or Scale. SLA compliance is nonetheless
+    queryable per account via GET /v1/data-quality/sla (getSlaMetrics), which reports by month.
+  source: https://docs.0xarchive.io/rate-limits
+reliability:
+  docs: https://docs.0xarchive.io/rest-api/reliability
+  http_status: 200
+  checked: '2026-09-01'
+data_coverage:
+  manifest: https://0xarchive.io/.well-known/data-coverage.json
+  local: well-known/0xarchive-data-coverage.json
+  note: >-
+    Coverage floors are published per venue family and are, unusually, honest about their own
+    limits - the provider states that Hyperliquid trade history before 2026-03-22 "comes from a
+    capped per-user API backfill and is incomplete, especially for maker-side and high-volume
+    activity", and warns that "static coverage dates are not current service health".

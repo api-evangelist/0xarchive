@@ -1,0 +1,1222 @@
+generated: '2026-09-01'
+method: derived
+source: MCP tool inventory read from the provider's own published server source at https://github.com/0xArchiveIO/0xarchive-mcp
+  (src/index.ts, package @0xarchive/mcp-server 1.9.3), bound to operationIds in the published OpenAPI 3.0.3 contract
+  at https://0xarchive.io/openapi.json (info.version 1.6.1).
+note: 'The hosted MCP server at https://mcp.0xarchive.io/mcp is OAuth-gated: an anonymous tools/list POST on 2026-09-01
+  returned HTTP 401 (-32001 "Missing Authorization"), so the live inputSchemas could not be introspected. The tool
+  inventory below is therefore read from the provider''s own open-source stdio server, which the provider states
+  exposes a subset of the hosted server''s tools ("the hosted server exposes a superset of the tools below"). Each
+  tool''s REAL inputSchema is the parameters block of the bound OpenAPI operation. Confidence is high on every row
+  because each tool name resolves deterministically to exactly one published path, and the MCP source delegates
+  each handler to the matching @0xarchive/sdk resource method.'
+surfaces:
+  openapi:
+    url: https://0xarchive.io/openapi.json
+    local: openapi/0xarchive-openapi.json
+    gated: false
+    operations: 149
+  mcp:
+    url: https://mcp.0xarchive.io/mcp
+    transport: streamable-http
+    gated: true
+    gate: OAuth bearer, scope mcp:market.read; anonymous tools/list returns 401
+  mcp_stdio_package:
+    package: '@0xarchive/mcp-server'
+    version: 1.9.3
+    status: retired by the provider in favour of the hosted server, still published and functional
+  graphql:
+    url: null
+    gated: null
+    note: No GraphQL surface. https://api.0xarchive.io/graphql returned 401 (the API host 401s every unmatched path);
+      no GraphQL endpoint is documented anywhere in the docs, llms.txt, api-catalog or ai-catalog.
+  websocket:
+    url: wss://api.0xarchive.io/ws
+    gated: true
+    note: Bearer API key at handshake; no AsyncAPI document is published.
+coverage:
+  mcp_tools: 110
+  mapped_to_rest: 110
+  mcp_only: 0
+  openapi_operations: 149
+  rest_only: 40
+  rest_coverage_pct: 73.2
+crosswalk:
+- tool: get_instruments
+  category: Hyperliquid core perpetuals
+  rest:
+  - listHyperliquidInstruments
+  path: /v1/hyperliquid/instruments
+  binding: '1:1'
+  confidence: high
+  note: List all available Hyperliquid perpetual and spot instruments with leverage, decimals, and active status.
+    Use this to discover valid coin symbols before querying other endpoints.
+- tool: get_instrument
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidInstrument
+  path: /v1/hyperliquid/instruments/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get details for a single Hyperliquid instrument by coin symbol. Returns leverage, decimals, and active status.
+- tool: get_orderbook
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidOrderbook
+  path: /v1/hyperliquid/orderbook/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get the current Hyperliquid L2 orderbook snapshot for a coin. Returns bids, asks, mid price, and spread.
+    Optionally specify depth (price levels per side). Full depth available on every tier.
+- tool: get_orderbook_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidOrderbookHistory
+  path: /v1/hyperliquid/orderbook/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get historical Hyperliquid orderbook snapshots (~1.2s resolution). Returns L2 snapshots with bids/asks over
+    a time range. Data available from April 2023. All symbols and full depth on every tier.
+- tool: get_trades
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidTrades
+  path: /v1/hyperliquid/trades/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid trade/fill history for a coin over a time range. Returns price, size, side, timestamps,
+    and user addresses. Data available from April 2023. Supports cursor pagination.
+- tool: get_candles
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidCandles
+  path: /v1/hyperliquid/candles/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: 'Get Hyperliquid OHLCV candle data for a coin. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w (default 1h).
+    Returns open, high, low, close, volume. Data available from April 2023.'
+- tool: get_funding_current
+  category: Hyperliquid core perpetuals
+  rest:
+  - getCurrentHyperliquidFunding
+  path: /v1/hyperliquid/funding/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current Hyperliquid funding rate for a coin. Returns the latest funding rate, premium, and timestamp.
+- tool: get_funding_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidFundingHistory
+  path: /v1/hyperliquid/funding/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid funding rate history for a coin over a time range. Returns timestamped funding rates and
+    premiums. Data available from May 2023. Supports aggregation intervals (5m, 15m, 30m, 1h, 4h, 1
+- tool: get_open_interest
+  category: Hyperliquid core perpetuals
+  rest:
+  - getCurrentHyperliquidOpenInterest
+  path: /v1/hyperliquid/openinterest/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current Hyperliquid open interest for a coin. Returns OI, mark price, oracle price, and 24h volume.
+- tool: get_open_interest_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidOpenInterest
+  path: /v1/hyperliquid/openinterest/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid open interest history for a coin over a time range. Returns timestamped OI snapshots with
+    mark/oracle prices. Data available from May 2023. Supports aggregation intervals (5m, 15m, 30m
+- tool: get_liquidations
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidLiquidations
+  path: /v1/hyperliquid/liquidations/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid liquidation history for a coin over a time range. Returns liquidated/liquidator addresses,
+    price, size, side, and PnL. Data available from May 2025. Real-time liquidations are also ava
+- tool: get_liquidations_by_user
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidLiquidationsByUser
+  path: /v1/hyperliquid/liquidations/user/{user}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid liquidation history for a specific user address. Returns liquidations where the user was
+    either liquidated or was the liquidator. Filter by coin optionally.
+- tool: get_liquidation_volume
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidLiquidationVolume
+  path: /v1/hyperliquid/liquidations/{symbol}/volume
+  binding: '1:1'
+  confidence: high
+  note: Get aggregated liquidation volume for a coin in time-bucketed intervals. Returns total, long, and short
+    USD volumes. Data available from May 2025.
+- tool: get_freshness
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidFreshness
+  path: /v1/hyperliquid/freshness/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get data freshness for a coin across all data types (orderbook, trades, funding, OI, liquidations). Shows
+    when each data type was last updated and current lag.
+- tool: get_summary
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidSummary
+  path: /v1/hyperliquid/summary/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get combined market summary for a coin in a single call. Returns mark price, oracle price, funding rate,
+    open interest, 24h volume, and 24h liquidation volumes.
+- tool: get_price_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidPriceHistory
+  path: /v1/hyperliquid/prices/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get mark/oracle price history for a coin over a time range. Returns mark_price, oracle_price, and mid_price
+    at each timestamp. Supports aggregation intervals. Data available from May 2023.
+- tool: get_hip3_instruments
+  category: HIP-3 builder perps
+  rest:
+  - listHip3Instruments
+  path: /v1/hyperliquid/hip3/instruments
+  binding: '1:1'
+  confidence: high
+  note: List all available HIP-3 builder perp instruments on Hyperliquid. HIP-3 symbols are CASE-SENSITIVE (e.g.
+    'km:US500', 'km:TSLA'). Use this to discover valid symbols before querying HIP-3 data.
+- tool: get_hip3_instrument
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Instrument
+  path: /v1/hyperliquid/hip3/instruments/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get details for a single HIP-3 instrument. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns mark price,
+    open interest, mid price, and latest timestamp.
+- tool: get_hip3_orderbook
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Orderbook
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get the current HIP-3 orderbook snapshot. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns bids, asks,
+    mid price. All HIP-3 symbols on every tier.
+- tool: get_hip3_orderbook_history
+  category: HIP-3 builder perps
+  rest:
+  - getHip3OrderbookHistory
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get historical HIP-3 orderbook snapshots. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns L2 snapshots
+    with bids/asks over a time range. All HIP-3 symbols on every tier.
+- tool: get_hip3_trades
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Trades
+  path: /v1/hyperliquid/hip3/trades/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 trade history. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns trades with price, size,
+    side, and timestamps over a time range. Supports cursor pagination.
+- tool: get_hip3_trades_recent
+  category: HIP-3 builder perps
+  rest:
+  - getHip3RecentTrades
+  path: /v1/hyperliquid/hip3/trades/{symbol}/recent
+  binding: '1:1'
+  confidence: high
+  note: Get most recent HIP-3 trades. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns the latest trades without
+    needing a time range.
+- tool: get_hip3_candles
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Candles
+  path: /v1/hyperliquid/hip3/candles/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: 'Get HIP-3 OHLCV candle data. Symbols are CASE-SENSITIVE (e.g. ''km:US500''). Intervals: 1m to 1w (default
+    1h). Returns open, high, low, close, volume.'
+- tool: get_hip3_funding_current
+  category: HIP-3 builder perps
+  rest:
+  - getCurrentHip3Funding
+  path: /v1/hyperliquid/hip3/funding/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current HIP-3 funding rate for a coin. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns the
+    latest funding rate and timestamp.
+- tool: get_hip3_funding
+  category: HIP-3 builder perps
+  rest:
+  - getHip3FundingHistory
+  path: /v1/hyperliquid/hip3/funding/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 funding rate history. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns timestamped funding
+    rates over a time range. Supports cursor pagination and aggregation intervals (5m, 15m, 30m, 1
+- tool: get_hip3_open_interest
+  category: HIP-3 builder perps
+  rest:
+  - getCurrentHip3OpenInterest
+  path: /v1/hyperliquid/hip3/openinterest/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current HIP-3 open interest for a coin. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns OI,
+    mark price, and oracle price.
+- tool: get_hip3_open_interest_history
+  category: HIP-3 builder perps
+  rest:
+  - getHip3OpenInterest
+  path: /v1/hyperliquid/hip3/openinterest/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 open interest history over a time range. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns
+    timestamped OI snapshots.
+- tool: get_hip3_liquidations
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Liquidations
+  path: /v1/hyperliquid/hip3/liquidations/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 liquidation events for a coin over a time range. Returns liquidated/liquidator addresses, price,
+    size, side, and PnL. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Data available from Februa
+- tool: get_hip3_liquidation_volume
+  category: HIP-3 builder perps
+  rest:
+  - getHip3LiquidationVolume
+  path: /v1/hyperliquid/hip3/liquidations/{symbol}/volume
+  binding: '1:1'
+  confidence: high
+  note: Get aggregated HIP-3 liquidation volume for a coin in time-bucketed intervals. Returns total, long, and
+    short USD volumes. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Data available from February 20
+- tool: get_lighter_instruments
+  category: Lighter
+  rest:
+  - listLighterInstruments
+  path: /v1/lighter/instruments
+  binding: '1:1'
+  confidence: high
+  note: List all available Lighter.xyz instruments with market IDs, fees, size/price decimals, and active status.
+    Use this to discover valid Lighter symbols.
+- tool: get_lighter_instrument
+  category: Lighter
+  rest:
+  - getLighterInstrument
+  path: /v1/lighter/instruments/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get details for a single Lighter.xyz instrument by coin symbol. Returns market ID, fees, size/price decimals,
+    and active status.
+- tool: get_lighter_orderbook
+  category: Lighter
+  rest:
+  - getLighterOrderbook
+  path: /v1/lighter/orderbook/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get the current Lighter.xyz orderbook snapshot for a coin. Returns bids, asks, mid price, and spread. Optionally
+    specify depth. Full depth available on every tier.
+- tool: get_lighter_orderbook_history
+  category: Lighter
+  rest:
+  - getLighterOrderbookHistory
+  path: /v1/lighter/orderbook/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: 'Get historical Lighter.xyz orderbook snapshots. Returns L2 snapshots with bids/asks over a time range.
+    Supports granularity levels: checkpoint (default), 30s, 10s, 1s, tick.'
+- tool: get_lighter_trades
+  category: Lighter
+  rest:
+  - getLighterTrades
+  path: /v1/lighter/trades/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Lighter.xyz trade history for a coin over a time range. Returns price, size, side, and timestamps. Supports
+    cursor pagination.
+- tool: get_lighter_trades_recent
+  category: Lighter
+  rest:
+  - getLighterRecentTrades
+  path: /v1/lighter/trades/{symbol}/recent
+  binding: '1:1'
+  confidence: high
+  note: Get most recent Lighter.xyz trades for a coin. Returns the latest trades without needing a time range.
+- tool: get_lighter_candles
+  category: Lighter
+  rest:
+  - getLighterCandles
+  path: /v1/lighter/candles/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: 'Get Lighter.xyz OHLCV candle data for a coin. Intervals: 1m to 1w (default 1h). Returns open, high, low,
+    close, volume.'
+- tool: get_lighter_funding_current
+  category: Lighter
+  rest:
+  - getCurrentLighterFunding
+  path: /v1/lighter/funding/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current Lighter.xyz funding rate for a coin. Returns the latest funding rate and timestamp.
+- tool: get_lighter_funding
+  category: Lighter
+  rest:
+  - getLighterFundingHistory
+  path: /v1/lighter/funding/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Lighter.xyz funding rate history for a coin over a time range. Returns timestamped funding rates. Supports
+    cursor pagination and aggregation intervals (5m, 15m, 30m, 1h, 4h, 1d).
+- tool: get_lighter_open_interest
+  category: Lighter
+  rest:
+  - getCurrentLighterOpenInterest
+  path: /v1/lighter/openinterest/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current Lighter.xyz open interest for a coin. Returns OI, mark price, and oracle price.
+- tool: get_lighter_open_interest_history
+  category: Lighter
+  rest:
+  - getLighterOpenInterest
+  path: /v1/lighter/openinterest/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Lighter.xyz open interest history for a coin over a time range. Returns timestamped OI snapshots.
+- tool: get_lighter_freshness
+  category: Lighter
+  rest:
+  - getLighterFreshness
+  path: /v1/lighter/freshness/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get data freshness for a Lighter.xyz coin across all data types (orderbook, trades, funding, OI). Shows
+    when each data type was last updated and current lag.
+- tool: get_lighter_summary
+  category: Lighter
+  rest:
+  - getLighterSummary
+  path: /v1/lighter/summary/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get combined Lighter.xyz market summary for a coin in a single call. Returns mark price, oracle price, funding
+    rate, and open interest.
+- tool: get_lighter_price_history
+  category: Lighter
+  rest:
+  - getLighterPriceHistory
+  path: /v1/lighter/prices/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get mark/oracle price history for a Lighter.xyz coin over a time range. Returns mark_price, oracle_price,
+    and mid_price at each timestamp. Supports aggregation intervals.
+- tool: get_hip3_freshness
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Freshness
+  path: /v1/hyperliquid/hip3/freshness/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get data freshness for a HIP-3 coin across all data types (orderbook, trades, funding, OI). Symbols are
+    CASE-SENSITIVE (e.g. 'km:US500'). Shows when each data type was last updated and current lag.
+- tool: get_hip3_summary
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Summary
+  path: /v1/hyperliquid/hip3/summary/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get combined HIP-3 market summary for a coin in a single call. Symbols are CASE-SENSITIVE (e.g. 'km:US500').
+    Returns mark price, oracle price, mid price, funding rate, and open interest.
+- tool: get_hip3_price_history
+  category: HIP-3 builder perps
+  rest:
+  - getHip3PriceHistory
+  path: /v1/hyperliquid/hip3/prices/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get mark/oracle/mid price history for a HIP-3 coin over a time range. Symbols are CASE-SENSITIVE (e.g. 'km:US500').
+    Returns mark_price, oracle_price, and mid_price at each timestamp. Supports aggregat
+- tool: get_lighter_l3_orderbook
+  category: Lighter
+  rest:
+  - getLighterL3Orderbook
+  path: /v1/lighter/l3orderbook/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Lighter L3 order-level orderbook. Returns individual orders with order IDs, user addresses, prices,
+    and sizes.
+- tool: get_lighter_l3_orderbook_history
+  category: Lighter
+  rest:
+  - getLighterL3OrderbookHistory
+  path: /v1/lighter/l3orderbook/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get historical Lighter L3 orderbook snapshots. Returns order-level snapshots with individual order IDs,
+    user addresses, prices, and sizes over a time range.
+- tool: get_order_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidOrderHistory
+  path: /v1/hyperliquid/orders/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid order history with user attribution. Returns order lifecycle events including placements,
+    fills, cancellations, and modifications with user addresses.
+- tool: get_order_flow
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidOrderFlow
+  path: /v1/hyperliquid/orders/{symbol}/flow
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid order flow aggregation. Returns aggregated order placement, cancellation, and fill metrics
+    over time intervals.
+- tool: get_tpsl
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidTpsl
+  path: /v1/hyperliquid/orders/{symbol}/tpsl
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid TP/SL order history. Returns take-profit and stop-loss orders with trigger prices, user
+    addresses, and triggered status.
+- tool: get_l4_orderbook
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidL4Orderbook
+  path: /v1/hyperliquid/orderbook/{symbol}/l4
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid L4 orderbook reconstruction. Returns full order-level orderbook at a specific timestamp
+    with individual order IDs, user addresses, prices, and sizes.
+- tool: get_l4_diffs
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidL4Diffs
+  path: /v1/hyperliquid/orderbook/{symbol}/l4/diffs
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid L4 orderbook diffs. Returns raw order-level changes (new orders, modifications, cancellations,
+    fills) over a time range.
+- tool: get_l4_orderbook_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidL4History
+  path: /v1/hyperliquid/orderbook/{symbol}/l4/history
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid L4 orderbook checkpoints. Returns periodic full order-level orderbook snapshots over a time
+    range for reconstruction.
+- tool: get_l2_orderbook
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidFullDepthL2Orderbook
+  path: /v1/hyperliquid/orderbook/{symbol}/l2
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid L2 full-depth orderbook. Returns aggregated price levels with total size and order count
+    per level. Derived from L4 data. Data from March 2026+.
+- tool: get_l2_orderbook_history
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidFullDepthL2History
+  path: /v1/hyperliquid/orderbook/{symbol}/l2/history
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid L2 full-depth orderbook checkpoints. Returns periodic aggregated orderbook snapshots over
+    a time range.
+- tool: get_l2_diffs
+  category: Hyperliquid core perpetuals
+  rest:
+  - getHyperliquidFullDepthL2Diffs
+  path: /v1/hyperliquid/orderbook/{symbol}/l2/diffs
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid L2 tick-level orderbook diffs. Returns price-level changes over a time range.
+- tool: get_hip3_order_history
+  category: HIP-3 builder perps
+  rest:
+  - getHip3OrderHistory
+  path: /v1/hyperliquid/hip3/orders/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 order history with user attribution. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns order
+    lifecycle events with user addresses.
+- tool: get_hip3_order_flow
+  category: HIP-3 builder perps
+  rest:
+  - getHip3OrderFlow
+  path: /v1/hyperliquid/hip3/orders/{symbol}/flow
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 order flow aggregation. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns aggregated order
+    placement, cancellation, and fill metrics.
+- tool: get_hip3_tpsl
+  category: HIP-3 builder perps
+  rest:
+  - getHip3Tpsl
+  path: /v1/hyperliquid/hip3/orders/{symbol}/tpsl
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 TP/SL order history. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns take-profit and stop-loss
+    orders with trigger prices and triggered status.
+- tool: get_hip3_l4_orderbook
+  category: HIP-3 builder perps
+  rest:
+  - getHip3L4Orderbook
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/l4
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 L4 orderbook reconstruction. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns full order-level
+    orderbook at a specific timestamp.
+- tool: get_hip3_l4_diffs
+  category: HIP-3 builder perps
+  rest:
+  - getHip3L4Diffs
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/l4/diffs
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 L4 orderbook diffs. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns raw order-level changes
+    over a time range.
+- tool: get_hip3_l4_orderbook_history
+  category: HIP-3 builder perps
+  rest:
+  - getHip3L4History
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/l4/history
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 L4 orderbook checkpoints. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns periodic full
+    order-level orderbook snapshots.
+- tool: get_hip3_l2_orderbook
+  category: HIP-3 builder perps
+  rest:
+  - getHip3FullDepthL2Orderbook
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/l2
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 L2 full-depth orderbook. Symbols are CASE-SENSITIVE (e.g. 'km:US500'). Returns aggregated price
+    levels. Derived from L4 data.
+- tool: get_hip3_l2_orderbook_history
+  category: HIP-3 builder perps
+  rest:
+  - getHip3FullDepthL2History
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/l2/history
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 L2 full-depth orderbook checkpoints. Symbols are CASE-SENSITIVE. Returns periodic aggregated snapshots.
+- tool: get_hip3_l2_diffs
+  category: HIP-3 builder perps
+  rest:
+  - getHip3FullDepthL2Diffs
+  path: /v1/hyperliquid/hip3/orderbook/{symbol}/l2/diffs
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-3 L2 tick-level orderbook diffs. Symbols are CASE-SENSITIVE. Returns price-level changes.
+- tool: get_spot_pairs
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotPairs
+  path: /v1/hyperliquid/spot/pairs
+  binding: '1:1'
+  confidence: high
+  note: List all Hyperliquid Spot pairs with metadata (base/quote asset, wire symbol, asset index, decimals, latest
+    mark/mid price, active status). 294 pairs available. Symbols are dashed canonical (e.g. 'HYP
+- tool: get_spot_pair
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotPair
+  path: /v1/hyperliquid/spot/pairs/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get details for a single Hyperliquid Spot pair by dashed canonical symbol (e.g. 'HYPE-USDC'). Returns base/quote
+    asset, wire symbol, asset index, decimals, latest mark/mid price, and active status.
+- tool: get_spot_orderbook
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotOrderbook
+  path: /v1/hyperliquid/spot/orderbook/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get the current Hyperliquid Spot L2 orderbook snapshot for a pair. Symbols are dashed canonical (e.g. 'HYPE-USDC').
+    Returns bids, asks, mid price, and spread. Optionally specify depth (price levels pe
+- tool: get_spot_orderbook_history
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotOrderbookHistory
+  path: /v1/hyperliquid/spot/orderbook/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get historical Hyperliquid Spot L2 orderbook snapshots over a time range. Symbols are dashed canonical (e.g.
+    'HYPE-USDC'). Returns L2 snapshots with bids/asks. Live coverage from 2026-05-05 (no histor
+- tool: get_spot_trades
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotTrades
+  path: /v1/hyperliquid/spot/trades/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot trade/fill history for a pair over a time range. Symbols are dashed canonical (e.g.
+    'HYPE-USDC'). Returns price, size, side, timestamps, and user addresses. S3 backfill from 2025-
+- tool: get_spot_trades_recent
+  category: Hyperliquid Spot
+  rest:
+  - getSpotTradesRecent
+  path: /v1/hyperliquid/spot/trades/{symbol}/recent
+  binding: '1:1'
+  confidence: high
+  note: Get the most recent Hyperliquid Spot trades for a pair. Symbols are dashed canonical (e.g. 'HYPE-USDC').
+    Returns the latest trades without needing a time range. Live since 2026-05-05.
+- tool: get_spot_order_history
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotOrderHistory
+  path: /v1/hyperliquid/spot/orders/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot order lifecycle events with user attribution. Symbols are dashed canonical (e.g. 'HYPE-USDC').
+    Returns placements, fills, cancellations, and modifications with user addresses. Liv
+- tool: get_spot_l4_orderbook
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotL4Orderbook
+  path: /v1/hyperliquid/spot/orderbook/{symbol}/l4
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot L4 orderbook reconstruction at a specific timestamp. Symbols are dashed canonical (e.g.
+    'HYPE-USDC'). Returns the full order-level orderbook with individual order IDs, user addres
+- tool: get_spot_l4_diffs
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotL4Diffs
+  path: /v1/hyperliquid/spot/orderbook/{symbol}/l4/diffs
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot L4 orderbook diffs. Symbols are dashed canonical (e.g. 'HYPE-USDC'). Returns raw order-level
+    changes (new orders, modifications, cancellations, fills) over a time range. Live from
+- tool: get_spot_l4_orderbook_history
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotL4History
+  path: /v1/hyperliquid/spot/orderbook/{symbol}/l4/history
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot L4 orderbook checkpoints. Symbols are dashed canonical (e.g. 'HYPE-USDC'). Returns
+    periodic full order-level orderbook snapshots over a time range for reconstruction. Live from 20
+- tool: get_spot_twap_by_symbol
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotTwap
+  path: /v1/hyperliquid/spot/twap/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot TWAP statuses for a single pair (every TWAP touching this pair). Symbols are dashed
+    canonical (e.g. 'HYPE-USDC'). Returns timestamped TWAP status records with twap_id, user_addres
+- tool: get_spot_twap_by_user
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotUserTwap
+  path: /v1/hyperliquid/spot/twap/user/{user}
+  binding: '1:1'
+  confidence: high
+  note: Get Hyperliquid Spot TWAP statuses for a single user wallet across every spot pair. Returns timestamped
+    TWAP status records with coin, twap_id, side, size, filled_size, status, and execution metadata.
+- tool: get_spot_freshness
+  category: Hyperliquid Spot
+  rest:
+  - getHyperliquidSpotFreshness
+  path: /v1/hyperliquid/spot/freshness/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get per-pair data freshness for Hyperliquid Spot across all data types (orderbook, trades, L4, TWAP). Symbols
+    are dashed canonical (e.g. 'HYPE-USDC'). Shows when each data type was last updated and cu
+- tool: get_hip4_instruments
+  category: HIP-4 outcome markets
+  rest:
+  - listHip4Instruments
+  path: /v1/hyperliquid/hip4/instruments
+  binding: '1:1'
+  confidence: high
+  note: 'List all available HIP-4 outcome-market instruments (one row per side, e.g. ''0'', ''1''). HIP-4 coins
+    use the bare numeric format ''<10*outcome_id + side>'' (legacy ''#0'' / ''%230'' forms also accepted). Use '
+- tool: get_hip4_instrument
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Instrument
+  path: /v1/hyperliquid/hip4/instruments/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get details for a single HIP-4 instrument by coin symbol (e.g. '0'). Bare numeric coins are canonical; legacy
+    '#0' / '%230' forms are also accepted.Returns per-side metadata including outcome_id, side
+- tool: get_hip4_outcomes
+  category: HIP-4 outcome markets
+  rest:
+  - listHip4Outcomes
+  path: /v1/hyperliquid/hip4/outcomes
+  binding: '1:1'
+  confidence: high
+  note: List HIP-4 outcome markets aggregated across both sides. Optionally filter by settlement status. Each outcome
+    groups its '<10*id>' Yes / '<10*id+1>' No sides. Listen for the WebSocket `outcome_settled
+- tool: get_hip4_outcome
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Outcome
+  path: /v1/hyperliquid/hip4/outcomes/{outcome_id}
+  binding: '1:1'
+  confidence: high
+  note: Get a single HIP-4 outcome by outcome_id. Returns the full Hip4OutcomeAggregate including aggregated_oi
+    (latest both-sides OI snapshot, paired set supply, parity, and currency).
+- tool: get_hip4_orderbook
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Orderbook
+  path: /v1/hyperliquid/hip4/orderbook/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: 'Get the current HIP-4 L2 orderbook snapshot for a coin (e.g. ''0''). Bare numeric coins are canonical;
+    legacy ''#0'' / ''%230'' forms are also accepted.Returns bids and asks. Note: mark_price for HIP-4 is a'
+- tool: get_hip4_orderbook_history
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4OrderbookHistory
+  path: /v1/hyperliquid/hip4/orderbook/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get historical HIP-4 L2 orderbook snapshots for a coin (e.g. '0'). Bare numeric coins are canonical; legacy
+    '#0' / '%230' forms are also accepted.Returns L2 snapshots over a time range.
+- tool: get_hip4_trades
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Trades
+  path: /v1/hyperliquid/hip4/trades/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 trade/fill history for a coin (e.g. '0'). Bare numeric coins are canonical; legacy '#0' / '%230'
+    forms are also accepted.Returns price, size, side, and timestamps over a time range. Supports
+- tool: get_hip4_trades_recent
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4RecentTrades
+  path: /v1/hyperliquid/hip4/trades/{symbol}/recent
+  binding: '1:1'
+  confidence: high
+  note: Get the most recent HIP-4 trades for a coin (e.g. '0'). Bare numeric coins are canonical; legacy '#0' /
+    '%230' forms are also accepted.Returns the latest trades without needing a time range.
+- tool: get_hip4_open_interest
+  category: HIP-4 outcome markets
+  rest:
+  - getCurrentHip4OpenInterest
+  path: /v1/hyperliquid/hip4/openinterest/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 per-side open interest history for a coin (e.g. '0'). Bare numeric coins are canonical; legacy
+    '#0' / '%230' forms are also accepted.Returns timestamped OI snapshots; mark_price is an implie
+- tool: get_hip4_open_interest_current
+  category: HIP-4 outcome markets
+  rest:
+  - getCurrentHip4OpenInterest
+  path: /v1/hyperliquid/hip4/openinterest/{symbol}/current
+  binding: '1:1'
+  confidence: high
+  note: Get the current HIP-4 per-side open interest for a coin (e.g. '0'). Bare numeric coins are canonical; legacy
+    '#0' / '%230' forms are also accepted.Returns the latest OI row; mark_price is an implied p
+- tool: get_hip4_freshness
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Freshness
+  path: /v1/hyperliquid/hip4/freshness/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 data freshness for a coin (e.g. '0') across all available data types (orderbook, trades, OI, L4).
+    Bare numeric coins are canonical; legacy '#0' / '%230' forms are also accepted.Shows when ea
+- tool: get_hip4_summary
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Summary
+  path: /v1/hyperliquid/hip4/summary/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get a combined HIP-4 24h market summary for a coin (e.g. '0'). Bare numeric coins are canonical; legacy
+    '#0' / '%230' forms are also accepted.Returns price, volume, and OI aggregates. mark_price is an
+- tool: get_hip4_prices
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4PriceHistory
+  path: /v1/hyperliquid/hip4/prices/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 mid-price (implied probability, 0..1) history for a coin (e.g. '0'). Bare numeric coins are canonical;
+    legacy '#0' / '%230' forms are also accepted.Returns timestamped price snapshots over a
+- tool: get_hip4_order_history
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4OrderHistory
+  path: /v1/hyperliquid/hip4/orders/{symbol}/history
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 order lifecycle events with user attribution for a coin (e.g. '0'). Bare numeric coins are canonical;
+    legacy '#0' / '%230' forms are also accepted.Returns placements, fills, cancellations, m
+- tool: get_hip4_order_flow
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4OrderFlow
+  path: /v1/hyperliquid/hip4/orders/{symbol}/flow
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 order flow aggregation for a coin (e.g. '0'). Bare numeric coins are canonical; legacy '#0' /
+    '%230' forms are also accepted.Returns time-bucketed order placement, cancellation, and fill met
+- tool: get_hip4_tpsl
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4Tpsl
+  path: /v1/hyperliquid/hip4/orders/{symbol}/tpsl
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 TP/SL order history for a coin (e.g. '0'). Bare numeric coins are canonical; legacy '#0' / '%230'
+    forms are also accepted.Returns take-profit and stop-loss orders with trigger prices and tri
+- tool: get_hip4_l4_orderbook
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4L4Orderbook
+  path: /v1/hyperliquid/hip4/orderbook/{symbol}/l4
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 L4 orderbook reconstruction for a coin (e.g. '0'). Bare numeric coins are canonical; legacy '#0'
+    / '%230' forms are also accepted.Returns the full order-level orderbook at a specific timesta
+- tool: get_hip4_l4_diffs
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4L4Diffs
+  path: /v1/hyperliquid/hip4/orderbook/{symbol}/l4/diffs
+  binding: '1:1'
+  confidence: high
+  note: Get HIP-4 L4 orderbook diffs for a coin (e.g. '0'). Bare numeric coins are canonical; legacy '#0' / '%230'
+    forms are also accepted.Returns raw order-level changes (new orders, modifications, cancellat
+- tool: get_hip4_l4_orderbook_history
+  category: HIP-4 outcome markets
+  rest:
+  - getHip4L4History
+  path: /v1/hyperliquid/hip4/orderbook/{symbol}/l4/history
+  binding: '1:1'
+  confidence: high
+  note: 'Get HIP-4 L4 orderbook checkpoints for a coin (e.g. ''0''). Bare numeric coins are canonical; legacy ''#0''
+    / ''%230'' forms are also accepted.Returns periodic full order-level snapshots. Hard cap limit=10 '
+- tool: get_data_quality_status
+  category: Data quality
+  rest:
+  - getDataQualityStatus
+  path: /v1/data-quality/status
+  binding: '1:1'
+  confidence: high
+  note: Get the current system status for supported venue APIs and data types. Returns overall health (operational/degraded/outage),
+    per-scope status with latency, per-data-type completeness, and active incid
+- tool: get_data_coverage
+  category: Data quality
+  rest:
+  - getDataQualityCoverage
+  path: /v1/data-quality/coverage
+  binding: '1:1'
+  confidence: high
+  note: Get data coverage across supported venue APIs. Returns earliest/latest timestamps, total records, symbol
+    count, resolution, lag, and completeness per data type per venue scope.
+- tool: get_exchange_coverage
+  category: Data quality
+  rest:
+  - getExchangeCoverage
+  path: /v1/data-quality/coverage/{exchange}
+  binding: '1:1'
+  confidence: high
+  note: Get data coverage for a specific venue scope. Returns earliest/latest timestamps, total records, symbol
+    count, resolution, and completeness per data type.
+- tool: get_symbol_coverage
+  category: Data quality
+  rest:
+  - getSymbolCoverage
+  path: /v1/data-quality/coverage/{exchange}/{symbol}
+  binding: '1:1'
+  confidence: high
+  note: Get detailed data coverage for a specific symbol on a venue scope. Returns per-data-type coverage with earliest/latest,
+    total records, completeness, detected data gaps, and cadence metrics.
+- tool: get_data_incidents
+  category: Data quality
+  rest:
+  - listIncidents
+  path: /v1/data-quality/incidents
+  binding: '1:1'
+  confidence: high
+  note: List data quality incidents (outages, gaps, degradations). Filter by status, exchange, or time. Returns
+    incident details including severity, affected data types, duration, root cause, and resolution.
+- tool: get_incident
+  category: Data quality
+  rest:
+  - getIncident
+  path: /v1/data-quality/incidents/{id}
+  binding: '1:1'
+  confidence: high
+  note: Get a specific data quality incident by its ID. Returns full incident details including severity, affected
+    data types, root cause, resolution, and timeline.
+- tool: get_data_latency
+  category: Data quality
+  rest:
+  - getLatencyMetrics
+  path: /v1/data-quality/latency
+  binding: '1:1'
+  confidence: high
+  note: Get current latency metrics for supported venue APIs. Returns WebSocket latency (current, 1h avg, 24h avg),
+    REST API latency, and data freshness lag per data type (orderbook, fills, funding, OI).
+- tool: get_data_sla
+  category: Data quality
+  rest:
+  - getSlaMetrics
+  path: /v1/data-quality/sla
+  binding: '1:1'
+  confidence: high
+  note: Get SLA compliance report for a given month. Returns uptime, data completeness, API latency P99 — each with
+    target vs actual and met/missed status. Also shows incident count and total downtime.
+- tool: web3_challenge
+  category: Web3 wallet auth
+  rest:
+  - web3Challenge
+  path: /v1/auth/web3/challenge
+  binding: '1:1'
+  confidence: high
+  note: ''
+- tool: web3_list_keys
+  category: Web3 wallet auth
+  rest:
+  - web3ListKeys
+  path: /v1/web3/keys
+  binding: '1:1'
+  confidence: high
+  note: ''
+- tool: web3_revoke_key
+  category: Web3 wallet auth
+  rest:
+  - web3RevokeKey
+  path: /v1/web3/keys/revoke
+  binding: '1:1'
+  confidence: high
+  note: ''
+- tool: web3_subscribe
+  category: Web3 wallet auth
+  rest:
+  - web3Subscribe
+  path: /v1/web3/subscribe
+  binding: '1:1'
+  confidence: high
+  note: ''
+mcp_only: []
+rest_only:
+- operationId: healthCheck
+  method: GET
+  path: /health
+  tags:
+  - System
+- operationId: getOrderbook
+  method: GET
+  path: /v1/orderbook/{symbol}
+  tags:
+  - Legacy
+- operationId: getOrderbookHistory
+  method: GET
+  path: /v1/orderbook/{symbol}/history
+  tags:
+  - Legacy
+- operationId: getTrades
+  method: GET
+  path: /v1/trades/{symbol}
+  tags:
+  - Legacy
+- operationId: getTradesCursor
+  method: GET
+  path: /v1/trades/{symbol}/cursor
+  tags:
+  - Legacy
+- operationId: listInstruments
+  method: GET
+  path: /v1/instruments
+  tags:
+  - Legacy
+- operationId: getInstrument
+  method: GET
+  path: /v1/instruments/{symbol}
+  tags:
+  - Legacy
+- operationId: getOpenInterest
+  method: GET
+  path: /v1/openinterest/{symbol}
+  tags:
+  - Legacy
+- operationId: getCurrentOpenInterest
+  method: GET
+  path: /v1/openinterest/{symbol}/current
+  tags:
+  - Legacy
+- operationId: getFundingHistory
+  method: GET
+  path: /v1/funding/{symbol}
+  tags:
+  - Legacy
+- operationId: getCurrentFunding
+  method: GET
+  path: /v1/funding/{symbol}/current
+  tags:
+  - Legacy
+- operationId: getHip3BreadthAboveVwapCurrent
+  method: GET
+  path: /v1/hyperliquid/hip3/breadth/above-vwap/current
+  tags:
+  - HIP-3 Builder Perps - Breadth
+- operationId: getHip3BreadthAboveVwap
+  method: GET
+  path: /v1/hyperliquid/hip3/breadth/above-vwap
+  tags:
+  - HIP-3 Builder Perps - Breadth
+- operationId: web3Signup
+  method: POST
+  path: /v1/web3/signup
+  tags:
+  - Web3 Authentication
+- operationId: getHip4OpenInterest
+  method: GET
+  path: /v1/hyperliquid/hip4/openinterest/{symbol}
+  tags:
+  - HIP-4 Outcomes - Open Interest
+- operationId: getSpotCandles
+  method: GET
+  path: /v1/hyperliquid/spot/candles/{symbol}
+  tags:
+  - Hyperliquid Spot - Candles
+- operationId: getHip4Candles
+  method: GET
+  path: /v1/hyperliquid/hip4/candles/{symbol}
+  tags:
+  - HIP-4 Outcomes - Candles
+- operationId: getHyperliquidCvd
+  method: GET
+  path: /v1/hyperliquid/cvd/{symbol}
+  tags:
+  - Hyperliquid - Convenience
+- operationId: getHip3Cvd
+  method: GET
+  path: /v1/hyperliquid/hip3/cvd/{symbol}
+  tags:
+  - HIP-3 Builder Perps - Convenience
+- operationId: getHyperliquidLiquidationLevels
+  method: GET
+  path: /v1/hyperliquid/liquidations/{symbol}/levels
+  tags:
+  - Hyperliquid - Liquidations
+- operationId: getHip3LiquidationLevels
+  method: GET
+  path: /v1/hyperliquid/hip3/liquidations/{symbol}/levels
+  tags:
+  - HIP-3 - Liquidations
+- operationId: getHip3OracleExternalPrice
+  method: GET
+  path: /v1/hyperliquid/hip3/oracle/external-price/{symbol}
+  tags:
+  - HIP-3 Builder Perps - Oracle
+- operationId: getHip3OracleDiscoveryBounds
+  method: GET
+  path: /v1/hyperliquid/hip3/oracle/discovery-bounds/{symbol}
+  tags:
+  - HIP-3 Builder Perps - Oracle
+- operationId: getHip4OutcomeBySlug
+  method: GET
+  path: /v1/hyperliquid/hip4/outcomes/by-slug/{slug}
+  tags:
+  - HIP-4 Outcomes - Outcomes
+- operationId: listHip4Questions
+  method: GET
+  path: /v1/hyperliquid/hip4/questions
+  tags:
+  - HIP-4 Outcomes - Questions
+- operationId: getHip4Question
+  method: GET
+  path: /v1/hyperliquid/hip4/questions/{question_id}
+  tags:
+  - HIP-4 Outcomes - Questions
+- operationId: getLighterLiquidations
+  method: GET
+  path: /v1/lighter/liquidations/{symbol}
+  tags:
+  - Lighter - Liquidations
+- operationId: getLighterLiquidationVolume
+  method: GET
+  path: /v1/lighter/liquidations/{symbol}/volume
+  tags:
+  - Lighter - Liquidations
+- operationId: classifyHyperliquidWallets
+  method: GET
+  path: /v1/hyperliquid/wallets/classify
+  tags:
+  - Hyperliquid - Wallets
+- operationId: classifyHip3Wallets
+  method: GET
+  path: /v1/hyperliquid/hip3/wallets/classify
+  tags:
+  - HIP-3 Builder Perps - Wallets
+- operationId: listSymbols
+  method: GET
+  path: /v1/symbols
+  tags:
+  - System
+- operationId: getPublicStats
+  method: GET
+  path: /v1/stats
+  tags:
+  - System
+- operationId: getPublicCoverageStatus
+  method: GET
+  path: /v1/status/coverage
+  tags:
+  - System
+- operationId: web3Verify
+  method: POST
+  path: /v1/auth/web3/verify
+  tags:
+  - Web3 Authentication
+- operationId: getHyperliquidLiquidationLevelsHistory
+  method: GET
+  path: /v1/hyperliquid/liquidations/{symbol}/levels/history
+  tags:
+  - Hyperliquid - Liquidations
+- operationId: getHip3LiquidationLevelsHistory
+  method: GET
+  path: /v1/hyperliquid/hip3/liquidations/{symbol}/levels/history
+  tags:
+  - HIP-3 - Liquidations
+- operationId: getHyperliquidTriggerLevels
+  method: GET
+  path: /v1/hyperliquid/orders/{symbol}/trigger-levels
+  tags:
+  - Hyperliquid - Orders
+- operationId: getHip3TriggerLevels
+  method: GET
+  path: /v1/hyperliquid/hip3/orders/{symbol}/trigger-levels
+  tags:
+  - HIP-3 - Orders
+- operationId: getHyperliquidTriggerLevelsHistory
+  method: GET
+  path: /v1/hyperliquid/orders/{symbol}/trigger-levels/history
+  tags:
+  - Hyperliquid - Orders
+- operationId: getHip3TriggerLevelsHistory
+  method: GET
+  path: /v1/hyperliquid/hip3/orders/{symbol}/trigger-levels/history
+  tags:
+  - HIP-3 - Orders

@@ -1,0 +1,157 @@
+generated: '2026-09-01'
+method: searched
+source: https://0xarchive.io/changelog
+fetched: '2026-09-01'
+http_status: 200
+title: API & Coverage Changelog
+subtitle: New routes, coverage, pricing, and tooling across the 0xArchive API, SDKs, CLI, and MCP.
+scheme: semver
+current_version: 2.8.0
+current_date: '2026-08-31'
+contract_version: 1.6.1
+note: >-
+  A genuinely good changelog: every entry carries a semantic version, an exact date, an explicit
+  change class (Breaking Change / New Feature / Improvement), and a bulleted list of what did and
+  did NOT change - including, repeatedly, sentences whose only job is to tell a reader what was
+  left alone ("No data was removed", "Monthly allowances unchanged", "REST, WebSocket, the SDKs,
+  the CLI, and the Claude Code Skill are unaffected"). The product changelog version (2.8.0) is a
+  separate track from the OpenAPI contract version (1.6.1) and from each package's own version;
+  the entries state which contract and SDK versions accompany each release.
+classes:
+- Breaking Change
+- New Feature
+- Improvement
+entries:
+- version: 2.8.0
+  date: '2026-08-31'
+  class: Breaking Change
+  title: Free plan history moves to a rolling 30-day window
+  breaking: true
+  highlights:
+  - Free now reaches only the most recent rolling 30 days, with a maximum 30-day span per request or replay.
+  - Build and above keep the full retained archive; no data was removed from the archive itself.
+  - >-
+    Free still includes every market, route family, schema and served depth - REST, WebSocket
+    streaming and replay, L4 channels, HIP-3, HIP-4, Spot and Lighter.
+  - Credits, rate limits, WebSocket subscription counts, replay speeds and API-key limits unchanged on every tier.
+  - Public samples and the Data Catalog sit outside the entitlement and are unaffected.
+- version: 2.7.1
+  date: '2026-08-06'
+  class: Improvement
+  title: Self-hosted MCP server retired; hosted MCP is the only supported MCP path
+  breaking: false
+  highlights:
+  - >-
+    Closes the sunset timing left open in 2.6.0. The open-source stdio MCP server is retired but
+    nothing is removed - the npm package still installs and existing setups keep working.
+  - The 0xarchive-mcp GitHub repository is archived and read-only; URL, releases and history remain.
+  - '@0xarchive/mcp-server stays published and installable, marked deprecated so the migration notice shows at install time.'
+  - Migration is a config change - point the client at https://mcp.0xarchive.io/mcp as a streamable-HTTP server.
+  - The hosted MCP exposes a superset of the self-hosted tool surface, so migration costs no tools.
+- version: 2.7.0
+  date: '2026-07-27'
+  class: New Feature
+  title: 'Liquidation levels and trigger levels: projected forced-liquidation maps with history'
+  breaking: partial
+  highlights:
+  - >-
+    GET /v1/hyperliquid/liquidations/{symbol}/levels (and the HIP-3 equivalent) returns projected
+    forced-liquidation price buckets computed from clearinghouse positions and margin state,
+    refreshed about every 5 minutes.
+  - >-
+    GET /v1/hyperliquid/orders/{symbol}/trigger-levels carries the pending stop-loss/take-profit
+    map that previously lived on the liquidations path.
+  - Both families gained /history endpoints with cursor pagination, summary=true discovery, and at= point-in-time reads.
+  - >-
+    Breaking note stated in the entry - the HIP-3 /liquidations/{symbol}/levels path previously
+    served the trigger-order map; clients must move to /orders/{symbol}/trigger-levels.
+  - SDKs 1.8.0 (TypeScript, Python, Rust) add typed methods for all four families plus WebSocket and pagination fixes.
+  - 'Hosted MCP 1.1.0: 13 new tools; OpenAPI 1.6.0 documents all eight levels operations.'
+- version: 2.6.0
+  date: '2026-07-02'
+  class: Improvement
+  title: Hosted MCP is canonical; self-hosted MCP and legacy unversioned routes deprecated
+  breaking: false
+  highlights:
+  - >-
+    Two canonical agent paths named explicitly - the hosted MCP for MCP-capable clients, and the
+    Claude Code Skill (curl+jq against REST, no MCP) for skill-capable coding agents. The entry is
+    careful to say they are separate integrations, not the same thing.
+  - >-
+    Legacy unversioned REST routes /v1/orderbook, /v1/trades, /v1/funding, /v1/openinterest and
+    /v1/instruments deprecated in favour of their /v1/hyperliquid/* equivalents.
+  - Sunset timing not announced; no routes removed in the release.
+- version: 2.5.0
+  date: '2026-06-17'
+  class: Improvement
+  title: Pricing and route reliability
+  breaking: false
+  highlights:
+  - Trials retired; Free becomes the entry path with no card required.
+  - Build/Pro/Scale limits restated; Scale becomes self-serve.
+  - Spot export quotes, spot order history, spot freshness L4 fields, wallet profiles and cancel-speed metrics repaired in production.
+- version: 2.3.0
+  date: '2026-05-30'
+  class: Breaking Change
+  title: REST credits are now billed per row
+  breaking: true
+  highlights:
+  - 'Billing moved from flat cost per call to per-row metering: charged = max(1, ceil(rows_returned / rows_per_credit)), 1 credit minimum.'
+  - ~1 credit per 1,000 rows for trades/fills/L2 history/funding/OI/liquidations/Lighter L3; ~1 per 10,000 candle rows; ~1 per 5,000 L4 rows.
+  - Single-value endpoints cost 1 credit. Monthly allowances unchanged and no client code changes required.
+  - Opt-in Apache Arrow output (?format=arrow) for the trades family, billed identically to JSON.
+- version: 2.2.1
+  date: '2026-05-06'
+  class: New Feature
+  title: Spot trades history now goes back to March 2025
+  breaking: false
+  highlights:
+  - Hyperliquid spot trades cover 2025-03-22 onward with builder fees, twap_id, fee token and real EVM transaction hashes per fill.
+  - Spot order-lifecycle history, TWAP tracking, L2 snapshots/history and L4 orders/diffs added across all pairs.
+- version: 2.2.0
+  date: '2026-05-05'
+  class: New Feature
+  title: Hyperliquid spot data live
+  breaking: false
+  highlights:
+  - 294 spot pairs covered in real time; 13 new REST endpoints under /v1/hyperliquid/spot/* and 5 new WebSocket channels.
+  - Dashed symbol convention (PURR-USDC, HYPE-USDC) introduced; venue wire identifiers resolved automatically.
+  - No funding, open interest or liquidations for spot - the entry states these are perp-only constructs that do not exist for spot.
+- version: 2.1.0
+  date: '2026-05-04'
+  class: New Feature
+  title: Real-time liquidations
+  breaking: false
+  highlights:
+  - liquidations and hip3_liquidations WebSocket channels now stream in real time, sub-second from a Hyperliquid node.
+  - Same wire format as trades (a fill record with is_liquidation true), so existing trade-parsing code drops in unchanged.
+  - Events continue to flow on trades/hip3_trades for backward compatibility - subscribers to both must dedupe on tid.
+  - 'Names a second WebSocket host alongside the documented one: wss://stream.0xarchive.io/ws.'
+- version: 2.0.0
+  date: '2026-05-03'
+  class: New Feature
+  title: HIP-4 outcome markets
+  breaking: false
+  highlights:
+  - Binary outcome markets ingested end-to-end - per-side L2 and L4 books, trades, candles, open interest and per-outcome aggregates.
+  - Outcome, by-slug and question resources added; L4 routes gated to Pro+.
+  - Settlement provenance recorded per settled outcome (block_number, block_time, oracle_tx_hash).
+  - mark_price is implied probability in [0,1], not USD - deliberately mirroring upstream markPx.
+- version: 1.9.0
+  date: '2026-04-16'
+  class: New Feature
+  title: Extended fill fee breakdown
+  breaking: false
+  highlights:
+  - New fill fields builder_address, builder_fee, deployer_fee, priority_gas, cloid, twap_id across Hyperliquid and HIP-3.
+  - Included in Parquet bulk exports and all three SDKs; MCP server to 1.6.0 and CLI to 1.4.0.
+- version: 1.8.0
+  date: '2026-04-04'
+  class: New Feature
+  title: L2 full-depth orderbook and reconstruction SDKs
+  breaking: false
+  highlights:
+  - Full-depth L2 orderbook endpoints for Hyperliquid and HIP-3, plus orderbook reconstruction helpers in all three SDKs.
+window: >-
+  The twelve most recent entries, spanning 2026-04-04 to 2026-08-31. The published changelog
+  extends further back; this is a recent window, not the complete history.

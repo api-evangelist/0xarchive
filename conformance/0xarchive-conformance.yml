@@ -1,0 +1,278 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  Derived from the published OpenAPI at https://0xarchive.io/openapi.json, the live /.well-known/
+  probe results in well-known/0xarchive-well-known.yml, and the provider's own documentation;
+  every entry cites the exact location that carries the evidence.
+sector: crypto market data / digital-asset trading infrastructure
+standards:
+- id: openapi
+  name: OpenAPI Specification
+  version: 3.0.3
+  conforms: true
+  evidence:
+    location: openapi/0xarchive-openapi.json
+    detail: >-
+      A single 568KB OpenAPI 3.0.3 document covering 149 operations across 45 tags and 141
+      component schemas, served at https://0xarchive.io/openapi.json (HTTP 200,
+      application/json). info.version 1.6.1.
+- id: oauth2
+  name: OAuth 2.0 (RFC 6749) with PKCE (RFC 7636)
+  conforms: true
+  scope: hosted MCP server only
+  evidence:
+    location: well-known/0xarchive-oauth-authorization-server.json
+    detail: >-
+      Authorization-code grant with refresh_token, code_challenge_methods_supported ["S256"],
+      response_types ["code"]. The REST API itself does NOT use OAuth - it uses an X-API-Key
+      header - so this conformance is scoped to the MCP surface.
+- id: rfc8414
+  name: OAuth 2.0 Authorization Server Metadata
+  conforms: true
+  evidence:
+    location: well-known/0xarchive-oauth-authorization-server.json
+    detail: >-
+      Served at https://api.0xarchive.io/.well-known/oauth-authorization-server (HTTP 200).
+      Declares issuer, authorization, token, revocation, registration and jwks endpoints,
+      six mcp:* scopes, and authorization_response_iss_parameter_supported: true (RFC 9207).
+- id: rfc9728
+  name: OAuth 2.0 Protected Resource Metadata
+  conforms: true
+  evidence:
+    location: well-known/0xarchive-oauth-protected-resource.json
+    detail: >-
+      Served at https://mcp.0xarchive.io/.well-known/oauth-protected-resource (HTTP 200).
+      Declares resource https://mcp.0xarchive.io/mcp, authorization_servers
+      [https://auth.0xarchive.io], bearer_methods_supported ["header"] and scopes_supported
+      ["mcp:market.read"]. The gated tools/list probe's 401 explicitly points the caller at the
+      WWW-Authenticate header for this metadata, which is the RFC 9728 discovery flow working.
+- id: rfc7591
+  name: OAuth 2.0 Dynamic Client Registration
+  conforms: true
+  evidence:
+    location: well-known/0xarchive-oauth-authorization-server.json
+    detail: >-
+      registration_endpoint https://auth.0xarchive.io/oauth/register is advertised with
+      token_endpoint_auth_methods_supported ["none"], so an MCP client can register itself
+      without a pre-provisioned client_id. This is what makes the hosted MCP genuinely
+      self-serve for an agent.
+- id: rfc9116
+  name: security.txt
+  conforms: true
+  evidence:
+    location: well-known/0xarchive-security.txt
+    detail: >-
+      Served at https://0xarchive.io/.well-known/security.txt (HTTP 200, text/plain). Carries
+      Contact, Expires (2027-08-30), Preferred-Languages and a self-referential Canonical field.
+      No Policy, Encryption, Acknowledgments or Hiring field.
+- id: rfc9727
+  name: API Catalog (.well-known/api-catalog)
+  conforms: true
+  evidence:
+    location: well-known/0xarchive-api-catalog.json
+    detail: >-
+      Served at https://0xarchive.io/.well-known/api-catalog with the correct
+      application/linkset+json content type AND the RFC 9727 profile parameter
+      (profile="https://www.rfc-editor.org/info/rfc9727"). Three anchors - the REST base, the
+      WebSocket base and the MCP endpoint - each with service-desc, service-doc, service-meta
+      and status link relations. This is a textbook implementation; most catalog entries that
+      claim RFC 9727 omit the profile parameter.
+- id: rfc9457
+  name: Problem Details for HTTP APIs
+  conforms: false
+  evidence:
+    location: errors/0xarchive-problem-types.yml
+    detail: >-
+      No application/problem+json media type appears anywhere in the contract. Errors use three
+      vendor JSON envelopes instead. The error documentation is unusually thorough, but it is
+      not RFC 9457.
+- id: mcp
+  name: Model Context Protocol
+  conforms: true
+  evidence:
+    location: mcp/0xarchive-mcp.yml
+    detail: >-
+      Hosted streamable-HTTP server at https://mcp.0xarchive.io/mcp. An anonymous JSON-RPC
+      tools/list POST returned a well-formed protocol error (HTTP 401, code -32001) rather than
+      an HTTP-level rejection, confirming the endpoint speaks MCP. 110 tools inventoried from the
+      provider's own published server source.
+- id: a2a
+  name: A2A Agent Card
+  conforms: true
+  grade: conformant
+  evidence:
+    location: a2a/0xarchive-a2a.yml
+    detail: >-
+      https://docs.0xarchive.io/.well-known/agent-card.json (HTTP 200) parses as an AgentCard
+      with capabilities as an object, protocolVersion present ("0.3"), skills as an array, plus
+      preferredTransport, defaultInputModes and defaultOutputModes.
+- id: agent-skills
+  name: Agent Skills (SKILL.md)
+  conforms: true
+  evidence:
+    location: skills/_index.yml
+    detail: >-
+      Four provider-authored skills - three served from
+      https://docs.0xarchive.io/.well-known/agent-skills/<id>/skill.md and referenced by the
+      agent card's skills[], and one distributed as a Claude Code plugin at
+      github.com/0xArchiveIO/0xarchive-skill (v1.12.1, MIT).
+- id: llmstxt
+  name: llms.txt
+  conforms: true
+  evidence:
+    location: llms/0xarchive-llms.txt
+    detail: >-
+      Two distinct provider-authored documents: a 29KB product/endpoint reference at
+      https://0xarchive.io/llms.txt and an 18KB docs index at https://docs.0xarchive.io/llms.txt.
+      Both HTTP 200.
+- id: spectral
+  name: Spectral ruleset (governance-as-code)
+  conforms: true
+  evidence:
+    location: well-known/0xarchive-spectral-ruleset.yaml
+    detail: >-
+      0xArchive publishes its OWN Spectral ruleset at
+      https://0xarchive.io/.well-known/spectral-ruleset.yaml, extending spectral:oas with five
+      house rules that pin its production server to HTTPS, its auth header to X-API-Key, its
+      termsOfService and contact email to canonical values, and require POST /v1/web3/subscribe
+      to declare an empty security array so the x402 onboarding path cannot silently start
+      requiring a pre-existing key. Publishing the rules a provider holds ITSELF to is rare -
+      it lets a consumer verify the contract against the provider's own stated invariants.
+- id: x402
+  name: x402 machine payments (HTTP 402 over EIP-3009 USDC on Base)
+  conforms: true
+  evidence:
+    location: plans/0xarchive-plans-pricing.yml
+    detail: >-
+      POST /v1/web3/subscribe declares a 402 response and takes a payment-signature header
+      carrying an EIP-3009 signed transfer. A facilitator page is published at
+      https://0xarchive.io/facilitator (HTTP 200), and the API host sets
+      access-control-expose-headers: payment-required on every response so a browser client
+      can read the challenge. This is an agent buying its own 30-day access without a human.
+- id: siwe
+  name: Sign-In With Ethereum (EIP-4361)
+  conforms: true
+  evidence:
+    location: openapi/0xarchive-openapi.json
+    detail: >-
+      POST /v1/auth/web3/challenge issues a single-use SIWE challenge message and
+      POST /v1/auth/web3/verify signs in an existing wallet account; both require no API key.
+      Wallet-signed requests also drive key listing and revocation.
+- id: eip3009
+  name: EIP-3009 Transfer With Authorization
+  conforms: true
+  evidence:
+    location: https://0xarchive.io/llms.txt
+    detail: >-
+      The x402 subscription flow is settled by an EIP-3009 signed USDC transfer on Base carried
+      in the payment-signature header of POST /v1/web3/subscribe.
+- id: apisjson
+  name: APIs.json
+  conforms: true
+  evidence:
+    location: https://0xarchive.io/apis.json
+    detail: >-
+      Self-published APIs.json index (HTTP 200), also referenced as service-meta from the
+      RFC 9727 api-catalog.
+- id: okf
+  name: Open Knowledge Format
+  version: '0.1'
+  conforms: true
+  evidence:
+    location: https://0xarchive.io/okf/
+    detail: >-
+      A published OKF 0.1 knowledge bundle of 14 concepts across 4 categories (Venues, Data,
+      Access, Surfaces), browsable at https://0xarchive.io/okf/ (HTTP 200) and downloadable in
+      one fetch at https://0xarchive.io/okf.tar.gz, each concept stated as verified against a
+      live 0xArchive surface on 2026-06-30.
+- id: asyncapi
+  name: AsyncAPI
+  conforms: false
+  evidence:
+    location: probed
+    detail: >-
+      https://0xarchive.io/asyncapi.yaml and /asyncapi.json both returned 404 on 2026-09-01, and
+      no AsyncAPI document is referenced from the api-catalog, ai-catalog, llms.txt or the docs.
+      The WebSocket surface at wss://api.0xarchive.io/ws is real and thoroughly documented in
+      prose and schema pages, but it has no machine-readable event contract. This is the single
+      clearest artifact gap in an otherwise exceptionally complete surface.
+- id: graphql
+  name: GraphQL
+  conforms: false
+  evidence:
+    location: probed
+    detail: >-
+      No GraphQL surface exists. https://api.0xarchive.io/graphql returned 401, which is simply
+      the API host's catch-all behaviour for unmatched paths (it 401s rather than 404s), and no
+      GraphQL endpoint is named in the docs, llms.txt, api-catalog or ai-catalog.
+- id: grpc
+  name: gRPC / Protobuf
+  conforms: false
+  evidence:
+    location: probed
+    detail: >-
+      No .proto files in the GitHub organisation (8 repos, all inspected 2026-09-01) and no gRPC
+      surface documented.
+- id: soap
+  name: SOAP / WSDL
+  conforms: false
+  evidence:
+    location: probed
+    detail: https://api.0xarchive.io/?wsdl returned 401 (catch-all); no SOAP surface is documented.
+domain_standards:
+  note: >-
+    REWARD-ONLY check. Crypto market data has no ratified cross-venue interchange standard - no
+    FIX-equivalent, no ISO 20022 message set, no OpenRTB analogue governs perpetual-futures or
+    prediction-market tick data. What exists instead are the VENUE protocols, and 0xArchive
+    conforms to those in the only way a data aggregator can: it faithfully reproduces each venue's
+    own market structure and naming rather than flattening them into a house schema.
+  entries:
+  - id: hyperliquid-hip3
+    name: Hyperliquid HIP-3 builder-deployed perpetuals
+    conforms: true
+    evidence:
+      location: openapi/0xarchive-openapi.json
+      detail: >-
+        13 tags and 34 operations under /v1/hyperliquid/hip3, preserving HIP-3's case-sensitive
+        builder:NAME coin identifier verbatim rather than normalising it, plus builder-specific
+        surfaces (oracle discovery-bounds, external-price, breadth above-VWAP) that only exist
+        because HIP-3 markets are builder-deployed.
+  - id: hyperliquid-hip4
+    name: Hyperliquid HIP-4 outcome markets
+    conforms: true
+    evidence:
+      location: openapi/0xarchive-openapi.json
+      detail: >-
+        7 tags and 22 operations under /v1/hyperliquid/hip4, encoding HIP-4's <10*outcome_id +
+        side> coin identity, exposing outcome and question resources as first-class entities, and
+        correctly modelling the fact that fully-collateralized binary outcomes have no funding and
+        no liquidations - and that candle prices are probabilities in 0..1, not prices.
+  - id: lighter-l3
+    name: Lighter order-level (L3) book
+    conforms: true
+    evidence:
+      location: openapi/0xarchive-openapi.json
+      detail: >-
+        /v1/lighter/l3orderbook/{symbol} exposes Lighter's native L3 order-level depth with
+        individual order ids and user addresses, alongside Hyperliquid's L4 reconstruction -
+        the contract keeps the two venues' distinct book depths distinct rather than
+        down-levelling both to L2.
+compliance:
+  certifications_published: false
+  trust_center: false
+  note: >-
+    No SOC 2, ISO 27001, PCI, HIPAA or FedRAMP certification is claimed, and no trust center
+    exists - probe-security-programs.py found none on 2026-09-01. This is unremarkable for a
+    market-data provider handling no PII and no funds; the provider states plainly that it "does
+    not place or manage orders, hold funds, or operate a trading venue". Terms, privacy policy and
+    a data-rights/licensing page ARE published, which is the relevant commitment surface here.
+  published_policies:
+  - name: Terms of Service
+    url: https://0xarchive.io/terms
+    http_status: 200
+  - name: Privacy Policy
+    url: https://0xarchive.io/privacy
+    http_status: 200
+  - name: Data rights and licensing
+    url: https://docs.0xarchive.io/data-rights
+    http_status: 200

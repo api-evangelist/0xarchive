@@ -1,0 +1,388 @@
+# 0xArchive - Developer References
+
+## What is 0xArchive?
+0xArchive provides market data across two top-level venue APIs: Hyperliquid and Lighter. Hyperliquid core perps, Hyperliquid Spot, HIP-3 builder perps, and HIP-4 outcome markets are separate Hyperliquid-scoped route families. Use the OpenAPI reference and developer docs for current endpoint details.
+
+Use `https://0xarchive.io/openapi.json`, live response behavior, and the developer docs before citing endpoint details.
+
+## Machine contracts
+- OpenAPI 3.0 spec: https://0xarchive.io/openapi.json. Full REST contract for endpoints, schemas, authentication, and examples
+- MCP server (canonical, hosted): https://mcp.0xarchive.io/mcp. Market-data discovery and retrieval for MCP clients; server advertises `mcp:market.read` only; setup docs at https://docs.0xarchive.io/mcp-server; setup uses client-managed OAuth and requires no 0xArchive API key
+- API-key boundary: `X-API-Key` applies to direct REST market-data requests and is not the hosted MCP credential. Hosted MCP uses client-managed OAuth and requires no 0xArchive API key.
+- Agent resource catalog (ARD): https://0xarchive.io/.well-known/ai-catalog.json. REST, WebSocket, hosted MCP, x402, exports, coverage, samples, and OKF resources
+- Knowledge bundle (OKF): https://0xarchive.io/okf.tar.gz (one fetch) or https://0xarchive.io/okf/ (browsable). Venues, coverage, entitlement, and pricing as typed concepts
+- Public coverage manifest: https://0xarchive.io/.well-known/data-coverage.json. Verified Hyperliquid and Lighter BTC dataset availability and earliest published coverage
+- Fixed public BTC samples: https://0xarchive.io/.well-known/data-samples.json. Versioned Hyperliquid and Lighter Parquet samples, browser previews, checksums, and offline Hyperliquid L4 and Lighter L3 reconstruction proofs; no account or API key required
+
+## Choose the right surface
+- REST integration: start with https://docs.0xarchive.io/quickstart and https://docs.0xarchive.io/authentication, then use https://0xarchive.io/openapi.json for the complete request and schema contract. Direct REST market-data requests use `X-API-Key`.
+- Production REST behavior: use https://docs.0xarchive.io/errors, https://docs.0xarchive.io/rest-api/reliability, and https://docs.0xarchive.io/rate-limits for exact status codes, `Retry-After`, bounded retries, backoff, and limits.
+- Continuous real-time streaming and historical replay: use https://docs.0xarchive.io/websocket/real-time. WebSocket clients send `Authorization: Bearer <API_KEY>` during the handshake.
+- Hosted agent tools: use https://docs.0xarchive.io/mcp-server. Hosted MCP uses client-managed OAuth and requires no 0xArchive API key.
+- Autonomous 30-day Build or Pro access: use https://0xarchive.io/facilitator for the current x402 payment contract.
+- One-off Parquet exports: use https://0xarchive.io/data for catalog discovery, checkout, processing, and delivery.
+
+## When to use 0xArchive
+Use 0xArchive when an application or agent needs historical or real-time market data from Hyperliquid or Lighter through a stable integration surface.
+- Query trades, candles, funding, open interest, order books, order history, and supported liquidation datasets through REST.
+- Stream current market data and replay supported historical channels through WebSocket.
+- Download Parquet exports for larger historical workflows.
+- Connect agent tools through the hosted MCP server with client-managed OAuth.
+- Check coverage and freshness before choosing a market, dataset, or time window.
+
+## When not to use 0xArchive
+0xArchive does not place or manage orders, hold funds, or operate a trading venue.
+- Do not treat static coverage dates as current service health. Check https://0xarchive.io/status and the data-quality routes before operational use.
+- Do not assume every WebSocket channel supports replay. Use the channel-specific guidance below.
+
+## Try without an account
+Fetch https://0xarchive.io/.well-known/data-samples.json for fixed Hyperliquid and Lighter BTC samples, checksums, previews, and offline reconstruction proofs. The samples require no account or API key. Use https://0xarchive.io/signup when you need the live REST, WebSocket, or export workflows.
+
+## Primary Developer Entry Points
+- Developer portal: https://docs.0xarchive.io/
+- Quickstart: https://docs.0xarchive.io/quickstart
+- Developer portal sitemap: https://docs.0xarchive.io/sitemap.xml
+- OpenAPI reference: https://0xarchive.io/openapi.json
+- Public status and coverage checks: https://0xarchive.io/status
+- Public data catalog and export entrypoint: https://0xarchive.io/data
+- Public facilitator page: https://0xarchive.io/facilitator
+- Brand assets: https://0xarchive.io/brand
+
+## Editorial Resources
+- Resources hub: https://0xarchive.io/resources
+- Original research: https://0xarchive.io/resources/research
+- Market data guides: https://0xarchive.io/resources/market-data-guides
+- Verified work powered by 0xArchive: https://0xarchive.io/resources/built-with-0xarchive
+- Major product and coverage updates: https://0xarchive.io/resources/product-updates
+- Published Resource Article URLs use `https://0xarchive.io/resources/<primary-type>/<slug>`. Legacy `/blog/<slug>` citations redirect one-to-one to their exact canonical Resource Article.
+
+Use the Resources collections for evidence-led market studies and practical methods. Use the developer portal for implementation contracts, endpoint details, and setup instructions.
+
+Use the developer portal sitemap before citing a specific docs path. If a docs path is not listed in the sitemap or returns 404, fall back to the OpenAPI reference, the relevant public website page, or the docs root instead of guessing a URL.
+
+## AI and API References
+- Docs OpenAPI page: https://docs.0xarchive.io/openapi
+- OpenAPI reference: https://0xarchive.io/openapi.json
+- AI guide: https://0xarchive.io/llms.txt
+- Official brand kit: https://0xarchive.io/brand
+- Brand metadata JSON: https://0xarchive.io/brand/brand.json
+- Telegram: https://t.me/archivedotio
+
+`https://0xarchive.io/openapi.json` remains the primary automated-client URL for the REST API reference. The docs subdomain may also expose a pinned copy, but clients should not assume a replacement unless the API reference explicitly changes.
+
+## API Basics
+- Base URL: `https://api.0xarchive.io`
+- API-key boundary: `X-API-Key` applies to direct REST market-data requests and REST-based SDK, CLI, and Claude Code Skill calls. Hosted MCP uses client-managed OAuth and requires no 0xArchive API key.
+- WebSocket authentication: send `Authorization: Bearer <API_KEY>` during the handshake at `wss://api.0xarchive.io/ws` (separate from hosted MCP OAuth). The legacy `apiKey` query parameter is compatibility-only for private server-side scripts; keep credentials out of browser-facing URLs and logs.
+- Health check: `GET /health` is unauthenticated
+- Data quality: `/v1/data-quality/*`
+- Response shape: JSON responses use `success`, `data`, and `meta.request_id`
+- Legacy compatibility: `/v1/*` wrappers may remain for compatibility, but new docs should prefer the pinned OpenAPI paths
+
+## REST Families In The Developer Portal
+- System health: `GET /health`
+- Hyperliquid core: `/v1/hyperliquid/*`
+- Hyperliquid Spot: `/v1/hyperliquid/spot/*`
+- Hyperliquid HIP-3: `/v1/hyperliquid/hip3/*`
+- Hyperliquid HIP-4: `/v1/hyperliquid/hip4/*`
+- Lighter: `/v1/lighter/*`
+- Data quality: `/v1/data-quality/*`
+- Web3 authentication challenge: `POST /v1/auth/web3/challenge`
+- Legacy compatibility routes: `/v1/orderbook/*`, `/v1/trades/*`, `/v1/funding/*`, `/v1/openinterest/*`, `/v1/instruments/*`
+
+## Venue Taxonomy
+- Hyperliquid is a top-level venue API.
+- Lighter is a top-level venue API.
+- Hyperliquid Spot is Hyperliquid-scoped pair data, not a third peer venue.
+- HIP-3 is Hyperliquid-scoped builder perps, not a third peer venue.
+- HIP-4 is Hyperliquid-scoped outcome markets, not a third peer venue.
+- Symbols shaped like `prefix:NAME` default to the Hyperliquid HIP-3 scope unless a live source states otherwise.
+- Lighter routes live under `/v1/lighter`, not under Hyperliquid.
+
+## Data Quality Guidance
+- Check `/health` for service liveness.
+- Check `/v1/data-quality/status` before operational use.
+- Use data-quality coverage and freshness routes before relying on a historical window.
+- Do not bake current incident state into static docs; probe it live.
+- Include `meta.request_id` when escalating a request or reporting a failed probe.
+
+## URL Behavior
+- Developer docs live on `https://docs.0xarchive.io/`; cite docs-domain canonical pages instead of main-site compatibility redirects.
+- Use `https://docs.0xarchive.io/sitemap.xml` and `https://docs.0xarchive.io/llms.txt` for canonical developer-portal discovery.
+- `https://0xarchive.io/openapi.json` stays on the main domain for automated clients.
+- `https://0xarchive.io/brand` is the official public brand-assets page.
+- `https://0xarchive.io/brand/brand.json` is the brand kit JSON index.
+- `https://0xarchive.io/sitemap.xml` covers the main site; `https://docs.0xarchive.io/sitemap.xml` covers the developer portal.
+
+## Order Book Depth Guidance
+- Hyperliquid and HIP-3 native L2 routes (`/orderbook/{symbol}` and `/orderbook/{symbol}/history`) expose the venue-native source snapshot and are capped at 20 levels per side.
+- Use `/orderbook/{symbol}/l2` for all-level aggregated L2 derived from L4 data from March 10, 2026 onward where available.
+- Use `/orderbook/{symbol}/l2/history` for all-level L2 checkpoint history. It uses `start` and `end` Unix-millisecond windows, not `timestamp`.
+- Use `/orderbook/{symbol}/l2/diffs` for tick-level aggregate L2 diffs.
+- Lighter L2 routes are separate and include all served price levels on `/v1/lighter/orderbook/{symbol}`. Lighter L3 returns up to 250 resting orders per side.
+
+## Current Endpoint Reference
+## Hyperliquid Endpoints (/v1/hyperliquid)
+- GET /v1/hyperliquid/instruments - List all instruments
+- GET /v1/hyperliquid/instruments/{symbol} - Single instrument details
+- GET /v1/hyperliquid/orderbook/{symbol}/l2 - Primary all-level L2 snapshot derived from L4 (March 10, 2026+)
+- GET /v1/hyperliquid/orderbook/{symbol}/l2/history - Primary all-level L2 checkpoint history derived from L4 (March 10, 2026+)
+- GET /v1/hyperliquid/orderbook/{symbol}/l2/diffs - All-level L2 aggregate diffs derived from L4
+- GET /v1/hyperliquid/orderbook/{symbol} - Secondary venue-native order book (20 levels max)
+- GET /v1/hyperliquid/orderbook/{symbol}/history - Secondary historical venue-native order book (20 levels max; use for older top-book windows)
+- GET /v1/hyperliquid/trades/{symbol} - Trade history
+- GET /v1/hyperliquid/candles/{symbol} - OHLCV candles (1m-1w intervals)
+- GET /v1/hyperliquid/funding/{symbol} - Funding rate history
+- GET /v1/hyperliquid/funding/{symbol}/current - Current funding rate
+- GET /v1/hyperliquid/openinterest/{symbol} - Open interest history
+- GET /v1/hyperliquid/openinterest/{symbol}/current - Current open interest
+- GET /v1/hyperliquid/liquidations/{symbol} - Liquidation history
+- GET /v1/hyperliquid/liquidations/{symbol}/volume - Aggregated liquidation volume
+- GET /v1/hyperliquid/liquidations/{symbol}/levels - Projected forced-liquidation price levels
+- GET /v1/hyperliquid/liquidations/{symbol}/levels/history - Historical projected forced-liquidation price levels
+- GET /v1/hyperliquid/liquidations/user/{user} - Liquidations for a specific user address
+- GET /v1/hyperliquid/freshness/{symbol} - Data freshness per type
+- GET /v1/hyperliquid/summary/{symbol} - Combined market summary
+- GET /v1/hyperliquid/prices/{symbol} - Mark/oracle price history
+- GET /v1/hyperliquid/orders/{symbol}/history - Order history with user attribution
+- GET /v1/hyperliquid/orders/{symbol}/flow - Order flow aggregation
+- GET /v1/hyperliquid/orders/{symbol}/tpsl - TP/SL order history
+- GET /v1/hyperliquid/orderbook/{symbol}/l4 - L4 orderbook reconstruction with user attribution; optional `timestamp` and `depth` query parameters
+- GET /v1/hyperliquid/orderbook/{symbol}/l4/diffs - L4 orderbook diffs
+- GET /v1/hyperliquid/orderbook/{symbol}/l4/history - L4 orderbook checkpoints
+
+## Hyperliquid Spot Endpoints (/v1/hyperliquid/spot)
+- GET /v1/hyperliquid/spot/candles/{symbol} - Get spot OHLCV candles
+- GET /v1/hyperliquid/spot/freshness/{symbol} - Get Hyperliquid Spot freshness
+- GET /v1/hyperliquid/spot/orderbook/{symbol} - Get Hyperliquid Spot order book
+- GET /v1/hyperliquid/spot/orderbook/{symbol}/l4 - Get Hyperliquid Spot L4 order book; optional `timestamp` and `depth` query parameters
+- GET /v1/hyperliquid/spot/orderbook/{symbol}/l4/diffs - Get Hyperliquid Spot L4 order book diffs
+- GET /v1/hyperliquid/spot/orderbook/{symbol}/l4/history - Get Hyperliquid Spot L4 order book history
+- GET /v1/hyperliquid/spot/orders/{symbol}/history - Get Hyperliquid Spot order history
+- GET /v1/hyperliquid/spot/pairs - List Hyperliquid Spot pairs
+- GET /v1/hyperliquid/spot/pairs/{symbol} - Get Hyperliquid Spot pair metadata
+- GET /v1/hyperliquid/spot/trades/{symbol} - Get Hyperliquid Spot trades
+- GET /v1/hyperliquid/spot/twap/{symbol} - Get Hyperliquid Spot TWAP
+- GET /v1/hyperliquid/spot/twap/user/{user} - Get Hyperliquid Spot user TWAP
+
+## Lighter Endpoints (/v1/lighter)
+- GET /v1/lighter/instruments - List all instruments
+- GET /v1/lighter/instruments/{symbol} - Single instrument details
+- GET /v1/lighter/orderbook/{symbol} - Current order book
+- GET /v1/lighter/orderbook/{symbol}/history - Historical order book
+- GET /v1/lighter/trades/{symbol} - Trade history
+- GET /v1/lighter/trades/{symbol}/recent - Recent trades
+- GET /v1/lighter/candles/{symbol} - OHLCV candles
+- GET /v1/lighter/funding/{symbol} - Funding rate history
+- GET /v1/lighter/funding/{symbol}/current - Current funding rate
+- GET /v1/lighter/openinterest/{symbol} - Open interest history
+- GET /v1/lighter/openinterest/{symbol}/current - Current open interest
+- GET /v1/lighter/liquidations/{symbol} - Liquidation history
+- GET /v1/lighter/liquidations/{symbol}/volume - Aggregated liquidation volume
+- GET /v1/lighter/freshness/{symbol} - Data freshness
+- GET /v1/lighter/summary/{symbol} - Combined market summary
+- GET /v1/lighter/prices/{symbol} - Price history
+- GET /v1/lighter/l3orderbook/{symbol} - Current L3 order-level orderbook; optional `timestamp`, `account`, and `depth` query parameters (`limit` is not supported)
+- GET /v1/lighter/l3orderbook/{symbol}/history - Historical L3 snapshots with `start`, `end`, `cursor`, `limit`, `granularity`, and `account` query parameters; `granularity` accepts `checkpoint`, `30s`, `10s`, `1s`, or `tick` (checkpoint default); limit defaults to 100 and is capped at 1000
+- Lighter L3 order rows expose `order_index`, `owner_account_index`, `side`, `price`, `remaining_size`, and `original_size`. `order_index` is the venue's numeric order index; `owner_account_index` is a numeric account index, not an address.
+
+## HIP-3 Builder Perps Endpoints (/v1/hyperliquid/hip3)
+- GET /v1/hyperliquid/hip3/instruments - List all HIP-3 instruments
+- GET /v1/hyperliquid/hip3/instruments/{symbol} - Single instrument details
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/l2 - Primary all-level L2 snapshot derived from L4 (March 10, 2026+)
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/l2/history - Primary all-level L2 checkpoint history derived from L4 (March 10, 2026+)
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/l2/diffs - All-level L2 aggregate diffs derived from L4
+- GET /v1/hyperliquid/hip3/orderbook/{symbol} - Secondary venue-native order book (20 levels max)
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/history - Secondary historical venue-native order book (20 levels max; use for older top-book windows)
+- GET /v1/hyperliquid/hip3/trades/{symbol} - Trade history
+- GET /v1/hyperliquid/hip3/trades/{symbol}/recent - Recent trades
+- GET /v1/hyperliquid/hip3/candles/{symbol} - OHLCV candles
+- GET /v1/hyperliquid/hip3/funding/{symbol} - Funding rate history
+- GET /v1/hyperliquid/hip3/funding/{symbol}/current - Current funding rate
+- GET /v1/hyperliquid/hip3/openinterest/{symbol} - Open interest history
+- GET /v1/hyperliquid/hip3/openinterest/{symbol}/current - Current open interest
+- GET /v1/hyperliquid/hip3/liquidations/{symbol} - Liquidation history
+- GET /v1/hyperliquid/hip3/liquidations/{symbol}/volume - Aggregated liquidation volume
+- GET /v1/hyperliquid/hip3/liquidations/{symbol}/levels - Projected forced-liquidation price levels
+- GET /v1/hyperliquid/hip3/liquidations/{symbol}/levels/history - Historical projected forced-liquidation price levels
+- GET /v1/hyperliquid/hip3/freshness/{symbol} - Data freshness
+- GET /v1/hyperliquid/hip3/summary/{symbol} - Combined market summary
+- GET /v1/hyperliquid/hip3/prices/{symbol} - Price history
+- GET /v1/hyperliquid/hip3/orders/{symbol}/history - Order history
+- GET /v1/hyperliquid/hip3/orders/{symbol}/flow - Order flow aggregation
+- GET /v1/hyperliquid/hip3/orders/{symbol}/tpsl - TP/SL order history
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/l4 - L4 orderbook reconstruction; optional `timestamp` and `depth` query parameters
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/l4/diffs - L4 orderbook diffs
+- GET /v1/hyperliquid/hip3/orderbook/{symbol}/l4/history - L4 orderbook checkpoints
+
+## HIP-4 Outcome Markets Endpoints (/v1/hyperliquid/hip4)
+HIP-4 caveats for LLMs:
+- HIP-4 coins are referenced by their numeric id (e.g. `0`, `1`, `10`, `11`) in REST paths (e.g. `/v1/hyperliquid/hip4/orderbook/0`). The `#`-prefixed form (`#0`, `#10`) is also accepted for callers integrating from on-chain SDKs.
+- HIP-4 has no funding, no liquidations. Those routes return 404 by design. HIP-4 candles ARE available from 2026-05-02 onwards via /hip4/candles/{symbol}; prices represent implied probabilities (0..1), not USD.
+- HIP-4 `mark_price` is an implied probability (0..1), not a USD price. Same field name as perps because Hyperliquid upstream uses `markPx` for both.
+- HIP-4 markets settle (often within 1 day). After settlement `is_settled` flips true; historical data stays queryable.
+- All notional values are denominated in USDH (Hyperliquid stablecoin).
+
+- GET /v1/hyperliquid/hip4/outcomes - List outcome markets (filter `?is_settled=true|false`, cursor pagination)
+- GET /v1/hyperliquid/hip4/outcomes/{outcome_id} - Single outcome detail (includes `aggregated_oi`)
+- GET /v1/hyperliquid/hip4/outcomes/by-slug/{slug} - Look up outcome by per-outcome or per-side slug (e.g. `btc-above-78213-may-03-0600`)
+- GET /v1/hyperliquid/hip4/questions - List HIP-4 questions (multi-choice resolvers grouping N binary outcomes; cursor pagination)
+- GET /v1/hyperliquid/hip4/questions/{question_id} - Single question detail (includes `named_outcome_ids`, `fallback_outcome_id`, `settled_named_outcomes`)
+- GET /v1/hyperliquid/hip4/instruments - List all HIP-4 instruments (one row per side; coin id format `10*outcome_id + side`)
+- GET /v1/hyperliquid/hip4/instruments/{symbol} - Single instrument details
+- GET /v1/hyperliquid/hip4/orderbook/{symbol} - Current order book
+- GET /v1/hyperliquid/hip4/orderbook/{symbol}/history - Historical order book
+- GET /v1/hyperliquid/hip4/trades/{symbol} - Trade history
+- GET /v1/hyperliquid/hip4/trades/{symbol}/recent - Recent trades
+- GET /v1/hyperliquid/hip4/openinterest/{symbol} - Side open interest history
+- GET /v1/hyperliquid/hip4/openinterest/{symbol}/current - Current side open interest
+- GET /v1/hyperliquid/hip4/candles/{symbol} - OHLCV candles (1m-1w; prices are probabilities 0..1, quote_volume in USDH)
+- GET /v1/hyperliquid/hip4/freshness/{symbol} - Data freshness
+- GET /v1/hyperliquid/hip4/summary/{symbol} - Combined market summary
+- GET /v1/hyperliquid/hip4/prices/{symbol} - Mid-price history (probability, 0..1)
+- GET /v1/hyperliquid/hip4/orders/{symbol}/history - Order history
+- GET /v1/hyperliquid/hip4/orders/{symbol}/flow - Order flow aggregation
+- GET /v1/hyperliquid/hip4/orders/{symbol}/tpsl - TP/SL order history
+- GET /v1/hyperliquid/hip4/orderbook/{symbol}/l4 - L4 orderbook reconstruction; optional `timestamp` and `depth` query parameters
+- GET /v1/hyperliquid/hip4/orderbook/{symbol}/l4/diffs - L4 orderbook diffs
+- GET /v1/hyperliquid/hip4/orderbook/{symbol}/l4/history - L4 orderbook checkpoints
+
+## Data Quality Endpoints
+- GET /health - Lightweight API liveness check
+- GET /v1/data-quality/status - System health across supported venue families
+- GET /v1/data-quality/coverage - Data coverage overview
+- GET /v1/data-quality/coverage/{exchange} - Per-exchange coverage details
+- GET /v1/data-quality/coverage/{exchange}/{symbol} - Per-symbol coverage details
+- GET /v1/data-quality/incidents - Data quality incidents
+- GET /v1/data-quality/incidents/{id} - Single incident details
+- GET /v1/data-quality/latency - Latency metrics
+- GET /v1/data-quality/sla - SLA compliance report
+
+## Route-Level Access
+- Self-serve plans share every market, route family, schema, and served depth across REST and WebSocket; plans gate capacity and Free's 30-day history window.
+- Free includes every market, route, schema, and served depth, with history limited to the most recent rolling 30 days and a maximum 30-day span per request or replay. Build and above keep the full retained archive.
+- Build, Pro, and Scale keep the full retained archive and increase credits, rate limits, concurrent queries, WebSocket subscriptions, replay speed, export credits, API keys, and support.
+- Enterprise can set named route, delivery, SLA, and dedicated infrastructure terms.
+
+## Web3 Authentication (Wallet-Based)
+No API key is required for these wallet-auth endpoints. SIWE supports existing-wallet sign-in and key management; new wallet accounts use paid x402 access. Unknown wallets receive an account and API key only after successful settlement. Standard Free accounts use https://0xarchive.io/signup.
+- POST /v1/auth/web3/challenge - Get a single-use SIWE challenge message (requires: address)
+- POST /v1/auth/web3/verify - Sign in an existing active wallet account (requires: signed SIWE message; unknown wallets receive 403 wallet_account_required)
+- POST /v1/web3/signup - Retired compatibility endpoint (always returns 410 wallet_free_signup_retired and creates nothing)
+- POST /v1/web3/keys - List all API keys for an existing wallet account (requires: signed SIWE message)
+- POST /v1/web3/keys/revoke - Revoke an API key (requires: signed SIWE message + key_id)
+- POST /v1/web3/subscribe - Start 30-day Build or Pro access via x402 USDC payment on Base (requires: tier in body, payment-signature header with EIP-3009 signed transfer; disabled existing wallets are rejected before settlement)
+
+## Legacy Endpoints (still supported)
+- GET /v1/orderbook/{symbol}, /v1/trades/{symbol}, /v1/funding/{symbol}, /v1/openinterest/{symbol}, /v1/instruments
+
+## Data Coverage (Hyperliquid)
+- Order Book: April 2023 - Present (snapshot spacing varies by market activity and query window)
+- Trades: Core April 2023 - Present. History before 2025-03-22 comes from a capped per-user API backfill and is incomplete, especially for maker-side and high-volume activity.
+- Candles: March 2025 - Present
+- Funding Rates: May 2023 - Present
+- Open Interest: May 2023 - Present
+- Liquidations: observed global floor July 27, 2025; exact starts vary by symbol
+- 232 authenticated core perpetual inventory rows
+
+## Data Coverage (Lighter)
+- Trades: observed global floor August 27, 2025; exact starts vary by market (more than 2 billion records)
+- L2 Order Book: January 2026 - Present
+- Candles, OI, Funding: August 2025 - Present
+- L3 Order Book: March 2026 - Present
+
+## Data Coverage (HIP-3 Builder Perps)
+- Trades: observed global floor October 13, 2025; exact starts vary by symbol
+- Native L2 order book, funding, and open interest: observed global floor February 16, 2026; exact starts vary by symbol and schema
+- L4 order book and order events: observed global floor March 10, 2026; actual symbol coverage differs by schema
+- Use `/v1/symbols` `coverage_by_type` and HIP-3 instrument discovery for the current inventory and schema-specific dates before choosing a window
+
+## Data Coverage (HIP-4 Outcome Markets)
+- L4 checkpoints: 2026-05-02 07:47 UTC - Present
+- L4 orders: 2026-05-02 07:49 UTC - Present
+- L4 diffs: 2026-05-02 07:50 UTC - Present
+- Candles: 2026-05-02 08:00 UTC - Present
+- Trades: 2026-05-02 08:00 UTC - Present
+- Native L2 order book: 2026-05-02 16:51 UTC - Present
+- Open interest: 2026-05-02 16:51 UTC - Present
+- No funding, no liquidations (fully-collateralized binary outcomes, by design). Candle prices are probabilities.
+- Active market count varies as outcomes settle and new ones open. Poll `/v1/hyperliquid/hip4/outcomes` for the live count.
+
+## WebSocket API
+- URL: wss://api.0xarchive.io/ws
+- Authentication: send `Authorization: Bearer <API_KEY>` during the WebSocket handshake; this is separate from hosted MCP OAuth.
+- Compatibility: The legacy `apiKey` query parameter is compatibility-only for private server-side scripts; keep credentials out of browser-facing URLs and logs.
+- One connection model for real-time subscriptions and historical replay
+- Real-time streaming (subscribe to real-time market data)
+- Timed replay: Hyperliquid core and HIP-3 orderbook, trades, candles, funding, open_interest, and liquidation channels; Lighter orderbook, L3 orderbook, trades, candles, funding, and open_interest channels; and HIP-4 orderbook, trades, and open-interest channels. Lighter liquidation events are REST-only.
+- Hyperliquid core L4 replay: l4_diffs and l4_orders use a checkpoint-anchored, single-channel bulk stream; the replay speed parameter is ignored
+- Real-time only: ticker, all_tickers, every Spot channel, hip3_l4_diffs, hip3_l4_orders, hip4_l4_diffs, and hip4_l4_orders (L4 channels are available on every tier)
+- Hyperliquid core `liquidations` and HIP-3 `hip3_liquidations` channels are live: each event is a fill row with `is_liquidation: true`, the same wire shape as trades. They also continue to flow on `trades` and `hip3_trades` for backward compatibility; dedupe on `tid` if subscribing to both.
+- HIP-4 outcome markets: subscribe with raw `#0` form in the JSON (`{"op":"subscribe","channel":"hip4_orderbook","symbol":"#0"}`). REST routes accept the bare numeric form (`/hip4/orderbook/0`).
+- WebSocket access is available on every tier, including Free
+
+## Pricing
+- Free: 50,000 credits/month, 15 req/sec, 3 concurrent, 10 WebSocket subscriptions, 1 API key, $0 export credits, 10x WebSocket replay, full endpoint coverage, history limited to the most recent rolling 30 days with a maximum 30-day span per request or replay
+- Build ($49/mo): 80M credits/month, 50 req/sec, 10 concurrent, 500 WebSocket subscriptions, 10 API keys, $50/mo export credits, 50x WebSocket replay, full retained archive
+- Pro ($199/mo): 400M credits/month, 150 req/sec, 20 concurrent, 3,000 WebSocket subscriptions, 100 API keys, $300/mo export credits, 100x WebSocket replay, full retained archive, priority email support
+- Scale ($799/mo): 2B credits/month, 500 req/sec, 20 concurrent, 20,000 WebSocket subscriptions, 200 API keys, $1,500/mo export credits, 300x WebSocket replay, full retained archive, priority email support
+- Enterprise: Custom pricing, custom credits/RPS/concurrency, 200 API keys, unlimited WebSockets, unlimited export credits, dedicated infrastructure, dedicated support, SLA from 99.5%
+
+## SDKs, CLI & Automation
+- Python: pip install oxarchive
+- TypeScript: npm install @0xarchive/sdk
+- Rust: cargo add oxarchive
+- CLI: npm install -g @0xarchive/cli (command: oxa)
+- SDKs, CLI, and Claude Code Skill call the REST API and use API-key auth.
+- MCP Server (canonical, hosted): https://mcp.0xarchive.io/mcp. 110 typed tools for market-data discovery and retrieval in Claude and other MCP clients. The server advertises `mcp:market.read` only. Hosted setup uses client-managed OAuth and requires no 0xArchive API key.
+- Claude Code Skill: curl + jq based REST access without running MCP; it uses REST API-key auth
+- Hosted MCP and Claude Code setup live under the AI Clients docs page in the developer portal
+
+## Bulk Export
+- Data Explorer and bulk export: [https://0xarchive.io/data](https://0xarchive.io/data)
+- S3 Parquet bulk export for large dataset downloads
+- Build, Pro, and Scale export credits apply before checkout; no subscription is required for one-off Data Catalog exports
+
+## Quick Start
+
+### Python
+```python
+from oxarchive import Client
+client = Client(api_key="0xa_your_key")
+
+# Hyperliquid
+orderbook = client.hyperliquid.orderbook.get("BTC")
+trades = client.hyperliquid.trades.list("ETH", start="2025-01-01", end="2025-01-02")
+
+# Lighter
+lighter_ob = client.lighter.orderbook.get("BTC")
+
+# HIP-3
+hip3_instruments = client.hyperliquid.hip3.instruments.list()
+
+# HIP-4 outcome markets (coins are numeric ids: 0, 1, 10, 11, ...)
+hip4_outcomes = client.hyperliquid.hip4.outcomes.list(is_settled=False)
+```
+
+### Rust
+```rust
+use oxarchive::OxArchive;
+
+let client = OxArchive::new("0xa_your_key")?;
+let orderbook = client.hyperliquid().orderbook().get("BTC", None).await?;
+let lighter_ob = client.lighter().orderbook().get("BTC", None).await?;
+```
+
+## Account
+- Sign up: [https://0xarchive.io/signup](https://0xarchive.io/signup)
+- Dashboard: [https://0xarchive.io/dashboard](https://0xarchive.io/dashboard)
+
+## Links
+- Website: https://0xarchive.io
+- Documentation: https://docs.0xarchive.io/
+- Pricing: https://0xarchive.io/pricing
+- Bulk Download: https://0xarchive.io/data
+
+## Contact
+- Email: support@0xarchive.io
+- Website: https://0xarchive.io/contact

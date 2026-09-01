@@ -1,0 +1,136 @@
+generated: '2026-09-01'
+method: probed
+source: >-
+  Live unauthenticated GET of every /.well-known/ path across the four hosts named in apis.yml
+  and in the OpenAPI servers[] block (0xarchive.io, api.0xarchive.io, mcp.0xarchive.io,
+  docs.0xarchive.io) on 2026-09-01.
+note: >-
+  0xArchive serves a real, RFC 9727 api-catalog linkset and an RFC 9116 security.txt from the apex
+  host, RFC 8414 OAuth authorization-server metadata from the API host, and RFC 9728
+  OAuth protected-resource metadata from the MCP host. Beyond the IANA-registered paths the
+  provider publishes five additional non-registered /.well-known/ documents of its own
+  (mcp/server-card.json, ai-catalog.json, api-onboarding, data-coverage.json, data-samples.json,
+  spectral-ruleset.yaml), which are recorded here as extras[] because they are real published
+  documents that no standard registry names.
+hosts:
+- host: 0xarchive.io
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    content_type: text/plain
+    file: 0xarchive-security.txt
+  - path: /.well-known/api-catalog
+    status: 200
+    content_type: application/linkset+json;profile="https://www.rfc-editor.org/info/rfc9727"
+    file: 0xarchive-api-catalog.json
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+  extras:
+  - path: /.well-known/mcp/server-card.json
+    status: 200
+    file: 0xarchive-mcp-server-card.json
+    note: Non-registered MCP server descriptor naming the hosted endpoint, transport and auth model.
+  - path: /.well-known/ai-catalog.json
+    status: 200
+    file: 0xarchive-ai-catalog.json
+    note: Agent Resource Descriptor (ARD, specVersion 1.0) cataloguing REST, WebSocket, MCP, x402, exports, coverage and samples.
+  - path: /.well-known/api-onboarding
+    status: 200
+    file: 0xarchive-api-onboarding.json
+  - path: /.well-known/data-coverage.json
+    status: 200
+    file: 0xarchive-data-coverage.json
+  - path: /.well-known/data-samples.json
+    status: 200
+    file: 0xarchive-data-samples.json
+    note: Fixed public Parquet samples with checksums; no account or API key required.
+  - path: /.well-known/spectral-ruleset.yaml
+    status: 200
+    file: 0xarchive-spectral-ruleset.yaml
+- host: api.0xarchive.io
+  documents:
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    content_type: application/json
+    file: 0xarchive-oauth-authorization-server.json
+    note: RFC 8414 metadata for issuer https://auth.0xarchive.io; advertises six mcp:* scopes and PKCE S256.
+  - path: /.well-known/security.txt
+    status: 401
+  - path: /.well-known/openid-configuration
+    status: 401
+  - path: /.well-known/oauth-protected-resource
+    status: 401
+  - path: /.well-known/api-catalog
+    status: 401
+  - path: /.well-known/ai-plugin.json
+    status: 401
+  - path: /.well-known/agent-card.json
+    status: 401
+  - path: /.well-known/agent.json
+    status: 401
+  note: >-
+    api.0xarchive.io applies API-key auth to the whole path space, so every unmatched
+    /.well-known/ path answers 401 rather than 404. Only oauth-authorization-server is
+    deliberately exempted and served anonymously.
+- host: mcp.0xarchive.io
+  documents:
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    file: 0xarchive-oauth-protected-resource.json
+    note: RFC 9728 metadata; resource https://mcp.0xarchive.io/mcp, scope mcp:market.read.
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+- host: docs.0xarchive.io
+  documents:
+  - path: /.well-known/agent-card.json
+    status: 200
+    content_type: application/json
+    file: ../a2a/0xarchive-agent-card.json
+    note: A2A Agent Card; graded in a2a/0xarchive-a2a.yml.
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+  extras:
+  - path: /.well-known/agent-skills/0xarchive-market-data/skill.md
+    status: 200
+    file: ../skills/0xarchive-market-data.md
+  - path: /.well-known/agent-skills/0xarchive-openapi/skill.md
+    status: 200
+    file: ../skills/0xarchive-openapi.md
+  - path: /.well-known/agent-skills/0xarchive-websocket/skill.md
+    status: 200
+    file: ../skills/0xarchive-websocket.md

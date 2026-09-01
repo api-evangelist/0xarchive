@@ -1,0 +1,88 @@
+generated: '2026-09-01'
+method: searched
+source: https://0xarchive.io/.well-known/data-samples.json
+sources:
+- https://0xarchive.io/.well-known/data-samples.json
+- https://0xarchive.io/llms.txt ("Try without an account")
+- https://docs.0xarchive.io/rate-limits (Free tier)
+test_mode:
+  supported: false
+  key_prefixes: null
+  note: >-
+    There is no test-vs-live key split and no test-mode environment. API keys carry a single
+    prefix (0xa_) and address production data. This is correct for the product: 0xArchive returns
+    real historical market data and does not place orders, hold funds or operate a venue, so
+    there is nothing a sandbox would need to simulate.
+what_exists_instead:
+  summary: >-
+    0xArchive replaces a sandbox with two things that serve the same purpose better for a data
+    API - a fully public, checksummed, no-account fixture set, and a Free tier that reaches every
+    route rather than a reduced subset.
+  public_samples:
+    url: https://0xarchive.io/.well-known/data-samples.json
+    local: well-known/0xarchive-data-samples.json
+    http_status: 200
+    auth_required: false
+    account_required: false
+    schema_version: '1.0'
+    sample_version: v1
+    published_at: '2026-08-21'
+    source_window: 2026-08-10T00:00:00Z to 2026-08-11T00:00:00Z
+    symbol: BTC
+    artifact_count: 14
+    datasets:
+    - venue: hyperliquid
+      datasets: [trades, orderbook, candles, funding, open_interest, liquidations, l4_orderbook, l4_orders]
+    - venue: lighter
+      datasets: [trades, orderbook, candles, funding, open_interest, l3_orderbook]
+    per_artifact_fields:
+    - full column schema (name + type) for every dataset
+    - row_count and exact time_range
+    - the live source URL and query that produced it
+    - data_sha256 of the source payload
+    - a browser preview JSON with its own sha256 and byte count
+    - a downloadable Parquet file with filename, media type and checksum
+    bundles: Per-venue ZIP bundles with sha256, byte count and a full member manifest.
+    reconstruction_proofs: >-
+      The Hyperliquid bundle ships a replay-proof.zip alongside the L4 order-book Parquet, so a
+      consumer can verify offline that 0xArchive's L4 reconstruction reproduces the book from the
+      published diffs - and Lighter ships the equivalent for L3. This is the closest thing to a
+      test fixture in this product: it lets a client validate its own reconstruction logic against
+      a known-good, checksummed answer before ever authenticating.
+    note: >-
+      Save this pattern. A market-data provider cannot offer a sandbox because it has no state to
+      mutate, but it CAN offer a verifiable fixture, and 0xArchive does - versioned, dated,
+      checksummed at both the source-payload and the file level, with the exact query that
+      produced each artifact recorded inline. An agent can rehearse a whole integration against it
+      with no credential at all.
+  free_tier:
+    price: 0
+    card_required: false
+    route_access: every market, route family, schema and served depth, including WebSocket, replay and L4 channels
+    constraint: history limited to the most recent rolling 30 days, maximum 30-day span per request or replay
+    credits: 50,000/month
+    note: >-
+      Unusually, the Free tier is not a feature-reduced sandbox - it reaches every route. Only the
+      reachable time window differs. The provider positions Free explicitly as "fit checks and
+      auth testing".
+  unauthenticated_probe:
+    operationId: healthCheck
+    url: https://api.0xarchive.io/health
+    auth: none
+    http_status: 200
+    checked: '2026-09-01'
+    note: The only route on api.0xarchive.io that answers without a key; every other path returns 401.
+test_values:
+  published: false
+  note: >-
+    No test cards, test bank accounts, hosted test tokens, test clocks or fixture-trigger tooling
+    are published, and none are invented here. The x402 payment path settles a real USDC transfer
+    on Base mainnet - the docs describe no testnet facilitator - so an agent must treat
+    POST /v1/web3/subscribe as spending real money on the first call.
+time_simulation:
+  supported: false
+  note: >-
+    No test clocks. Historical replay over WebSocket is the nearest equivalent and it is a
+    production feature, not a simulation one: a client can replay a real past window at 10x-300x
+    speed depending on tier, which is how an integration is exercised against time-ordered data
+    here.

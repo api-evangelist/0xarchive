@@ -1,0 +1,92 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://api.0xarchive.io",
+      "service-desc": [
+        {
+          "href": "https://0xarchive.io/openapi.json",
+          "type": "application/vnd.oai.openapi+json;version=3.0"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://docs.0xarchive.io/rest-api",
+          "type": "text/html"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://0xarchive.io/apis.json",
+          "type": "application/json"
+        },
+        {
+          "href": "https://0xarchive.io/.well-known/api-onboarding",
+          "type": "application/json"
+        },
+        {
+          "href": "https://0xarchive.io/.well-known/ai-catalog.json",
+          "type": "application/json"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://0xarchive.io/status"
+        }
+      ]
+    },
+    {
+      "anchor": "wss://api.0xarchive.io/ws",
+      "service-doc": [
+        {
+          "href": "https://docs.0xarchive.io/websocket",
+          "type": "text/html"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://0xarchive.io/apis.json",
+          "type": "application/json"
+        },
+        {
+          "href": "https://0xarchive.io/.well-known/ai-catalog.json",
+          "type": "application/json"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://0xarchive.io/status"
+        }
+      ]
+    },
+    {
+      "anchor": "https://mcp.0xarchive.io/mcp",
+      "service-desc": [
+        {
+          "href": "https://0xarchive.io/.well-known/mcp/server-card.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://docs.0xarchive.io/mcp-server",
+          "type": "text/html"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://0xarchive.io/apis.json",
+          "type": "application/json"
+        },
+        {
+          "href": "https://mcp.0xarchive.io/.well-known/oauth-protected-resource",
+          "type": "application/json"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://0xarchive.io/status"
+        }
+      ]
+    }
+  ]
+}

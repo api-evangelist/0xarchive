@@ -1,0 +1,18 @@
+{
+  "name": "0xArchive MCP",
+  "description": "Authenticated hosted MCP server for 0xArchive market data across Hyperliquid and Lighter.",
+  "version": "1.0.0",
+  "serverInfo": {
+    "name": "0xArchive MCP",
+    "version": "1.0.0"
+  },
+  "url": "https://mcp.0xarchive.io/mcp",
+  "transport": "streamable-http",
+  "capabilities": {
+    "tools": true,
+    "resources": false
+  },
+  "authentication": "bearer",
+  "documentation": "https://docs.0xarchive.io/mcp-server",
+  "oauthProtectedResource": "https://mcp.0xarchive.io/.well-known/oauth-protected-resource"
+}

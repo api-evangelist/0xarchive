@@ -1,0 +1,156 @@
+generated: '2026-09-01'
+method: searched
+docs: https://docs.0xarchive.io/authentication
+source: >-
+  Derived from openapi/0xarchive-openapi.json components.securitySchemes by
+  0-working/derive-authentication.py, then upgraded from the provider's own credential map at
+  https://docs.0xarchive.io/authentication (HTTP 200, fetched 2026-09-01), the RFC 8414
+  authorization-server metadata, and the wallet-auth routes in the contract.
+summary:
+  types:
+  - apiKey
+  - oauth2
+  - siwe
+  api_key_in:
+  - header
+  note: >-
+    The OpenAPI declares exactly ONE security scheme (ApiKeyAuth / X-API-Key), which is why the
+    derived baseline showed a single apiKey scheme. That baseline is accurate but incomplete as a
+    picture of how a caller actually authenticates: 0xArchive runs THREE distinct credential
+    models across four surfaces, and only one of them appears in the REST contract. This file
+    records all three, and flags which are contract-declared and which are documentation-only.
+schemes:
+- name: ApiKeyAuth
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  key_prefix: 0xa_
+  description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+  declared_in_contract: true
+  applies_to:
+  - direct REST market-data requests
+  - the three language SDKs (key passed to the client constructor)
+  - the CLI (reads OXA_API_KEY)
+  - the Claude Code agent skill (reads OXARCHIVE_API_KEY)
+  sources:
+  - openapi/0xarchive-openapi.json
+  - https://docs.0xarchive.io/rest-api/authentication
+- name: WebSocketBearer
+  type: http
+  scheme: bearer
+  in: handshake header
+  parameter: Authorization
+  description: >-
+    The SAME API key as REST, but sent as "Authorization: Bearer <API_KEY>" during the
+    wss://api.0xarchive.io/ws handshake rather than as X-API-Key.
+  declared_in_contract: false
+  declared_in_contract_note: >-
+    The WebSocket surface is not described by any machine-readable contract, so this scheme
+    exists only in the documentation.
+  legacy_form:
+    parameter: apiKey (query string)
+    status: compatibility-only
+    warning: >-
+      The docs restrict it to private server-side scripts and warn explicitly against
+      browser-facing URLs and logs.
+  sources:
+  - https://docs.0xarchive.io/websocket/connection
+  - https://0xarchive.io/llms.txt
+- name: HostedMcpOAuth
+  type: oauth2
+  flows:
+    authorizationCode:
+      authorizationUrl: https://auth.0xarchive.io/oauth/authorize
+      tokenUrl: https://auth.0xarchive.io/oauth/token
+      refreshUrl: https://auth.0xarchive.io/oauth/token
+      scopes:
+        mcp:market.read: Read market data through the hosted MCP server
+  pkce: S256 required
+  dynamic_client_registration: https://auth.0xarchive.io/oauth/register
+  issuer: https://auth.0xarchive.io
+  resource: https://mcp.0xarchive.io/mcp
+  declared_in_contract: false
+  declared_in_contract_note: >-
+    Not in the OpenAPI, because the MCP server is a separate surface. It IS machine-discoverable
+    though - RFC 8414 metadata at api.0xarchive.io/.well-known/oauth-authorization-server and
+    RFC 9728 metadata at mcp.0xarchive.io/.well-known/oauth-protected-resource.
+  applies_to:
+  - the hosted MCP server at https://mcp.0xarchive.io/mcp
+  api_key_required: false
+  detail: scopes/0xarchive-scopes.yml
+  sources:
+  - well-known/0xarchive-oauth-authorization-server.json
+  - well-known/0xarchive-oauth-protected-resource.json
+  - https://docs.0xarchive.io/mcp-server
+- name: SiweWalletAuth
+  type: signature
+  standard: EIP-4361 (Sign-In With Ethereum)
+  description: >-
+    Wallet-signed authentication requiring NO API key, used for account bootstrap and key
+    management. POST /v1/auth/web3/challenge issues a single-use SIWE challenge; the client signs
+    it and posts the signed message to /v1/auth/web3/verify. The same signed-message pattern
+    authorises key listing (/v1/web3/keys) and key revocation (/v1/web3/keys/revoke).
+  declared_in_contract: true
+  declared_in_contract_note: These routes appear in the OpenAPI with an empty security array.
+  unauthenticated_routes:
+  - POST /v1/auth/web3/challenge
+  - POST /v1/auth/web3/verify
+  - POST /v1/web3/subscribe
+  sources:
+  - openapi/0xarchive-openapi.json
+  - https://0xarchive.io/llms.txt
+credential_map:
+  note: >-
+    Transcribed from the provider's own "Credential map" table. Worth reading closely for the
+    env-var split, which is a real integration trap - the CLI reads OXA_API_KEY while the SDKs
+    and the agent skill read OXARCHIVE_API_KEY.
+  rows:
+  - surface: REST
+    credential: OXARCHIVE_API_KEY from the runtime environment, sent as X-API-Key
+  - surface: WebSocket
+    credential: the same API key, supplied during connection setup as a Bearer token
+  - surface: SDKs
+    credential: the key passed to the client constructor
+  - surface: CLI
+    credential: OXA_API_KEY
+  - surface: Agent skill
+    credential: OXARCHIVE_API_KEY through the host environment or secret store
+  - surface: Hosted MCP server
+    credential: client-managed OAuth; no 0xArchive API key
+  - surface: Browser applications
+    credential: call your own backend - the docs say never expose a 0xArchive key to users
+key_lifecycle:
+  create: https://0xarchive.io/dashboard
+  create_alternative: >-
+    A wallet can obtain an account and key with no dashboard visit at all, via the x402 path -
+    POST /v1/web3/subscribe settles a USDC payment on Base and issues the key on settlement.
+  storage_guidance: >-
+    Load from an environment variable or secret manager; never in checked-in code, notebooks,
+    prompts, logs, screenshots or public issue text.
+  rotation: >-
+    Replace keys when a workflow, machine, environment or teammate no longer needs access. The
+    docs recommend a separate key per environment (local, CI, staging, production, agent tooling)
+    so that a leaked development key cannot expose a production workflow.
+  revocation:
+    operation: web3RevokeKey
+    path: POST /v1/web3/keys/revoke
+    auth: SIWE signed message + key_id
+    reversible: false
+    note: No un-revoke path is documented. See the reversibility block in conventions/.
+  key_limits_by_tier:
+    Free: 1
+    Build: 10
+    Pro: 100
+    Scale: 200
+    Enterprise: 200
+unauthenticated_surface:
+- url: https://api.0xarchive.io/health
+  operation: healthCheck
+  http_status: 200
+  note: The only unauthenticated route on the API host; every other path returns 401, not 404.
+- url: https://0xarchive.io/.well-known/data-samples.json
+  note: Fixed public Parquet samples with checksums and reconstruction proofs. No account, no key.
+- url: https://0xarchive.io/.well-known/data-coverage.json
+  note: Public coverage manifest.
+- url: https://api.0xarchive.io/.well-known/oauth-authorization-server
+  note: Deliberately exempted from the API host's blanket 401 so an MCP client can discover the AS.

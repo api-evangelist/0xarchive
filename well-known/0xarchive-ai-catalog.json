@@ -1,0 +1,320 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "0xArchive",
+    "identifier": "did:web:0xarchive.io",
+    "documentationUrl": "https://docs.0xarchive.io/",
+    "logoUrl": "https://0xarchive.io/logo-normal-distribution.svg"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:0xarchive.io:api:rest",
+      "displayName": "0xArchive REST API",
+      "type": "application/vnd.oai.openapi+json",
+      "url": "https://0xarchive.io/openapi.json",
+      "description": "Request-response API for current and historical market data across Hyperliquid and Lighter, including order books, trades, candles, funding, open interest, order history/flow, TP/SL, and data quality. Liquidation events span Hyperliquid core, HIP-3, and Lighter; projected forced-liquidation price levels span core and HIP-3. Direct requests use the `X-API-Key` header; Lighter provides L3 and Hyperliquid families provide L4 reconstruction.",
+      "capabilities": [
+        "orderbook_l2",
+        "lighter_orderbook_l3",
+        "hyperliquid_orderbook_l4_reconstruction",
+        "trades",
+        "candles",
+        "funding",
+        "open_interest",
+        "hyperliquid_core_liquidation_events",
+        "hip3_liquidation_events",
+        "lighter_liquidation_events",
+        "hyperliquid_core_projected_forced_liquidation_price_levels",
+        "hip3_projected_forced_liquidation_price_levels",
+        "order_history",
+        "order_flow",
+        "tp_sl",
+        "data_quality"
+      ],
+      "tags": [
+        "api",
+        "openapi",
+        "rest",
+        "market-data",
+        "hyperliquid",
+        "lighter",
+        "hip-3",
+        "hip-4",
+        "orderbook",
+        "historical-data"
+      ],
+      "representativeQueries": [
+        "query current or historical Hyperliquid and Lighter market data over REST",
+        "retrieve Lighter L3 or Hyperliquid L4 order-book history",
+        "analyze liquidation events or projected forced-liquidation price levels",
+        "inspect order history, order flow, TP/SL, or data quality through OpenAPI"
+      ],
+      "version": "1.6.1",
+      "updatedAt": "2026-08-22T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:api:websocket",
+      "displayName": "0xArchive WebSocket API",
+      "type": "text/html",
+      "url": "https://docs.0xarchive.io/websocket/real-time",
+      "description": "Use live subscriptions for supported Hyperliquid channels. Use historical replay for Hyperliquid and Lighter over `wss://api.0xarchive.io/ws`; authenticate with `Authorization: Bearer <API_KEY>`. Timed replay includes Lighter L3, while Hyperliquid core `l4_diffs` and `l4_orders` use checkpoint-anchored bulk replay with speed ignored; all Spot channels and HIP-3/HIP-4 L4 are real-time-only. Liquidation channels cover Hyperliquid core and HIP-3.",
+      "tags": [
+        "market-data",
+        "websocket",
+        "real-time",
+        "historical-replay",
+        "hyperliquid",
+        "lighter",
+        "orderbook",
+        "trades"
+      ],
+      "capabilities": [
+        "real_time_streaming",
+        "historical_replay",
+        "market_data_subscriptions",
+        "reconnect_and_gap_recovery",
+        "orderbook_l2",
+        "lighter_orderbook_replay",
+        "lighter_trades_replay",
+        "lighter_candles_replay",
+        "lighter_funding_replay",
+        "lighter_open_interest_replay",
+        "lighter_l3_orderbook_replay",
+        "lighter_orderbook_l3_replay",
+        "hyperliquid_core_orderbook_l4_bulk_replay",
+        "hyperliquid_spot_realtime_only",
+        "hip3_orderbook_l4_realtime_only",
+        "hip4_orderbook_l4_realtime_only",
+        "trades",
+        "candles",
+        "funding",
+        "open_interest",
+        "hyperliquid_core_liquidation_events",
+        "hip3_liquidation_events"
+      ],
+      "representativeQueries": [
+        "stream live Hyperliquid market data over WebSocket",
+        "replay a bounded Lighter orderbook, trades, candles, funding, open interest, or L3 history window over WebSocket",
+        "replay Hyperliquid core L4 diffs or orders as a checkpoint-anchored bulk stream",
+        "subscribe to Spot or HIP-3/HIP-4 L4 channels in real time",
+        "maintain local order-book state with reconnect and gap recovery"
+      ],
+      "updatedAt": "2026-08-22T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:server:market-data",
+      "displayName": "0xArchive Hosted MCP Server",
+      "type": "application/json",
+      "url": "https://0xarchive.io/.well-known/mcp/server-card.json",
+      "description": "Hosted MCP server for read-only market-data discovery and retrieval across Hyperliquid and Lighter. Connect to `https://mcp.0xarchive.io/mcp` with client-managed OAuth; the protected resource advertises `mcp:market.read`, and no 0xArchive API key is required.",
+      "capabilities": [
+        "mcp_market_read",
+        "market_data_discovery",
+        "market_data_retrieval",
+        "oauth"
+      ],
+      "tags": [
+        "mcp",
+        "model-context-protocol",
+        "server-card",
+        "oauth",
+        "no-api-key",
+        "agent",
+        "claude",
+        "codex",
+        "market-data",
+        "hyperliquid",
+        "lighter"
+      ],
+      "representativeQueries": [
+        "connect an MCP client to 0xArchive market data",
+        "discover Hyperliquid and Lighter datasets through hosted MCP",
+        "retrieve historical market data through read-only MCP tools"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-08-22T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:knowledge:okf-bundle",
+      "displayName": "0xArchive Knowledge Bundle (OKF)",
+      "type": "application/gzip",
+      "url": "https://0xarchive.io/okf.tar.gz",
+      "description": "One-fetch Open Knowledge Format bundle of typed Markdown concepts covering venue taxonomy, datasets, coverage windows, access, authentication, entitlements, pricing, and x402. Use the archive for local agent ingestion or browse the same knowledge tree at `https://0xarchive.io/okf/`.",
+      "capabilities": [
+        "knowledge_base",
+        "venue_taxonomy",
+        "coverage_windows",
+        "entitlement_model",
+        "pricing",
+        "authentication",
+        "access_surfaces"
+      ],
+      "tags": [
+        "okf",
+        "open-knowledge-format",
+        "knowledge-base",
+        "agent",
+        "market-data",
+        "hyperliquid",
+        "lighter"
+      ],
+      "representativeQueries": [
+        "what venues, depth, and history does 0xArchive cover",
+        "read 0xArchive access, authentication, entitlement, and pricing concepts",
+        "ingest the 0xArchive knowledge base in one fetch"
+      ],
+      "updatedAt": "2026-06-30T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:capability:x402-payment",
+      "displayName": "0xArchive Wallet Access (SIWE + x402)",
+      "type": "text/html",
+      "url": "https://0xarchive.io/facilitator",
+      "description": "Wallet-native authentication and programmatic 30-day Build or Pro access. Existing active wallet accounts can sign in with SIWE; new or existing eligible wallets can purchase access with x402 USDC on Base, with account and API-key issuance only after successful settlement. No API key is needed to start.",
+      "capabilities": [
+        "x402",
+        "usdc_payment",
+        "eip_3009",
+        "siwe_auth",
+        "existing_wallet_sign_in",
+        "paid_subscription"
+      ],
+      "tags": [
+        "x402",
+        "payments",
+        "usdc",
+        "base",
+        "siwe",
+        "web3-auth",
+        "autonomous-agent",
+        "agentic-commerce"
+      ],
+      "representativeQueries": [
+        "purchase 30-day Build or Pro API access with USDC from an agent wallet",
+        "sign in to an existing active wallet account with SIWE",
+        "create paid wallet access after successful x402 settlement"
+      ],
+      "updatedAt": "2026-08-07T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:guide:llms-txt",
+      "displayName": "0xArchive Product & Integration Guide (llms.txt)",
+      "type": "text/plain",
+      "url": "https://0xarchive.io/llms.txt",
+      "description": "Machine-readable guide to 0xArchive market data across Hyperliquid and Lighter. Routes agents to REST, WebSocket, hosted MCP, SDKs, CLI, bulk Parquet exports, x402 access, pricing, coverage, authentication, reliability, errors, and rate limits.",
+      "capabilities": [
+        "site_summary",
+        "endpoint_index",
+        "venue_taxonomy",
+        "coverage_windows",
+        "auth_guide",
+        "sdk_discovery",
+        "cli_discovery",
+        "reliability_guidance",
+        "error_guidance",
+        "rate_limit_guidance",
+        "pricing_guide"
+      ],
+      "tags": [
+        "llms-txt",
+        "ai-guide",
+        "documentation",
+        "discovery",
+        "integration"
+      ],
+      "representativeQueries": [
+        "choose the right 0xArchive access surface",
+        "find 0xArchive SDK, CLI, authentication, and production reliability guidance",
+        "compare 0xArchive coverage, pricing, exports, and purchase routes"
+      ],
+      "updatedAt": "2026-08-22T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:dataset:data-catalog",
+      "displayName": "0xArchive Data Catalog & Bulk Parquet Export",
+      "type": "text/html",
+      "url": "https://0xarchive.io/data",
+      "description": "Browse available coverage and order large historical datasets as S3-delivered Parquet exports. Use this surface for backtests and dataset-scale downloads that are impractical through per-request REST; one-off purchases need no subscription, while Build, Pro, and Scale export credits apply before checkout.",
+      "capabilities": [
+        "bulk_export",
+        "parquet",
+        "s3",
+        "dataset_download",
+        "coverage_browse"
+      ],
+      "tags": [
+        "bulk-export",
+        "parquet",
+        "s3",
+        "datasets",
+        "backtesting"
+      ],
+      "representativeQueries": [
+        "order a bulk Parquet export of historical market data",
+        "download a dataset-scale order-book history for backtesting",
+        "purchase a one-off market-data export without a subscription"
+      ],
+      "updatedAt": "2026-06-30T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:dataset:public-coverage",
+      "displayName": "0xArchive Public Coverage Manifest",
+      "type": "application/json",
+      "url": "https://0xarchive.io/.well-known/data-coverage.json",
+      "description": "Machine-readable BTC coverage manifest for Hyperliquid and Lighter. HIP-4 has candles and outcome-side open interest but no funding dataset or liquidation endpoint. Free covers the most recent rolling 30 days with a maximum 30-day span per request or replay; Build and above keep the full retained archive. Use it to discover dataset types, provenance, and per-type coverage start dates.",
+      "capabilities": [
+        "coverage_manifest",
+        "dataset_availability",
+        "earliest_coverage",
+        "source_provenance"
+      ],
+      "tags": [
+        "coverage",
+        "market-data",
+        "hyperliquid",
+        "lighter",
+        "btc",
+        "machine-readable"
+      ],
+      "representativeQueries": [
+        "which Hyperliquid and Lighter BTC datasets does 0xArchive publish",
+        "find the published coverage start date by BTC dataset type",
+        "inspect the machine-readable source and generation time for public coverage"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-08-11T00:00:00Z"
+    },
+    {
+      "identifier": "urn:air:0xarchive.io:dataset:public-btc-samples",
+      "displayName": "0xArchive Fixed BTC Samples and Reconstruction Proofs",
+      "type": "application/json",
+      "url": "https://0xarchive.io/.well-known/data-samples.json",
+      "description": "Fixed, versioned BTC samples for every published Hyperliquid and Lighter dataset type, with browser previews, Parquet files, checksums, and source metadata. Independently runnable Hyperliquid L4 and Lighter L3 proof bundles demonstrate offline reconstruction; they do not imply WebSocket replay availability. No account or API key is required.",
+      "capabilities": [
+        "public_samples",
+        "parquet",
+        "checksums",
+        "hyperliquid_l4_offline_reconstruction_proof",
+        "lighter_l3_offline_reconstruction_proof",
+        "schema_preview"
+      ],
+      "tags": [
+        "sample-data",
+        "parquet",
+        "offline-proof",
+        "reconstruction",
+        "hyperliquid",
+        "lighter",
+        "btc",
+        "no-login"
+      ],
+      "representativeQueries": [
+        "download a no-login Hyperliquid or Lighter BTC market-data sample",
+        "verify Hyperliquid L4 offline reconstruction with a fixed proof bundle",
+        "inspect a Lighter L3 BTC Parquet sample before using the API"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-08-21T00:00:00Z"
+    }
+  ]
+}

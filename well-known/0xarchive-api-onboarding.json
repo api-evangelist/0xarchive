@@ -1,0 +1,106 @@
+{
+  "aod": "0.1",
+  "provider": {
+    "name": "0xArchive",
+    "url": "https://0xarchive.io/",
+    "portalUrl": "https://docs.0xarchive.io/",
+    "apisJsonUrl": "https://0xarchive.io/apis.json"
+  },
+  "maturity": "self-serve",
+  "account": {
+    "required": true,
+    "signupUrl": "https://0xarchive.io/signup",
+    "agentPolicy": "allowed",
+    "prerequisites": [
+      "The account owner must be at least 18 years old and able to enter a binding agreement.",
+      "An automated agent must act with the account owner's authorization.",
+      "Automated creation of multiple accounts is prohibited.",
+      "Paid wallet access requires a funded wallet that can authorize USDC payment on Base."
+    ],
+    "plans": [
+      {
+        "name": "Free",
+        "requiredFor": "Free API access through standard account signup.",
+        "url": "https://0xarchive.io/pricing"
+      },
+      {
+        "name": "Build",
+        "requiredFor": "30-day paid access available through standard checkout or x402 USDC payment.",
+        "url": "https://0xarchive.io/pricing"
+      },
+      {
+        "name": "Pro",
+        "requiredFor": "30-day paid access available through standard checkout or x402 USDC payment.",
+        "url": "https://0xarchive.io/pricing"
+      },
+      {
+        "name": "Scale",
+        "requiredFor": "Higher usage limits through standard checkout.",
+        "url": "https://0xarchive.io/pricing"
+      },
+      {
+        "name": "Enterprise",
+        "requiredFor": "Custom commercial access arranged with 0xArchive.",
+        "url": "https://0xarchive.io/pricing"
+      }
+    ],
+    "termsOfService": {
+      "url": "https://0xarchive.io/terms",
+      "acceptance": "implicit"
+    }
+  },
+  "registration": {
+    "applicationNoun": "API account and API key",
+    "owner": "user",
+    "mechanisms": [
+      {
+        "type": "management-api",
+        "description": "An authorized agent can purchase 30-day Build or Pro access for a new or existing eligible wallet. An unknown wallet receives an account and API key only after successful x402 settlement.",
+        "baseUrl": "https://api.0xarchive.io",
+        "docsUrls": [
+          "https://docs.0xarchive.io/wallet-automation",
+          "https://0xarchive.io/openapi.json"
+        ],
+        "auth": "x402-wallet-payment"
+      },
+      {
+        "type": "console-only",
+        "description": "Free access uses standard account signup. Standard checkout also supports paid plans.",
+        "baseUrl": "https://0xarchive.io/signup",
+        "docsUrls": [
+          "https://0xarchive.io/signup",
+          "https://0xarchive.io/pricing"
+        ]
+      }
+    ]
+  },
+  "authentication": {
+    "methods": [
+      {
+        "id": "x402-wallet-payment",
+        "type": "request-signing",
+        "header": "payment-signature",
+        "signing": "eip-3009-transfer-with-authorization",
+        "notes": "POST /v1/web3/subscribe without the payment header returns x402 payment terms. Sign the USDC authorization, build the x402 v2 payload, base64-encode it, and retry in the payment-signature header."
+      }
+    ]
+  },
+  "credentials": [
+    {
+      "type": "api-key",
+      "fields": {
+        "api_key": "api_key"
+      },
+      "ttl": "No fixed key expiry while the account remains active.",
+      "rotation": "Create and revoke keys through the account dashboard or documented wallet key-management endpoints."
+    }
+  ],
+  "scopes": {
+    "model": "product-tiers",
+    "vocabularyUrl": "https://0xarchive.io/pricing",
+    "notes": "Plan entitlements and limits are published on the pricing page and in the developer documentation."
+  },
+  "gaps": [
+    "Free account creation uses standard signup; the retired wallet-only Free signup endpoint does not create an account or API key."
+  ]
+}

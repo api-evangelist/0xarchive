@@ -1,0 +1,122 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  https://0xarchive.io/llms.txt "SDKs, CLI & Automation" section and https://docs.0xarchive.io/sdks,
+  with every version and publish date read live from the registry metadata endpoints
+  (registry.npmjs.org, pypi.org/pypi/<pkg>/json, crates.io/api/v1/crates/<pkg>) on 2026-09-01.
+note: >-
+  All five packages are first-party: each names github.com/0xArchiveIO as its repository and
+  0xarchive.io as its homepage, and all five are listed on the provider's own SDK page. The three
+  language SDKs move together on a single release train (1.8.0, all published 2026-07-28 within
+  ten minutes of each other), which is a strong sign of a generated or co-released client set
+  rather than three independently-maintained libraries. The CLI trails by two months and one
+  minor version. The MCP server package is the outlier: the provider has publicly RETIRED it in
+  favour of the hosted MCP endpoint, so its date is a deliberate end-of-life, not decay.
+packages:
+- name: oxarchive
+  language: Python
+  registry: pypi
+  registry_url: https://pypi.org/project/oxarchive/
+  install: pip install oxarchive
+  version: 1.8.0
+  published: '2026-07-28'
+  official: true
+  repository: https://github.com/0xArchiveIO/sdk-python
+  description: Python SDK for the 0xArchive market data API for Hyperliquid and Lighter.xyz
+- name: '@0xarchive/sdk'
+  language: TypeScript
+  registry: npm
+  registry_url: https://www.npmjs.com/package/@0xarchive/sdk
+  install: npm install @0xarchive/sdk
+  version: 1.8.0
+  published: '2026-07-28'
+  official: true
+  repository: https://github.com/0xArchiveIO/sdk-typescript
+  description: >-
+    TypeScript SDK for the 0xArchive market data API for Hyperliquid (perps, HIP-3, HIP-4, spot)
+    and Lighter.xyz. Ships L2/L3/L4 order-book reconstructors and a WebSocket client.
+- name: oxarchive
+  language: Rust
+  registry: crates.io
+  registry_url: https://crates.io/crates/oxarchive
+  install: cargo add oxarchive
+  version: 1.8.0
+  published: '2026-07-28'
+  official: true
+  repository: https://github.com/0xArchiveIO/sdk-rust
+  description: Rust SDK for async 0xArchive market data clients
+- name: '@0xarchive/cli'
+  language: TypeScript
+  registry: npm
+  registry_url: https://www.npmjs.com/package/@0xarchive/cli
+  install: npm install -g @0xarchive/cli
+  binary: oxa
+  version: 1.7.0
+  published: '2026-05-08'
+  official: true
+  repository: https://github.com/0xArchiveIO/0xarchive-cli
+  description: >-
+    Terminal-first 0xArchive client for Hyperliquid and Lighter.xyz market data, including
+    Hyperliquid HIP-3, HIP-4 and Spot.
+  note: >-
+    Two months and one minor version behind the three SDKs, which shipped 1.8.0 on 2026-07-28.
+    Detailed in cli/0xarchive-cli.yml.
+- name: '@0xarchive/mcp-server'
+  language: TypeScript
+  registry: npm
+  registry_url: https://www.npmjs.com/package/@0xarchive/mcp-server
+  install: npx -y @0xarchive/mcp-server
+  binary: 0xarchive-mcp
+  version: 1.9.3
+  published: '2026-08-06'
+  official: true
+  lifecycle: retired
+  repository: https://github.com/0xArchiveIO/0xarchive-mcp
+  description: >-
+    Local-stdio MCP server exposing typed 0xArchive market-data tools. Registers 110 tools and
+    calls the REST API through @0xarchive/sdk with an OXARCHIVE_API_KEY from the environment.
+  note: >-
+    RETIRED by the provider. The repository README states plainly: "This package is retired. Use
+    the hosted MCP instead" and directs new integrations to https://mcp.0xarchive.io/mcp. Existing
+    installs keep working; the package will receive no new tools. Its 2026-08-06 date is an
+    end-of-life marker, not an abandonment signal.
+- name: 0xarchive (Claude Code skill / plugin)
+  language: Markdown + Bash
+  registry: null
+  registry_url: https://github.com/0xArchiveIO/0xarchive-skill
+  install: Install as a Claude Code plugin or drop skills/query/SKILL.md into an agent's skill directory.
+  version: 1.12.1
+  published: null
+  official: true
+  repository: https://github.com/0xArchiveIO/0xarchive-skill
+  description: >-
+    Agent-ready 0xArchive market-data Agent Skill for Claude Code, Codex and other
+    SKILL.md-compatible agents. curl + jq against the REST API; no MCP server required.
+  note: >-
+    version: 1.12.1 is read from the frontmatter of SKILL.md and from .claude-plugin/plugin.json in
+    the repository. published: null because this package is distributed only by git - there is no
+    npm, PyPI or other registry entry, so there is no metadata endpoint carrying a release date
+    and a consumer cannot read a publish date for it either. Checked, nothing to record.
+absent:
+- registry: Maven Central
+  probe: https://search.maven.org/solrsearch/select?q=0xarchive
+  checked: '2026-09-01'
+  result: numFound 0 - no first-party artifact, and no JVM SDK is advertised on the SDK page
+- registry: NuGet
+  probe: https://azuresearch-usnc.nuget.org/query?q=0xarchive
+  checked: '2026-09-01'
+  result: totalHits 0 - no first-party package, and no .NET SDK is advertised
+- registry: RubyGems
+  probe: https://rubygems.org/api/v1/search.json?query=0xarchive
+  checked: '2026-09-01'
+  result: 0 results - no first-party gem
+- registry: Packagist
+  probe: https://packagist.org/search.json?q=0xarchive
+  checked: '2026-09-01'
+  result: >-
+    508 hits, none of them 0xArchive - the query matched generic PHP archive/zip libraries
+    (phar-io/manifest, pear/archive_tar, nelexa/zip). No first-party package.
+- registry: Go modules
+  probe: https://proxy.golang.org/github.com/!0x!archive!i!o/sdk-go/@v/list
+  checked: '2026-09-01'
+  result: 404 - no module at the org's expected Go path, and no Go SDK exists in the GitHub org

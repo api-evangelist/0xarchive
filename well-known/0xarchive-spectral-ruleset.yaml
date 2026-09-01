@@ -1,0 +1,87 @@
+extends:
+  - spectral:oas
+
+rules:
+  oxa-https-production-server:
+    description: Production OpenAPI servers must use HTTPS.
+    message: Production server URLs must start with https://.
+    severity: error
+    given: $.servers[*].url
+    then:
+      function: pattern
+      functionOptions:
+        match: ^https://
+
+  oxa-api-key-header:
+    description: Direct REST authentication uses the X-API-Key header.
+    message: ApiKeyAuth must declare the X-API-Key header.
+    severity: error
+    given: $.components.securitySchemes.ApiKeyAuth
+    then:
+      field: name
+      function: pattern
+      functionOptions:
+        match: ^X-API-Key$
+
+  oxa-terms-of-service:
+    description: The public API contract must link the current Terms of Service.
+    message: info.termsOfService must use the canonical 0xArchive Terms URL.
+    severity: error
+    given: $.info
+    then:
+      field: termsOfService
+      function: pattern
+      functionOptions:
+        match: ^https://0xarchive\.io/terms$
+
+  oxa-support-contact:
+    description: The public API contract must identify the monitored support mailbox.
+    message: info.contact.email must use support@0xarchive.io.
+    severity: error
+    given: $.info.contact
+    then:
+      field: email
+      function: pattern
+      functionOptions:
+        match: ^support@0xarchive\.io$
+
+  oxa-x402-subscribe-without-api-key:
+    description: The x402 onboarding request must not require a pre-existing API key.
+    message: POST /v1/web3/subscribe must declare an empty security array.
+    severity: error
+    given: $
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required:
+            - paths
+          properties:
+            paths:
+              type: object
+              required:
+                - /v1/web3/subscribe
+              properties:
+                /v1/web3/subscribe:
+                  type: object
+                  required:
+                    - post
+                  properties:
+                    post:
+                      type: object
+                      required:
+                        - security
+                      properties:
+                        security:
+                          type: array
+                          maxItems: 0
+
+  oxa-retired-free-wallet-signup:
+    description: If present, the retired wallet-only Free signup route must be explicitly deprecated.
+    message: POST /v1/web3/signup must declare deprecated true.
+    severity: error
+    given: $.paths["/v1/web3/signup"].post
+    then:
+      field: deprecated
+      function: truthy
