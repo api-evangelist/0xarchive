@@ -9,6 +9,23 @@ description: '0xArchive is a replayable market-data archive for two decentralise
   - every plan including Free reaches every route family, schema and served depth, and plans gate capacity and Free''s rolling
   30-day history window rather than route access. An agent can buy its own 30-day Build or Pro access with an x402 USDC payment
   on Base and receive an API key on settlement, with no human signup step.'
+accessModel:
+  pricing: freemium
+  onboarding: self-serve
+  trial: false
+  try_now: true
+  public: false
+  label: Freemium · Self-serve signup
+  confidence: high
+  source:
+  - plans
+  - authentication
+  - scopes
+  - rate-limits
+  - security
+  - sandbox
+  generated: '2026-09-02'
+  method: derived
 image: https://0xarchive.io/logo-mark.svg
 url: https://0xarchive.io/apis.json
 created: '2026-08-30'
