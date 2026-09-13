@@ -1,15 +1,12 @@
 generated: '2026-09-01'
 method: probed
-source: >-
-  https://0xarchive.io/.well-known/mcp/server-card.json (HTTP 200),
-  https://mcp.0xarchive.io/.well-known/oauth-protected-resource (HTTP 200, RFC 9728),
-  https://api.0xarchive.io/.well-known/oauth-authorization-server (HTTP 200, RFC 8414),
-  https://mcp.0xarchive.io/mcp tools/list POST (HTTP 401), and the provider's published
-  server source at https://github.com/0xArchiveIO/0xarchive-mcp.
+source: https://0xarchive.io/.well-known/mcp/server-card.json (HTTP 200), https://mcp.0xarchive.io/.well-known/oauth-protected-resource
+  (HTTP 200, RFC 9728), https://api.0xarchive.io/.well-known/oauth-authorization-server (HTTP 200, RFC
+  8414), https://mcp.0xarchive.io/mcp tools/list POST (HTTP 401), and the provider's published server
+  source at https://github.com/0xArchiveIO/0xarchive-mcp.
 name: 0xArchive MCP
-description: >-
-  Read-only market-data discovery and retrieval for MCP clients across Hyperliquid
-  (core perps, HIP-3 builder perps, HIP-4 outcome markets, Spot) and Lighter.
+description: Read-only market-data discovery and retrieval for MCP clients across Hyperliquid (core perps,
+  HIP-3 builder perps, HIP-4 outcome markets, Spot) and Lighter.
 status: published
 deployment:
   mode: both
@@ -18,15 +15,19 @@ deployment:
   package: https://www.npmjs.com/package/@0xarchive/mcp-server
   auth: oauth
   verified: probed
-  note: >-
-    Two distinct products, both real. The REMOTE hosted server at https://mcp.0xarchive.io/mcp is the
-    supported path: an agent POSTs to it directly, authenticating with client-managed OAuth against
-    issuer https://auth.0xarchive.io, scope mcp:market.read, and no 0xArchive API key is required.
-    The LOCAL-STDIO package @0xarchive/mcp-server (1.9.3, published 2026-08-06) still installs and
-    runs but the provider has explicitly RETIRED it in its own README - "This package is retired.
-    Use the hosted MCP instead" - and it uses a different credential (OXARCHIVE_API_KEY in the
-    environment, not OAuth). Recorded as `both` because both are shipped and functional; the
-    provider's recommended surface is the remote one.
+  note: 'Two distinct products, both real. The REMOTE hosted server at https://mcp.0xarchive.io/mcp is
+    the supported path: an agent POSTs to it directly, authenticating with client-managed OAuth against
+    issuer https://auth.0xarchive.io, scope mcp:market.read, and no 0xArchive API key is required. The
+    LOCAL-STDIO package @0xarchive/mcp-server (1.9.3, published 2026-08-06) still installs and runs but
+    the provider has explicitly RETIRED it in its own README - "This package is retired. Use the hosted
+    MCP instead" - and it uses a different credential (OXARCHIVE_API_KEY in the environment, not OAuth).
+    Recorded as `both` because both are shipped and functional; the provider''s recommended surface is
+    the remote one.'
+  probe_prior: (never probed)
+  probe: gated
+  probe_why: RFC 9728 challenge on the MCP path only
+  checked: '2026-09-11'
+  source: claimed-backlog re-probe 2026-09-11
 transport: streamable-http
 capabilities:
   tools: true
@@ -56,24 +57,21 @@ probe:
   method: POST
   body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
   http_status: 401
-  response: >-
-    {"jsonrpc":"2.0","error":{"code":-32001,"message":"Missing Authorization. Send 'Authorization:
-    Bearer <token>' on every request. See the WWW-Authenticate header for resource metadata."}}
+  response: '{"jsonrpc":"2.0","error":{"code":-32001,"message":"Missing Authorization. Send ''Authorization:
+    Bearer <token>'' on every request. See the WWW-Authenticate header for resource metadata."}}'
   checked: '2026-09-01'
-  interpretation: >-
-    Present and auth-gated, not absent. The server answers MCP JSON-RPC and returns a
-    protocol-level error with a pointer to its own resource metadata, which is the correct
-    behaviour for an OAuth-protected MCP server.
+  interpretation: Present and auth-gated, not absent. The server answers MCP JSON-RPC and returns a protocol-level
+    error with a pointer to its own resource metadata, which is the correct behaviour for an OAuth-protected
+    MCP server.
 tools:
   count_advertised: 110
-  count_advertised_source: >-
-    https://0xarchive.io/llms.txt states "110 typed tools" for the hosted server; the GitHub
-    description of 0xarchive-mcp says 111 tools; the published stdio source registers exactly 110.
+  count_advertised_source: https://0xarchive.io/llms.txt states "110 typed tools" for the hosted server;
+    the GitHub description of 0xarchive-mcp says 111 tools; the published stdio source registers exactly
+    110.
   count_inventoried: 110
-  inventory_method: >-
-    Read from the provider's own published server source (src/index.ts in
-    github.com/0xArchiveIO/0xarchive-mcp), not fabricated and not guessed. The live hosted
-    inputSchemas require an authenticated introspection this pipeline did not perform.
+  inventory_method: Read from the provider's own published server source (src/index.ts in github.com/0xArchiveIO/0xarchive-mcp),
+    not fabricated and not guessed. The live hosted inputSchemas require an authenticated introspection
+    this pipeline did not perform.
   crosswalk: mcp/0xarchive-tool-crosswalk.yml
   categories:
   - Hyperliquid core perpetuals
