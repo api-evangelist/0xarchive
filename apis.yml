@@ -1,14 +1,16 @@
 aid: 0xarchive
 name: 0xArchive
-description: '0xArchive is a replayable market-data archive for two decentralised perpetuals venues, Hyperliquid and Lighter,
-  delivered as one REST API, one WebSocket API that carries both live subscriptions and historical replay on a single connection,
-  bulk Parquet export, and a hosted MCP server. Hyperliquid coverage is split into four route families - core perpetuals,
-  Spot, HIP-3 builder perps and HIP-4 binary outcome markets - each with its own symbol format and its own set of available
-  data types. Beyond order books, trades, candles, funding, open interest and liquidations, the archive reconstructs order-level
-  depth that the venues do not serve directly: L4 for the Hyperliquid families and L3 for Lighter. Access is unusually flat
-  - every plan including Free reaches every route family, schema and served depth, and plans gate capacity and Free''s rolling
-  30-day history window rather than route access. An agent can buy its own 30-day Build or Pro access with an x402 USDC payment
-  on Base and receive an API key on settlement, with no human signup step.'
+description: '0xArchive is a replayable market-data archive for two decentralised perpetuals venues, Hyperliquid
+  and Lighter, delivered as one REST API, one WebSocket API that carries both live subscriptions and historical
+  replay on a single connection, bulk Parquet export, and a hosted MCP server. Hyperliquid coverage is
+  split into four route families - core perpetuals, Spot, HIP-3 builder perps and HIP-4 binary outcome
+  markets - each with its own symbol format and its own set of available data types. Beyond order books,
+  trades, candles, funding, open interest and liquidations, the archive reconstructs order-level depth
+  that the venues do not serve directly: L4 for the Hyperliquid families and L3 for Lighter. Access is
+  unusually flat - every plan including Free reaches every route family, schema and served depth, and
+  plans gate capacity and Free''s rolling 30-day history window rather than route access. An agent can
+  buy its own 30-day Build or Pro access with an x402 USDC payment on Base and receive an API key on settlement,
+  with no human signup step.'
 accessModel:
   pricing: freemium
   onboarding: self-serve
@@ -29,29 +31,29 @@ accessModel:
 image: https://0xarchive.io/logo-mark.svg
 url: https://0xarchive.io/apis.json
 created: '2026-08-30'
-modified: '2026-09-01'
+modified: '2026-09-16'
 specificationVersion: '0.23'
 maintainers:
 - FN: 0xArchive Support
   email: support@0xarchive.io
 tags:
-- market data
-- historical data
-- crypto
+- Market Data
+- Historical Data
+- Crypto
 - DeFi
-- perpetuals
-- derivatives
-- order book
+- Perpetuals
+- Derivatives
+- Order Book
 - Hyperliquid
 - Lighter
 - HIP-3
 - HIP-4
-- prediction markets
+- Prediction Markets
 - WebSocket
-- streaming
-- historical replay
+- Streaming
+- historical-replay
 - Parquet
-- bulk data
+- Bulk Data
 - MCP
 - agent-native
 - x402
@@ -81,19 +83,78 @@ tags_raw:
 - openapi
 - rest
 apis:
-- name: 0xArchive REST API
-  description: Current and historical market data across Hyperliquid core, Spot, HIP-3, HIP-4, and Lighter. Direct market-data
-    requests use X-API-Key.
+- name: 0xArchive WebSocket API
+  description: Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid
+    and Lighter. Clients authenticate during the handshake with a bearer API key.
   image: https://0xarchive.io/logo-mark.svg
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - WebSocket
+  - Streaming
+  - Replay
+  tags_raw:
+  - WebSocket
+  - streaming
+  - replay
+  properties:
+  - type: Documentation
+    url: https://docs.0xarchive.io/websocket
+  - type: Authentication
+    url: https://docs.0xarchive.io/websocket/connection
+  - type: Schema
+    url: https://docs.0xarchive.io/websocket/schema
+  - type: RateLimits
+    url: https://docs.0xarchive.io/websocket/tier-limits
+  - type: Replay
+    url: https://docs.0xarchive.io/websocket/replay
+  - type: Channels
+    url: asyncapi/0xarchive-websocket-channels.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/websocket/real-time
+- name: 0xArchive Hosted MCP
+  description: Read-only market-data discovery and retrieval for MCP clients. Hosted MCP uses client-managed
+    OAuth and requires no 0xArchive API key.
+  image: https://0xarchive.io/logo-mark.svg
+  humanURL: https://docs.0xarchive.io/mcp-server
+  baseURL: https://mcp.0xarchive.io/mcp
+  tags:
+  - MCP
+  - Agents
+  - Authentication
+  tags_raw:
+  - MCP
+  - agents
+  - OAuth
+  properties:
+  - type: MCPServerCard
+    url: https://0xarchive.io/.well-known/mcp/server-card.json
+  - type: OAuthProtectedResource
+    url: https://mcp.0xarchive.io/.well-known/oauth-protected-resource
+  - type: Documentation
+    url: https://docs.0xarchive.io/mcp-server
+  - type: Authentication
+    url: https://docs.0xarchive.io/mcp-server
+  - type: MCPServer
+    url: mcp/0xarchive-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/0xarchive-tool-crosswalk.yml
+  - type: OAuthScopes
+    url: scopes/0xarchive-scopes.yml
+  - type: AgentCard
+    url: a2a/0xarchive-a2a.yml
+  - type: AgentSkill
+    url: skills/_index.yml
+- aid: 0xarchive:0xarchive-data-quality-api
+  name: 0xArchive Data Quality API
+  description: 'Data quality monitoring: system status, coverage, incidents, latency, and SLA metrics.'
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
-  - REST
-  - OpenAPI
-  - market data
+  - Data Quality
   properties:
   - type: OpenAPI
-    url: https://0xarchive.io/openapi.json
+    url: openapi/0xarchive-data-quality-api-openapi.yml
   - type: Documentation
     url: https://docs.0xarchive.io/rest-api
   - type: GettingStarted
@@ -118,14 +179,6 @@ apis:
     url: https://docs.0xarchive.io/cli
   - type: WalletAccess
     url: https://docs.0xarchive.io/wallet-automation
-  - type: MCPServer
-    url: https://mcp.0xarchive.io/mcp
-    description: 'Live MCP, gated: initialize returns 401 "Missing Authorization". Present and auth-required, not absent.
-      Found via their own .well-known/mcp.json descriptor. Verified 2026-09-01.'
-  - type: OpenAPI
-    url: openapi/0xarchive-openapi.json
-  - type: Overlay
-    url: overlays/0xarchive-openapi-overlay.yaml
   - type: ErrorCatalog
     url: errors/0xarchive-problem-types.yml
   - type: DataModel
@@ -144,61 +197,2744 @@ apis:
     url: cli/0xarchive-cli.yml
   - type: SDKs
     url: packages/0xarchive-packages.yml
-- name: 0xArchive WebSocket API
-  description: Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid and Lighter.
-    Clients authenticate during the handshake with a bearer API key.
-  image: https://0xarchive.io/logo-mark.svg
-  humanURL: https://docs.0xarchive.io/websocket
-  baseURL: wss://api.0xarchive.io/ws
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-breadth-api
+  name: 0xArchive HIP-3 Builder Perps - Breadth API
+  description: 'HIP-3 market breadth snapshots: percentage of eligible instruments trading above their
+    current UTC-session VWAP.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
   tags:
-  - WebSocket
-  - streaming
-  - replay
+  - HIP-3 Builder Perps - Breadth
   properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-breadth-api-openapi.yml
   - type: Documentation
-    url: https://docs.0xarchive.io/websocket
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
   - type: Authentication
-    url: https://docs.0xarchive.io/websocket/connection
-  - type: Schema
-    url: https://docs.0xarchive.io/websocket/schema
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
   - type: RateLimits
-    url: https://docs.0xarchive.io/websocket/tier-limits
-  - type: Replay
-    url: https://docs.0xarchive.io/websocket/replay
-  - type: Channels
-    url: asyncapi/0xarchive-websocket-channels.yml
-  - type: Documentation
-    url: https://docs.0xarchive.io/websocket/real-time
-- name: 0xArchive Hosted MCP
-  description: Read-only market-data discovery and retrieval for MCP clients. Hosted MCP uses client-managed OAuth and requires
-    no 0xArchive API key.
-  image: https://0xarchive.io/logo-mark.svg
-  humanURL: https://docs.0xarchive.io/mcp-server
-  baseURL: https://mcp.0xarchive.io/mcp
-  tags:
-  - MCP
-  - agents
-  - OAuth
-  properties:
-  - type: MCPServerCard
-    url: https://0xarchive.io/.well-known/mcp/server-card.json
-  - type: OAuthProtectedResource
-    url: https://mcp.0xarchive.io/.well-known/oauth-protected-resource
-  - type: Documentation
-    url: https://docs.0xarchive.io/mcp-server
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
   - type: Authentication
-    url: https://docs.0xarchive.io/mcp-server
-  - type: MCPServer
-    url: mcp/0xarchive-mcp.yml
-  - type: ToolCrosswalk
-    url: mcp/0xarchive-tool-crosswalk.yml
-  - type: OAuthScopes
-    url: scopes/0xarchive-scopes.yml
-  - type: AgentCard
-    url: a2a/0xarchive-a2a.yml
-  - type: AgentSkill
-    url: skills/_index.yml
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-candles-api
+  name: 0xArchive HIP-3 Builder Perps - Candles API
+  description: 'HIP-3 Builder Perps OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. Coverage
+    is symbol-specific; verify the selected market before choosing a time range.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Candles
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-candles-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-convenience-api
+  name: 0xArchive HIP-3 Builder Perps - Convenience API
+  description: 'HIP-3 convenience endpoints: freshness, summary, and price history.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Convenience
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-convenience-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-full-depth-l2-order-book-api
+  name: 0xArchive HIP-3 Builder Perps - Full-Depth L2 Order Book API
+  description: Full-depth aggregated L2 order book snapshots, checkpoint history, and diffs for HIP-3
+    builder perps derived from L4 data. Full-depth checkpoints and diffs where available.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Full-Depth L2 Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-full-depth-l2-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-funding-api
+  name: 0xArchive HIP-3 Builder Perps - Funding API
+  description: HIP-3 Builder Perps funding rate history. Coverage is symbol-specific; inspect `/v1/symbols`
+    `coverage_by_type.funding` before choosing a time range.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Funding
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-funding-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-instruments-api
+  name: 0xArchive HIP-3 Builder Perps - Instruments API
+  description: HIP-3 Builder Perps instrument discovery. Use this route with `/v1/symbols` `coverage_by_type`
+    to resolve the current inventory and schema-specific dates.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Instruments
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-instruments-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-l4-order-book-api
+  name: 0xArchive HIP-3 Builder Perps - L4 Order Book API
+  description: Individual order-level (L4) orderbook data for HIP-3 builder perps.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - L4 Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-l4-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-liquidations-api
+  name: 0xArchive HIP-3 Builder Perps - Liquidations API
+  description: HIP-3 Builder Perps liquidation-related fills. Coverage is symbol-specific; verify the
+    selected market before choosing a time range.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Liquidations
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-liquidations-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-open-interest-api
+  name: 0xArchive HIP-3 Builder Perps - Open Interest API
+  description: HIP-3 Builder Perps historical open interest data. Coverage is symbol-specific; inspect
+    `/v1/symbols` `coverage_by_type.oi` before choosing a time range.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Open Interest
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-open-interest-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-oracle-api
+  name: 0xArchive HIP-3 Builder Perps - Oracle API
+  description: The HIP-3 Builder Perps - Oracle API from 0xArchive — 2 operation(s) for hip-3 builder
+    perps - oracle.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Oracle
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-oracle-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-order-book-api
+  name: 0xArchive HIP-3 Builder Perps - Order Book API
+  description: HIP-3 Builder Perps venue-native L2 order book snapshots. Native Hyperliquid source snapshots
+    are capped at 20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-orders-api
+  name: 0xArchive HIP-3 Builder Perps - Orders API
+  description: Order lifecycle events for HIP-3 builder perps.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Orders
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-orders-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-trades-api
+  name: 0xArchive HIP-3 Builder Perps - Trades API
+  description: HIP-3 Builder Perps historical trade/fill data. Coverage is symbol-specific; inspect `/v1/symbols`
+    `coverage_by_type.trades` before choosing a time range.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Trades
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-trades-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-wallets-api
+  name: 0xArchive HIP-3 Builder Perps - Wallets API
+  description: The HIP-3 Builder Perps - Wallets API from 0xArchive — 1 operation(s) for hip-3 builder
+    perps - wallets.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 Builder Perps - Wallets
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-wallets-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-liquidations-api
+  name: 0xArchive HIP-3 - Liquidations API
+  description: The HIP-3 - Liquidations API from 0xArchive — 2 operation(s) for hip-3 - liquidations.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 - Liquidations
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-liquidations-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-orders-api
+  name: 0xArchive HIP-3 - Orders API
+  description: The HIP-3 - Orders API from 0xArchive — 2 operation(s) for hip-3 - orders.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-3 - Orders
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-orders-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-candles-api
+  name: 0xArchive HIP-4 Outcomes - Candles API
+  description: OHLCV candles for HIP-4 outcome sides. Prices are implied probabilities (0..1); quote_volume
+    in USDH.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Candles
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-candles-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-convenience-api
+  name: 0xArchive HIP-4 Outcomes - Convenience API
+  description: 'HIP-4 convenience endpoints: freshness, summary, and price history. `mark_price` for HIP-4
+    is an implied probability in [0,1], not a USD price.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Convenience
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-convenience-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-instruments-api
+  name: 0xArchive HIP-4 Outcomes - Instruments API
+  description: 'HIP-4 per-side instrument discovery (one row per `#N` coin). Each outcome has two sides:
+    side 0 (Yes) and side 1 (No). Coins are `#`-prefixed. Data from May 2026.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Instruments
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-instruments-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-open-interest-api
+  name: 0xArchive HIP-4 Outcomes - Open Interest API
+  description: HIP-4 outcome markets per-side open interest history. Display/paired/parity aggregates
+    live on the `/outcomes/{outcome_id}` detail endpoint, not here. Data from May 2026.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Open Interest
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-open-interest-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-order-book-api
+  name: 0xArchive HIP-4 Outcomes - Order Book API
+  description: HIP-4 outcome markets L2 and L4 order book snapshots and diffs. Coins are referenced by
+    numeric id (0, 1, 10, 11, ...); the `#`-prefixed form is also accepted. Data from May 2026.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-orders-api
+  name: 0xArchive HIP-4 Outcomes - Orders API
+  description: 'Order lifecycle events for HIP-4 outcome markets: placements, cancellations, fills, and
+    TP/SL triggers.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Orders
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-orders-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-outcomes-api
+  name: 0xArchive HIP-4 Outcomes - Outcomes API
+  description: HIP-4 outcome market discovery (one row per outcome, both sides combined). Use these to
+    enumerate live and settled binary outcome markets. Data from May 2026.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Outcomes
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-outcomes-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-questions-api
+  name: 0xArchive HIP-4 Outcomes - Questions API
+  description: The HIP-4 Outcomes - Questions API from 0xArchive — 2 operation(s) for hip-4 outcomes -
+    questions.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Questions
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-questions-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-4-outcomes-trades-api
+  name: 0xArchive HIP-4 Outcomes - Trades API
+  description: HIP-4 outcome markets historical trade/fill data. Data from May 2026.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - HIP-4 Outcomes - Trades
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-4-outcomes-trades-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-candles-api
+  name: 0xArchive Hyperliquid - Candles API
+  description: 'Hyperliquid OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Candles
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-candles-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-convenience-api
+  name: 0xArchive Hyperliquid - Convenience API
+  description: 'Hyperliquid convenience endpoints: freshness, summary, and price history.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Convenience
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-convenience-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-full-depth-l2-order-book-api
+  name: 0xArchive Hyperliquid - Full-Depth L2 Order Book API
+  description: Full-depth aggregated L2 order book snapshots, checkpoint history, and diffs for Hyperliquid
+    perpetuals derived from L4 data. Full-depth checkpoints and diffs where available.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Full-Depth L2 Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-full-depth-l2-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-funding-api
+  name: 0xArchive Hyperliquid - Funding API
+  description: Hyperliquid funding rate history. Data from May 2023.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Funding
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-funding-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-instruments-api
+  name: 0xArchive Hyperliquid - Instruments API
+  description: Hyperliquid available trading instruments and their specifications. Authenticated inventory
+    contains 232 core perpetual rows.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Instruments
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-instruments-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-l4-order-book-api
+  name: 0xArchive Hyperliquid - L4 Order Book API
+  description: Individual resting-order (L4) book state for Hyperliquid perpetuals, including price, size,
+    order ID, wallet attribution, queue priority, diffs, and checkpoints.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - L4 Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-l4-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-liquidations-api
+  name: 0xArchive Hyperliquid - Liquidations API
+  description: Hyperliquid liquidation events with user attribution. The observed global floor is July
+    27, 2025; exact starts vary by symbol.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Liquidations
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-liquidations-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-open-interest-api
+  name: 0xArchive Hyperliquid - Open Interest API
+  description: Hyperliquid historical open interest and market context data. Data from May 2023.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Open Interest
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-open-interest-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-order-book-api
+  name: 0xArchive Hyperliquid - Order Book API
+  description: Hyperliquid venue-native L2 order book snapshots. Native Hyperliquid source snapshots are
+    capped at 20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-orders-api
+  name: 0xArchive Hyperliquid - Orders API
+  description: 'Order lifecycle events for Hyperliquid perpetuals: placements, cancellations, fills, and
+    TP/SL triggers.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Orders
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-orders-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-spot-api
+  name: 0xArchive Hyperliquid Spot API
+  description: Hyperliquid Spot pair, order book, trade, reconstruction, TWAP, and freshness routes.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid Spot
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-spot-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-spot-candles-api
+  name: 0xArchive Hyperliquid Spot - Candles API
+  description: OHLCV candles for spot pairs (1m base, rolled up on demand).
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid Spot - Candles
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-spot-candles-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-spot-order-book-api
+  name: 0xArchive Hyperliquid Spot - Order Book API
+  description: The Hyperliquid Spot - Order Book API from 0xArchive — 1 operation(s) for hyperliquid spot
+    - order book.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid Spot - Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-spot-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-trades-api
+  name: 0xArchive Hyperliquid - Trades API
+  description: Hyperliquid historical trade/fill data with full execution details. Data from April 2023.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Trades
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-trades-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hyperliquid-wallets-api
+  name: 0xArchive Hyperliquid - Wallets API
+  description: The Hyperliquid - Wallets API from 0xArchive — 1 operation(s) for hyperliquid - wallets.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Hyperliquid - Wallets
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-wallets-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-legacy-api
+  name: 0xArchive Legacy API
+  description: Deprecated endpoints that default to Hyperliquid. Use the exchange-specific endpoints (`/v1/hyperliquid/*`,
+    `/v1/lighter/*`, `/v1/hyperliquid/hip3/*`) instead.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Legacy
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-legacy-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-candles-api
+  name: 0xArchive Lighter - Candles API
+  description: 'Lighter OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. Data from August
+    2025.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Candles
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-candles-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-convenience-api
+  name: 0xArchive Lighter - Convenience API
+  description: 'Lighter convenience endpoints: freshness, summary, and price history.'
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Convenience
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-convenience-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-funding-api
+  name: 0xArchive Lighter - Funding API
+  description: Lighter funding rate history. Data from August 2025.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Funding
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-funding-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-instruments-api
+  name: 0xArchive Lighter - Instruments API
+  description: Lighter available trading instruments and their specifications.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Instruments
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-instruments-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-l3-order-book-api
+  name: 0xArchive Lighter - L3 Order Book API
+  description: Individual order-level (L3) orderbook data for Lighter. Data from March 2026.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - L3 Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-l3-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-liquidations-api
+  name: 0xArchive Lighter - Liquidations API
+  description: The Lighter - Liquidations API from 0xArchive — 2 operation(s) for lighter - liquidations.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Liquidations
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-liquidations-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-open-interest-api
+  name: 0xArchive Lighter - Open Interest API
+  description: Lighter historical open interest data. Data from August 2025.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Open Interest
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-open-interest-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-order-book-api
+  name: 0xArchive Lighter - Order Book API
+  description: Lighter L2 order book snapshots with configurable granularity. Checkpoint history starts
+    January 29, 2026; 30s/10s/1s start January 30, 2026; tick reconstruction available.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-order-book-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-lighter-trades-api
+  name: 0xArchive Lighter - Trades API
+  description: Lighter historical fill data across more than 200 markets. Served history begins August
+    27, 2025, with exact starts varying by market.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Lighter - Trades
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-trades-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-system-api
+  name: 0xArchive System API
+  description: Health checks and system status
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - System
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-system-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-web3-authentication-api
+  name: 0xArchive Web3 Authentication API
+  description: SIWE authentication for existing wallet accounts and autonomous paid wallet access via
+    x402. Standard Free accounts are created through the browser signup flow.
+  humanURL: https://docs.0xarchive.io/rest-api
+  baseURL: https://api.0xarchive.io
+  tags:
+  - Web3 Authentication
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-web3-authentication-api-openapi.yml
+  - type: Documentation
+    url: https://docs.0xarchive.io/rest-api
+  - type: GettingStarted
+    url: https://docs.0xarchive.io/quickstart
+  - type: Authentication
+    url: https://docs.0xarchive.io/authentication
+  - type: APIKeys
+    url: https://0xarchive.io/signup
+  - type: RateLimits
+    url: https://docs.0xarchive.io/rate-limits
+  - type: Errors
+    url: https://docs.0xarchive.io/errors
+  - type: Reliability
+    url: https://docs.0xarchive.io/rest-api/reliability
+  - type: DataCoverage
+    url: https://0xarchive.io/.well-known/data-coverage.json
+  - type: DataSamples
+    url: https://0xarchive.io/.well-known/data-samples.json
+  - type: SDKs
+    url: https://docs.0xarchive.io/sdks
+  - type: CLI
+    url: https://docs.0xarchive.io/cli
+  - type: WalletAccess
+    url: https://docs.0xarchive.io/wallet-automation
+  - type: ErrorCatalog
+    url: errors/0xarchive-problem-types.yml
+  - type: DataModel
+    url: data-model/0xarchive-data-model.yml
+  - type: Conventions
+    url: conventions/0xarchive-conventions.yml
+  - type: Authentication
+    url: authentication/0xarchive-authentication.yml
+  - type: RateLimits
+    url: rate-limits/0xarchive-rate-limits.yml
+  - type: Lifecycle
+    url: lifecycle/0xarchive-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/0xarchive-sandbox.yml
+  - type: CLI
+    url: cli/0xarchive-cli.yml
+  - type: SDKs
+    url: packages/0xarchive-packages.yml
 common:
+- type: MCPServer
+  url: https://mcp.0xarchive.io/mcp
 - type: Website
   url: https://0xarchive.io/
 - type: Portal
@@ -238,7 +2974,7 @@ common:
 - type: Authentication
   url: authentication/0xarchive-authentication.yml
 - type: OpenAPI
-  url: openapi/0xarchive-openapi.json
+  url: openapi/_original/0xarchive-openapi.json
 - type: Overlay
   url: overlays/0xarchive-openapi-overlay.yaml
 - type: LLMsTxt
