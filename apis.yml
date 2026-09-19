@@ -36,6 +36,9 @@ specificationVersion: '0.23'
 maintainers:
 - FN: 0xArchive Support
   email: support@0xarchive.io
+x-docs-platform: mintlify
+x-docs-platform-confidence: medium
+x-docs-platform-checked: 2026-09-17
 tags:
 - Market Data
 - Historical Data
@@ -361,7 +364,8 @@ apis:
     builder perps derived from L4 data. Full-depth checkpoints and diffs where available.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
-  tags:
+  tags: []
+  tags_raw:
   - HIP-3 Builder Perps - Full-Depth L2 Order Book
   properties:
   - type: OpenAPI
@@ -519,7 +523,8 @@ apis:
   description: Individual order-level (L4) orderbook data for HIP-3 builder perps.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
-  tags:
+  tags: []
+  tags_raw:
   - HIP-3 Builder Perps - L4 Order Book
   properties:
   - type: OpenAPI
