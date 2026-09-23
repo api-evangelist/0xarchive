@@ -1,0 +1,639 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Hyperliquid - Orders API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Hyperliquid - Orders
+  description: 'Order lifecycle events for Hyperliquid perpetuals: placements, cancellations, fills, and TP/SL triggers.'
+paths:
+  /v1/hyperliquid/orders/{symbol}/history:
+    get:
+      tags:
+      - Hyperliquid - Orders
+      summary: Get Hyperliquid order history
+      description: Get order lifecycle events for a symbol. Includes order placements, modifications, fills, cancellations, and triggers.
+      operationId: getHyperliquidOrderHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: end
+        in: query
+        description: End timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 1000, max: 10000)'
+        schema:
+          type: integer
+          default: 1000
+          maximum: 10000
+      - name: status
+        in: query
+        description: Filter by order status
+        schema:
+          type: string
+          enum:
+          - open
+          - filled
+          - canceled
+          - triggered
+          - force_canceled
+      - name: order_type
+        in: query
+        description: Filter by order type
+        schema:
+          type: string
+          enum:
+          - limit
+          - trigger
+          - tpsl
+      - name: triggered
+        in: query
+        description: Filter by whether order was triggered
+        schema:
+          type: boolean
+      - name: user
+        in: query
+        description: Filter by user wallet address
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Order lifecycle events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type: string
+                      request_id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/orders/{symbol}/flow:
+    get:
+      tags:
+      - Hyperliquid - Orders
+      summary: Get Hyperliquid order flow
+      description: Get per-minute order flow aggregation for a symbol. Shows order placement and cancellation rates over time.
+      operationId: getHyperliquidOrderFlow
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: end
+        in: query
+        description: End timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 1000, max: 10000)'
+        schema:
+          type: integer
+          default: 1000
+          maximum: 10000
+      - name: granularity
+        in: query
+        description: Aggregation granularity
+        schema:
+          type: string
+          enum:
+          - 1m
+          - 5m
+          - 15m
+          - 1h
+      responses:
+        '200':
+          description: Order flow aggregation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type: string
+                      request_id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/orders/{symbol}/tpsl:
+    get:
+      tags:
+      - Hyperliquid - Orders
+      summary: Get Hyperliquid TP/SL orders
+      description: Get take-profit and stop-loss order events for a symbol. Shows TP/SL placements, triggers, and cancellations.
+      operationId: getHyperliquidTpsl
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: end
+        in: query
+        description: End timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 1000, max: 10000)'
+        schema:
+          type: integer
+          default: 1000
+          maximum: 10000
+      - name: user
+        in: query
+        description: Filter by user wallet address
+        schema:
+          type: string
+      responses:
+        '200':
+          description: TP/SL order events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type: string
+                      request_id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/orders/{symbol}/trigger-levels:
+    get:
+      tags:
+      - Hyperliquid - Orders
+      summary: Get Hyperliquid trigger levels
+      description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets near the current mid/mark price. These are voluntary trigger orders, not projected forced liquidations; for forced-liquidation levels use /liquidations/{symbol}/levels. Current-state map with an as_of freshness timestamp. Historical snapshots (15-minute cadence, retained from 2026-07-27) are at the /history variant.
+      operationId: getHyperliquidTriggerLevels
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol.
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: range_pct
+        in: query
+        description: Percentage range around the snapshot mid/mark price. Clamped between 1 and 50. Default 10.
+        schema:
+          type: number
+          default: 10
+          minimum: 1
+          maximum: 50
+      - name: buckets
+        in: query
+        description: Number of price buckets. Clamped between 10 and 200. Default 50.
+        schema:
+          type: integer
+          default: 50
+          minimum: 10
+          maximum: 200
+      - name: side
+        in: query
+        description: Optional side filter. bid/buy/B keeps the long (or bid) side, ask/sell/A keeps the short (or ask) side; the other side is zeroed.
+        schema:
+          type: string
+          enum:
+          - bid
+          - ask
+          - buy
+          - sell
+          - B
+          - A
+      responses:
+        '200':
+          description: Get Hyperliquid trigger levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTriggerLevels'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/orders/{symbol}/trigger-levels/history:
+    get:
+      tags:
+      - Hyperliquid - Orders
+      summary: Get Hyperliquid trigger levels history
+      description: 'Historical trigger-levels snapshots (15-minute cadence, retained from 2026-07-27), ascending by snapshot_ts. Cursor pagination: pass start/end/limit and follow meta.next_cursor as the cursor parameter. summary=true lists snapshots cheaply without histograms.'
+      operationId: getHyperliquidTriggerLevelsHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol.
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: start
+        in: query
+        description: 'Range start, epoch milliseconds inclusive. Default: 24 hours before end.'
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: 'Range end, epoch milliseconds inclusive. Default: now.'
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor from meta.next_cursor of the previous page (a snapshot_ts in epoch milliseconds, exclusive). The page continues strictly after it.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Snapshots per page. Default 24, maximum 100. When a page is full, meta.next_cursor carries the cursor for the next page.
+        schema:
+          type: integer
+          default: 24
+          minimum: 1
+          maximum: 100
+      - name: summary
+        in: query
+        description: When true, items contain snapshot_ts, mid price and totals only (no levels array). Cheap way to discover which snapshots exist before fetching full histograms.
+        schema:
+          type: boolean
+          default: false
+      - name: range_pct
+        in: query
+        description: Percentage range around the snapshot mid/mark price. Clamped between 1 and 50. Default 10.
+        schema:
+          type: number
+          default: 10
+          minimum: 1
+          maximum: 50
+      - name: buckets
+        in: query
+        description: Number of price buckets. Clamped between 10 and 200. Default 50.
+        schema:
+          type: integer
+          default: 50
+          minimum: 10
+          maximum: 200
+      - name: side
+        in: query
+        description: Optional side filter. bid/buy/B keeps the long (or bid) side, ask/sell/A keeps the short (or ask) side; the other side is zeroed.
+        schema:
+          type: string
+          enum:
+          - bid
+          - ask
+          - buy
+          - sell
+          - B
+          - A
+      responses:
+        '200':
+          description: Get Hyperliquid trigger levels history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTriggerLevelsHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseTriggerLevelsHistory:
+      type: object
+      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseTriggerLevels:
+      type: object
+      description: API response containing the pending trigger-order map.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/TriggerLevelsData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    TriggerLevelsHistoryItem:
+      type: object
+      description: One historical trigger-levels snapshot (15-minute cadence). levels is omitted when summary=true.
+      required:
+      - snapshot_ts
+      - mid_price
+      - total_bid_size
+      - total_ask_size
+      properties:
+        snapshot_ts:
+          type: string
+        mid_price:
+          type: number
+        total_bid_size:
+          type: number
+        total_ask_size:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevel'
+    TriggerLevel:
+      type: object
+      description: Aggregated currently open trigger orders at one rounded price bucket.
+      required:
+      - price_bucket
+      - bid_count
+      - bid_size
+      - ask_count
+      - ask_size
+      properties:
+        price_bucket:
+          type: number
+          description: Rounded trigger price bucket.
+          example: 64200
+        bid_count:
+          type: integer
+          format: int64
+          description: Number of bid-side trigger orders in the bucket.
+          example: 12
+        bid_size:
+          type: number
+          description: Bid-side trigger size in the bucket.
+          example: 31.25
+        ask_count:
+          type: integer
+          format: int64
+          description: Number of ask-side trigger orders in the bucket.
+          example: 9
+        ask_size:
+          type: number
+          description: Ask-side trigger size in the bucket.
+          example: 18.75
+    TriggerLevelsData:
+      type: object
+      description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets around the current mid/mark price. Voluntary trigger orders, not projected forced liquidations.
+      required:
+      - mid_price
+      - as_of
+      - total_bid_size
+      - total_ask_size
+      - levels
+      properties:
+        mid_price:
+          type: number
+          description: Current mid/mark price, center of the requested range.
+        as_of:
+          type: string
+          description: UTC RFC3339 server time the pending-trigger state was read. The map is current-state; use this to detect staleness.
+        total_bid_size:
+          type: number
+          description: Total pending bid size across the returned window.
+        total_ask_size:
+          type: number
+          description: Total pending ask size across the returned window.
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevel'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

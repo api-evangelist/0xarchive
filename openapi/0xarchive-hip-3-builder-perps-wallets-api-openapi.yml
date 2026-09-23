@@ -1,0 +1,376 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-3 Builder Perps - Wallets API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-3 Builder Perps - Wallets
+paths:
+  /v1/hyperliquid/hip3/wallets/classify:
+    get:
+      tags:
+      - HIP-3 Builder Perps - Wallets
+      summary: Classify HIP-3 wallets
+      description: Return precomputed daily behavioral metrics for active HIP-3 wallets with filtering, sorting, and pagination. Explicit endpoint cost is 10 credits per request, with row-based metering applied to returned wallet count where enabled.
+      operationId: classifyHip3Wallets
+      parameters:
+      - name: min_orders
+        in: query
+        description: Minimum order count. Default 100.
+        schema:
+          type: integer
+          format: int64
+          default: 100
+      - name: min_volume_usd
+        in: query
+        description: Minimum fill volume in USD.
+        schema:
+          type: number
+          default: 0
+      - name: sort
+        in: query
+        description: Metric to sort by.
+        schema:
+          type: string
+          default: total_orders
+          enum:
+          - total_orders
+          - total_fills
+          - total_volume
+          - total_volume_usd
+          - cancel_rate
+          - fill_rate
+          - maker_ratio
+          - avg_order_size_usd
+          - avg_order_notional
+          - max_order_size_usd
+          - max_order_notional
+          - active_hours
+          - unique_coins
+          - total_fees
+          - total_fees_usd
+          - realized_pnl
+          - realized_pnl_usd
+          - median_cancel_speed_ms
+          - twap_fills
+          - total_priority_gas
+          - total_priority_gas_paid
+          - total_builder_fees
+          - total_builder_fees_paid
+      - name: order
+        in: query
+        description: Sort order.
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: limit
+        in: query
+        description: 'Maximum wallets to return (default: 100, max: 1000).'
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+      - name: offset
+        in: query
+        description: Pagination offset. Capped at 100000.
+        schema:
+          type: integer
+          default: 0
+          maximum: 100000
+      - name: uses_twap
+        in: query
+        description: Filter wallets by TWAP usage.
+        schema:
+          type: boolean
+      - name: uses_priority_gas
+        in: query
+        description: Filter wallets by priority-gas usage.
+        schema:
+          type: boolean
+      - name: min_cancel_rate
+        in: query
+        description: Minimum cancel rate, from 0.0 to 1.0.
+        schema:
+          type: number
+          minimum: 0
+          maximum: 1
+      - name: max_cancel_rate
+        in: query
+        description: Maximum cancel rate, from 0.0 to 1.0.
+        schema:
+          type: number
+          minimum: 0
+          maximum: 1
+      - name: date
+        in: query
+        description: Daily snapshot date (YYYY-MM-DD). Defaults to yesterday.
+        schema:
+          type: string
+          format: date
+          example: '2026-06-16'
+      responses:
+        '200':
+          description: HIP-3 wallet classification results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWalletClassifyData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    WalletClassifyMetrics:
+      type: object
+      description: Precomputed wallet behavior metrics.
+      additionalProperties: false
+      properties:
+        total_orders:
+          type: integer
+          format: int64
+        cancel_rate:
+          type: number
+        fill_rate:
+          type: number
+        order_to_trade_ratio:
+          type: number
+        ioc_ratio:
+          type: number
+        post_only_ratio:
+          type: number
+        tpsl_ratio:
+          type: number
+        trigger_order_ratio:
+          type: number
+        unique_coins_traded:
+          type: integer
+          format: int64
+        uses_tpsl:
+          type: boolean
+        uses_builder:
+          type: boolean
+        top_builder:
+          type:
+          - string
+          - 'null'
+        avg_order_size_usd:
+          type: number
+        max_order_size_usd:
+          type: number
+        median_cancel_speed_ms:
+          type: number
+        active_hours:
+          type: integer
+          format: int64
+        total_fills:
+          type: integer
+          format: int64
+        total_volume_usd:
+          type: number
+        maker_ratio:
+          type: number
+        long_short_ratio:
+          type: number
+        buy_volume_usd:
+          type: number
+        sell_volume_usd:
+          type: number
+        total_fees_usd:
+          type: number
+        realized_pnl_usd:
+          type: number
+        liquidation_count:
+          type: integer
+          format: int64
+        max_single_fill_usd:
+          type: number
+        unique_fill_coins:
+          type: integer
+          format: int64
+        uses_twap:
+          type: boolean
+        twap_fill_ratio:
+          type: number
+        uses_cloid:
+          type: boolean
+        cloid_ratio:
+          type: number
+        uses_priority_gas:
+          type: boolean
+        total_priority_gas_paid:
+          type: number
+        total_builder_fees_paid:
+          type: number
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ClassifiedWallet:
+      type: object
+      description: Wallet plus its precomputed behavior metrics.
+      required:
+      - address
+      - metrics
+      - period
+      properties:
+        address:
+          type: string
+          description: Wallet address.
+          example: '0x010461c14e146ac35fe42271bdc1134ee31c703a'
+        metrics:
+          $ref: '#/components/schemas/WalletClassifyMetrics'
+        period:
+          type: string
+          description: Metric lookback period.
+          example: 24h
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    WalletClassifyData:
+      type: object
+      description: Bulk wallet classification response body.
+      required:
+      - wallets
+      - total
+      - date
+      properties:
+        wallets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassifiedWallet'
+        total:
+          type: integer
+          format: int64
+          description: Total wallets matching the filters.
+          example: 4444
+        date:
+          type: string
+          description: Daily snapshot date.
+          example: '2026-06-16'
+    ApiResponseWalletClassifyData:
+      type: object
+      description: API response containing bulk wallet classification results.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WalletClassifyData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

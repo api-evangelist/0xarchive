@@ -1,0 +1,351 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Lighter - Order Book API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Lighter - Order Book
+  description: Lighter L2 order book snapshots with configurable granularity. Checkpoint history starts January 29, 2026; 30s/10s/1s start January 30, 2026; tick reconstruction available.
+paths:
+  /v1/lighter/orderbook/{symbol}:
+    get:
+      tags:
+      - Lighter - Order Book
+      summary: Get Lighter order book
+      description: Get the latest order book snapshot for a coin, or at a specific timestamp. Returns L2 depth with price, size, and order count at each level. Tick-level resolution.
+      operationId: getLighterOrderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH)
+        schema:
+          type: string
+          example: ETH
+        example: ETH
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds. If not provided, returns latest snapshot.
+        schema:
+          type: integer
+          format: int64
+          example: 1704067200000
+      - name: depth
+        in: query
+        description: Requested price levels per side. The Lighter native L2 route includes all served levels.
+        schema:
+          type: integer
+          example: 20
+      responses:
+        '200':
+          description: Order book snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/lighter/orderbook/{symbol}/history:
+    get:
+      tags:
+      - Lighter - Order Book
+      summary: Get Lighter order book history
+      description: 'Get historical order book snapshots within a time range with configurable resolution. Checkpoint history starts January 29, 2026; 30s/10s/1s start January 30, 2026. Use ''granularity'' parameter to control data resolution.
+
+
+        **Tick-Level Data:**
+
+        When `granularity=tick`, the response format changes. Instead of returning snapshots in the `data` array, it returns:
+
+        - `checkpoint`: Full orderbook state at the start of the time range
+
+        - `deltas`: Array of incremental changes to apply to the checkpoint
+
+
+        This is the most efficient format for reconstructing high-frequency orderbook states. Use the SDK''s `OrderBookReconstructor` class for client-side reconstruction.'
+      operationId: getLighterOrderbookHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: ETH
+        description: Trading pair symbol (e.g., ETH, BTC)
+        example: ETH
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: depth
+        in: query
+        description: Requested price levels per side. The Lighter native L2 route includes all served levels.
+        schema:
+          type: integer
+      - name: granularity
+        in: query
+        description: 'Data resolution: checkpoint (1min, default), 30s, 10s, 1s, tick. Checkpoint history starts January 29, 2026; 30s/10s/1s start January 30, 2026. Billed per row returned (about 1 credit per 1,000 rows, minimum 1 credit per request). Higher resolutions return more rows. **Note:** When granularity=tick, the response format changes to return `checkpoint` and `deltas` instead of a `data` array.'
+        schema:
+          type: string
+          enum:
+          - checkpoint
+          - 30s
+          - 10s
+          - 1s
+          - tick
+          default: checkpoint
+      responses:
+        '200':
+          description: List of order book snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    OrderBook:
+      type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
+          type: array
+          description: Bid price levels (best bid first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

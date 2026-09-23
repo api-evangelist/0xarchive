@@ -1,0 +1,313 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive System API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: System
+  description: Health checks and system status
+paths:
+  /health:
+    get:
+      tags:
+      - System
+      summary: Health check
+      description: Check API health status. No authentication required.
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /v1/symbols:
+    get:
+      tags:
+      - System
+      summary: List public symbols
+      description: List the public market symbol universe across supported 0xArchive venue families. This no-auth feed powers website discovery and can be used before choosing a venue-specific route. It is a public utility route, not a legacy alias.
+      operationId: listSymbols
+      security: []
+      parameters: []
+      responses:
+        '200':
+          description: Public symbol universe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SymbolsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/stats:
+    get:
+      tags:
+      - System
+      summary: Get public API stats
+      description: Get lightweight public statistics used by website/product surfaces. This is a no-auth public utility route, not a legacy alias.
+      operationId: getPublicStats
+      security: []
+      parameters: []
+      responses:
+        '200':
+          description: Public statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/status/coverage:
+    get:
+      tags:
+      - System
+      summary: Get public coverage status
+      description: Get the public coverage summary used by status and discovery surfaces. Response is cached by the API for five minutes. This no-auth public utility route reuses the data-quality coverage shape and is not a legacy alias.
+      operationId: getPublicCoverageStatus
+      security: []
+      parameters: []
+      responses:
+        '200':
+          description: Public coverage status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  schemas:
+    SymbolsResponse:
+      type: object
+      description: Public symbol universe response.
+      required:
+      - symbols
+      properties:
+        symbols:
+          type: array
+          items:
+            $ref: '#/components/schemas/SymbolEntry'
+    StatsResponse:
+      type: object
+      description: Public lightweight API/site statistics.
+      properties:
+        l4_open_orders:
+          type: integer
+          format: int64
+          description: Current L4 open-order count used by public status/product surfaces.
+          example: 1234567
+      additionalProperties: true
+    SymbolEntry:
+      type: object
+      description: Public market symbol entry.
+      required:
+      - symbol
+      - exchange
+      - data_types
+      properties:
+        symbol:
+          type: string
+          example: BTC
+        exchange:
+          type: string
+          description: Venue-family key.
+          example: hyperliquid
+        coverage_from:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        coverage_to:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        data_types:
+          type: array
+          items:
+            type: string
+          example:
+          - l2_orderbook
+          - trades
+          - liquidations
+        coverage_by_type:
+          type: object
+          additionalProperties:
+            type: string
+            format: date-time
+        size_per_day:
+          type: object
+          additionalProperties:
+            type: number
+        slug:
+          type:
+          - string
+          - 'null'
+          description: HIP-4 slug when available.
+        outcome_pair:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          minItems: 2
+          maxItems: 2
+        display_title:
+          type:
+          - string
+          - 'null'
+        is_settled:
+          type:
+          - boolean
+          - 'null'
+        is_active:
+          type:
+          - boolean
+          - 'null'
+      additionalProperties: false
+    CoverageResponse:
+      type: object
+      description: Overall coverage response
+      properties:
+        exchanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExchangeCoverageResponse'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    DataTypeCoverage:
+      type: object
+      description: Coverage for a data type
+      properties:
+        earliest:
+          type: string
+          format: date-time
+          description: Earliest available data timestamp
+        latest:
+          type: string
+          format: date-time
+          description: Latest available data timestamp
+        total_records:
+          type: integer
+          format: int64
+          description: Total number of records
+        symbols:
+          type: integer
+          description: Number of symbols with data
+        resolution:
+          type:
+          - string
+          - 'null'
+          description: Data resolution (e.g., '1.2s', '1m')
+        lag:
+          type:
+          - string
+          - 'null'
+          description: Current data lag
+        completeness:
+          type: number
+          description: Completeness percentage (0-100)
+    ExchangeCoverageResponse:
+      type: object
+      description: Coverage for a single exchange
+      properties:
+        exchange:
+          type: string
+          description: Exchange name
+        data_types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DataTypeCoverage'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

@@ -1,0 +1,284 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Lighter - Instruments API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Lighter - Instruments
+  description: Lighter available trading instruments and their specifications.
+paths:
+  /v1/lighter/instruments:
+    get:
+      tags:
+      - Lighter - Instruments
+      summary: List Lighter instruments
+      description: Get all available Lighter trading instruments with their specifications. Returns `LighterInstrument` objects which include fees, market IDs, and minimum order amounts.
+      operationId: listLighterInstruments
+      responses:
+        '200':
+          description: List of Lighter instruments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLighterInstrumentArray'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/lighter/instruments/{symbol}:
+    get:
+      tags:
+      - Lighter - Instruments
+      summary: Get Lighter instrument
+      description: Get details for a specific Lighter trading instrument. Returns a `LighterInstrument` object which includes fees, market ID, and minimum order amounts.
+      operationId: getLighterInstrument
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: ETH
+        description: Trading pair symbol (e.g., ETH, BTC)
+        example: ETH
+      responses:
+        '200':
+          description: Lighter instrument details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLighterInstrument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseLighterInstrumentArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LighterInstrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    LighterInstrument:
+      type: object
+      description: Trading instrument specification (Lighter). Different schema from Hyperliquid Instrument.
+      required:
+      - symbol
+      - market_id
+      - market_type
+      - status
+      - taker_fee
+      - maker_fee
+      - liquidation_fee
+      - min_base_amount
+      - min_quote_amount
+      - size_decimals
+      - price_decimals
+      - quote_decimals
+      - is_active
+      properties:
+        symbol:
+          type: string
+          description: Instrument symbol
+          example: ETH
+        market_id:
+          type: integer
+          description: Unique market identifier
+          example: 0
+        market_type:
+          type: string
+          description: Type of market
+          enum:
+          - perp
+          - spot
+          example: perp
+        status:
+          type: string
+          description: Market status
+          enum:
+          - active
+          - inactive
+          - delisted
+          example: active
+        taker_fee:
+          type: number
+          description: Taker fee rate (e.g., 0.0004 = 0.04%)
+          example: 0.0004
+        maker_fee:
+          type: number
+          description: Maker fee rate (can be negative for rebates)
+          example: 0.0001
+        liquidation_fee:
+          type: number
+          description: Liquidation fee rate
+          example: 0.005
+        min_base_amount:
+          type: number
+          description: Minimum order size in base currency
+          example: 0.001
+        min_quote_amount:
+          type: number
+          description: Minimum order value in quote currency
+          example: 1
+        size_decimals:
+          type: integer
+          description: Size decimal precision
+          example: 4
+        price_decimals:
+          type: integer
+          description: Price decimal precision
+          example: 2
+        quote_decimals:
+          type: integer
+          description: Quote currency decimal precision
+          example: 6
+        is_active:
+          type: boolean
+          description: Whether the instrument is currently tradeable
+          example: true
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseLighterInstrument:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/LighterInstrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

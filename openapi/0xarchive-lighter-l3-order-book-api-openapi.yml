@@ -1,0 +1,391 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Lighter - L3 Order Book API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Lighter - L3 Order Book
+  description: Individual order-level (L3) orderbook data for Lighter. Data from March 2026.
+paths:
+  /v1/lighter/l3orderbook/{symbol}:
+    get:
+      tags:
+      - Lighter - L3 Order Book
+      summary: Get Lighter L3 orderbook
+      description: Get the current Lighter L3 order-level snapshot with price, remaining size, order_index, and owner_account_index. Returns up to 250 resting orders per side.
+      operationId: getLighterL3Orderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: ETH
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds for the requested Lighter snapshot. If omitted, returns the latest snapshot. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1773273600000
+      - name: account
+        in: query
+        description: Optional numeric Lighter account index filter.
+        schema:
+          type: integer
+          format: int64
+          example: 281474976710654
+      - name: depth
+        in: query
+        description: Optional maximum number of resting orders returned per side. Values are clamped to the 1–250 ingestion cap.
+        schema:
+          type: integer
+          format: int64
+          example: 50
+      responses:
+        '200':
+          description: Typed L3 orderbook snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseL3OrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/lighter/l3orderbook/{symbol}/history:
+    get:
+      tags:
+      - Lighter - L3 Order Book
+      summary: Get Lighter L3 orderbook history
+      description: Get historical Lighter L3 order-level snapshots with price, remaining size, order_index, and owner_account_index. The public checkpoint-history response is an array of snapshots; each snapshot returns up to 250 resting orders per side. Optional `granularity` selects checkpoint, 30s, 10s, 1s, or tick resolution (checkpoint default); optional `account` filters by numeric account index. Data available from March 2026.
+      operationId: getLighterL3OrderbookHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: ETH
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24 hours before the request. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1773273600000
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1773273900000
+      - name: cursor
+        in: query
+        description: Timestamp cursor in Unix milliseconds from the previous response metadata.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of snapshots per response; effective values are clamped to 1–1000 (default: 100).'
+        schema:
+          type: integer
+          format: int64
+          default: 100
+          maximum: 1000
+      - name: granularity
+        in: query
+        description: Optional history resolution. Canonical values are checkpoint (default), 30s, 10s, 1s, and tick.
+        schema:
+          type: string
+          enum:
+          - checkpoint
+          - 30s
+          - 10s
+          - 1s
+          - tick
+          default: checkpoint
+      - name: account
+        in: query
+        description: Optional numeric Lighter account index filter.
+        schema:
+          type: integer
+          format: int64
+          example: 281474976710654
+      responses:
+        '200':
+          description: Typed historical L3 orderbook snapshot array
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseL3OrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiResponseL3OrderBook:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/L3OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseL3OrderBookArray:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/L3OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    L3Order:
+      type: object
+      description: Individual resting order in a Lighter L3 snapshot.
+      required:
+      - order_index
+      - owner_account_index
+      - side
+      - price
+      - remaining_size
+      - original_size
+      properties:
+        order_index:
+          type: integer
+          format: int64
+          description: Numeric order index assigned by Lighter.
+          example: 562953074779869
+        owner_account_index:
+          type: integer
+          format: int64
+          description: Numeric Lighter account index associated with the resting order.
+          example: 281474976710654
+        side:
+          type: string
+          enum:
+          - bid
+          - ask
+          description: Book side.
+          example: bid
+        price:
+          type: number
+          description: Lighter venue-native resting order price.
+          example: 65127.5
+        remaining_size:
+          type: number
+          description: Remaining venue-native order size.
+          example: 0.02303
+        original_size:
+          type: number
+          description: Original venue-native order size.
+          example: 0.02303
+    L3OrderBookSnapshot:
+      type: object
+      description: Current or historical Lighter L3 orderbook snapshot.
+      required:
+      - coin
+      - timestamp
+      - orders
+      - bid_count
+      - ask_count
+      - total_bid_size
+      - total_ask_size
+      - mid_price
+      - spread
+      - spread_bps
+      - truncated
+      properties:
+        coin:
+          type: string
+          description: Lighter trading pair symbol.
+          example: BTC
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp in UTC.
+          example: '2026-03-12T00:00:00.000Z'
+        orders:
+          type: array
+          description: Individual resting orders in the served L3 view.
+          items:
+            $ref: '#/components/schemas/L3Order'
+        bid_count:
+          type: integer
+          description: Bid order count for the stored checkpoint view.
+          example: 250
+        ask_count:
+          type: integer
+          description: Ask order count for the stored checkpoint view.
+          example: 250
+        total_bid_size:
+          type: number
+          description: Aggregate remaining venue-native size across bids.
+          example: 102.34
+        total_ask_size:
+          type: number
+          description: Aggregate remaining venue-native size across asks.
+          example: 98.76
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Mid price as a decimal string when both sides are present; null otherwise.
+          example: '65127.25'
+        spread:
+          type:
+          - string
+          - 'null'
+          description: Absolute spread as a decimal string when both sides are present; null otherwise.
+          example: '0.50'
+        spread_bps:
+          type:
+          - string
+          - 'null'
+          description: Spread in basis points as a decimal string when both sides are present; null otherwise.
+          example: '0.08'
+        truncated:
+          type: boolean
+          description: True when the stored checkpoint reached the 250-orders-per-side ingestion cap.
+          example: true
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

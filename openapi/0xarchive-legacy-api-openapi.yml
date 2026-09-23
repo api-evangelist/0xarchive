@@ -1,0 +1,1061 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Legacy API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Legacy
+  description: Deprecated endpoints that default to Hyperliquid. Use the exchange-specific endpoints (`/v1/hyperliquid/*`, `/v1/lighter/*`, `/v1/hyperliquid/hip3/*`) instead.
+paths:
+  /v1/orderbook/{symbol}:
+    get:
+      tags:
+      - Legacy
+      summary: Get order book (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/orderbook/{symbol}` for the native 20-level Hyperliquid snapshot or `/v1/hyperliquid/orderbook/{symbol}/l2` for full-depth aggregated L2. Use `/v1/lighter/orderbook/{symbol}` for Lighter.
+
+
+        Get the latest deprecated compatibility order book snapshot for a coin, or at a specific timestamp. This Hyperliquid compatibility route is capped at the native 20 price levels per side.'
+      operationId: getOrderbook
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds. If not provided, returns latest snapshot.
+        schema:
+          type: integer
+          format: int64
+          example: 1704067200000
+      - name: depth
+        in: query
+        description: Requested price levels per side for this deprecated Hyperliquid compatibility route. Native Hyperliquid L2 data is capped at 20 levels per side; values above 20 do not return full depth here. Use /v1/hyperliquid/orderbook/{symbol}/l2 for full-depth aggregated L2.
+        schema:
+          type: integer
+          example: 20
+          maximum: 20
+      responses:
+        '200':
+          description: Order book snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/orderbook/{symbol}/history:
+    get:
+      tags:
+      - Legacy
+      summary: Get order book history (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/orderbook/{symbol}/history` for native 20-level Hyperliquid history or `/v1/hyperliquid/orderbook/{symbol}/l2/history` for full-depth L2 checkpoint history. Use `/v1/lighter/orderbook/{symbol}/history` for Lighter.
+
+
+        Get historical deprecated compatibility order book snapshots within a time range. Historical windows use `start` and `end` Unix-millisecond query parameters. This Hyperliquid compatibility route is capped at 20 levels per side.'
+      operationId: getOrderbookHistory
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination (timestamp from previous response's `next_cursor`). If not provided, starts from the beginning of the range.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: depth
+        in: query
+        description: Requested price levels per side for this deprecated Hyperliquid compatibility route. Native Hyperliquid L2 data is capped at 20 levels per side; values above 20 do not return full depth here. Use /v1/hyperliquid/orderbook/{symbol}/l2 for full-depth aggregated L2.
+        schema:
+          type: integer
+          maximum: 20
+      responses:
+        '200':
+          description: List of order book snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/trades/{symbol}:
+    get:
+      tags:
+      - Legacy
+      summary: Get trades (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/trades/{symbol}` or `/v1/lighter/trades/{symbol}` instead.
+
+
+        Get historical trades (fills) for a coin within a time range. Includes full execution details like fees, PnL, and position direction.
+
+
+        **Pagination:** Use the `cursor` parameter with the timestamp from the previous response''s `next_cursor` for efficient pagination through large datasets.'
+      operationId: getTrades
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: '**Recommended.** Cursor for pagination (use the value from previous response''s `next_cursor`). The cursor is an opaque string that should be passed as-is.'
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: List of trades with cursor for next page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTradeArray'
+              example:
+                success: true
+                data: []
+                meta:
+                  count: 100
+                  next_cursor: '1704067200123_456789'
+                  request_id: 550e8400-e29b-41d4-a716-446655440000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/trades/{symbol}/cursor:
+    get:
+      tags:
+      - Legacy
+      summary: Get trades with cursor pagination (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/trades/{symbol}` or `/v1/lighter/trades/{symbol}` instead.
+
+
+        Get historical trades using cursor-based pagination. This is the same as `/v1/trades/{symbol}` with cursor pagination (which is now the default). This endpoint is maintained for backwards compatibility and explicit cursor-only usage.'
+      operationId: getTradesCursor
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`). The cursor is an opaque string that should be passed as-is.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: List of trades with cursor for next page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTradeArray'
+              example:
+                success: true
+                data: []
+                meta:
+                  count: 100
+                  next_cursor: '1704067200123_456789'
+                  request_id: 550e8400-e29b-41d4-a716-446655440000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/instruments:
+    get:
+      tags:
+      - Legacy
+      summary: List instruments (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/instruments` or `/v1/lighter/instruments` instead.
+
+
+        Get all available trading instruments with their specifications.'
+      operationId: listInstruments
+      deprecated: true
+      responses:
+        '200':
+          description: List of instruments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseInstrumentArray'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/instruments/{symbol}:
+    get:
+      tags:
+      - Legacy
+      summary: Get instrument (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/instruments/{symbol}` or `/v1/lighter/instruments/{symbol}` instead.
+
+
+        Get details for a specific trading instrument.'
+      operationId: getInstrument
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      responses:
+        '200':
+          description: Instrument details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseInstrument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/openinterest/{symbol}:
+    get:
+      tags:
+      - Legacy
+      summary: Get open interest history (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/openinterest/{symbol}` or `/v1/lighter/openinterest/{symbol}` instead.
+
+
+        Get historical open interest data with associated market context (mark price, oracle price, volume, etc.).'
+      operationId: getOpenInterest
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination (timestamp from previous response's `next_cursor`). If not provided, starts from the beginning of the range.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: Open interest data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOpenInterestArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/openinterest/{symbol}/current:
+    get:
+      tags:
+      - Legacy
+      summary: Get current open interest (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/openinterest/{symbol}/current` or `/v1/lighter/openinterest/{symbol}/current` instead.
+
+
+        Get the latest open interest value and market context.'
+      operationId: getCurrentOpenInterest
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      responses:
+        '200':
+          description: Current open interest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOpenInterest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/funding/{symbol}:
+    get:
+      tags:
+      - Legacy
+      summary: Get funding rate history (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/funding/{symbol}` or `/v1/lighter/funding/{symbol}` instead.
+
+
+        Get historical funding rates. Funding is settled every 8 hours on Hyperliquid.'
+      operationId: getFundingHistory
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination (timestamp from previous response's `next_cursor`). If not provided, starts from the beginning of the range.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: Funding rate history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseFundingRateArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/funding/{symbol}/current:
+    get:
+      tags:
+      - Legacy
+      summary: Get current funding rate (Deprecated)
+      description: '**Deprecated:** Use `/v1/hyperliquid/funding/{symbol}/current` or `/v1/lighter/funding/{symbol}/current` instead.
+
+
+        Get the latest funding rate for a coin.'
+      operationId: getCurrentFunding
+      deprecated: true
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      responses:
+        '200':
+          description: Current funding rate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseFundingRate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiResponseFundingRateArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundingRate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Instrument:
+      type: object
+      description: Trading instrument specification (Hyperliquid)
+      required:
+      - name
+      - sz_decimals
+      - is_active
+      properties:
+        name:
+          type: string
+          description: Instrument symbol
+          example: BTC
+        sz_decimals:
+          type: integer
+          description: Size decimal precision
+          example: 4
+        max_leverage:
+          type:
+          - integer
+          - 'null'
+          description: Maximum leverage allowed
+          example: 50
+        only_isolated:
+          type:
+          - boolean
+          - 'null'
+          description: If true, only isolated margin mode is allowed
+        instrument_type:
+          type:
+          - string
+          - 'null'
+          description: Type of instrument
+          enum:
+          - perp
+          - spot
+          example: perp
+        is_active:
+          type: boolean
+          description: Whether the instrument is currently tradeable
+          example: true
+    ApiResponseOpenInterest:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseFundingRate:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/FundingRate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOpenInterestArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseTradeArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseInstrumentArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+    Trade:
+      type: object
+      description: Trade/fill record with full execution details
+      required:
+      - symbol
+      - coin
+      - side
+      - price
+      - size
+      - timestamp
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        side:
+          type: string
+          description: 'Trade side: ''B'' (buy) or ''A'' (sell/ask)'
+          enum:
+          - A
+          - B
+          example: B
+        price:
+          type: string
+          description: Execution price
+          example: '42150.50'
+        size:
+          type: string
+          description: Trade size
+          example: '0.5'
+        timestamp:
+          type: string
+          format: date-time
+          description: Execution timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        tx_hash:
+          type:
+          - string
+          - 'null'
+          description: Blockchain transaction hash
+        trade_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Unique trade ID
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Associated order ID
+        crossed:
+          type:
+          - boolean
+          - 'null'
+          description: True if taker (crossed the spread), false if maker
+        fee:
+          type:
+          - string
+          - 'null'
+          description: Trading fee amount
+        fee_token:
+          type:
+          - string
+          - 'null'
+          description: Fee denomination (e.g., USDC)
+        closed_pnl:
+          type:
+          - string
+          - 'null'
+          description: Realized PnL if closing a position
+        direction:
+          type:
+          - string
+          - 'null'
+          description: Position direction (e.g., 'Open Long', 'Close Short', 'Long > Short')
+        start_position:
+          type:
+          - string
+          - 'null'
+          description: Position size before this trade
+        user_address:
+          type:
+          - string
+          - 'null'
+          description: User's wallet address
+        maker_address:
+          type:
+          - string
+          - 'null'
+          description: Maker's wallet address (the resting order)
+        taker_address:
+          type:
+          - string
+          - 'null'
+          description: Taker's wallet address (crossed the spread)
+        builder_address:
+          type:
+          - string
+          - 'null'
+          description: Builder address that routed this order. Present only when the order was placed through a builder.
+        builder_fee:
+          type:
+          - string
+          - 'null'
+          description: Builder fee charged on this fill, paid to the builder (in quote currency, typically USDC). Present only when builder_address is set.
+        deployer_fee:
+          type:
+          - string
+          - 'null'
+          description: HIP-3 deployer fee share on this fill (in quote currency). Negative for the maker side (rebate), positive for the taker side. Present only on HIP-3 fills.
+        priority_gas:
+          type:
+          - number
+          - 'null'
+          description: Priority fee burned in HYPE (not USDC) for write priority on the Hyperliquid validator queue. Independent of builder_fee and deployer_fee — paid to the network, not to a builder or deployer. Present only when the order paid for priority.
+        cloid:
+          type:
+          - string
+          - 'null'
+          description: Client order ID
+        twap_id:
+          type:
+          - integer
+          - 'null'
+          description: TWAP execution ID
+    OrderBook:
+      type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
+          type: array
+          description: Bid price levels (best bid first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
+    FundingRate:
+      type: object
+      description: Funding rate record
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - funding_rate
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Funding timestamp (UTC)
+          example: '2025-01-21T08:00:00.000Z'
+        funding_rate:
+          type: string
+          description: Funding rate as a fractional, non-annualized decimal (e.g., 0.0001 = 0.01%)
+          example: '0.00025'
+        premium:
+          type:
+          - string
+          - 'null'
+          description: Premium component of funding rate
+          example: '0.0005'
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseInstrument:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    OpenInterest:
+      type: object
+      description: Open interest snapshot with market context
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - open_interest
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:00.000Z'
+        open_interest:
+          type: string
+          description: Total open interest in contracts
+          example: '500000.00'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Mark price used for liquidations
+          example: '42500.50'
+        oracle_price:
+          type:
+          - string
+          - 'null'
+          description: Oracle price from external feed
+          example: '42498.25'
+        day_ntl_volume:
+          type:
+          - string
+          - 'null'
+          description: 24-hour notional volume
+          example: '10000000.00'
+        prev_day_price:
+          type:
+          - string
+          - 'null'
+          description: Price 24 hours ago
+          example: '42000.00'
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Current mid price
+          example: '42500.75'
+        impact_bid_price:
+          type:
+          - string
+          - 'null'
+          description: Impact bid price for liquidations
+        impact_ask_price:
+          type:
+          - string
+          - 'null'
+          description: Impact ask price for liquidations
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

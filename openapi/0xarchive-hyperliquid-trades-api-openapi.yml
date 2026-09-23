@@ -1,0 +1,327 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Hyperliquid - Trades API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Hyperliquid - Trades
+  description: Hyperliquid historical trade/fill data with full execution details. Data from April 2023.
+paths:
+  /v1/hyperliquid/trades/{symbol}:
+    get:
+      tags:
+      - Hyperliquid - Trades
+      summary: Get Hyperliquid trades
+      description: 'Get historical trades (fills) for a coin within a time range. Includes full execution details like fees, PnL, and position direction. Data available from April 2023. History before 2025-03-22 comes from a capped per-user API backfill and is incomplete, especially for maker-side and high-volume activity.
+
+
+        **Pagination:** Use the `cursor` parameter with the value from the previous response''s `next_cursor` for efficient pagination.'
+      operationId: getHyperliquidTrades
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: List of trades with cursor for next page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTradeArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    Trade:
+      type: object
+      description: Trade/fill record with full execution details
+      required:
+      - symbol
+      - coin
+      - side
+      - price
+      - size
+      - timestamp
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        side:
+          type: string
+          description: 'Trade side: ''B'' (buy) or ''A'' (sell/ask)'
+          enum:
+          - A
+          - B
+          example: B
+        price:
+          type: string
+          description: Execution price
+          example: '42150.50'
+        size:
+          type: string
+          description: Trade size
+          example: '0.5'
+        timestamp:
+          type: string
+          format: date-time
+          description: Execution timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        tx_hash:
+          type:
+          - string
+          - 'null'
+          description: Blockchain transaction hash
+        trade_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Unique trade ID
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Associated order ID
+        crossed:
+          type:
+          - boolean
+          - 'null'
+          description: True if taker (crossed the spread), false if maker
+        fee:
+          type:
+          - string
+          - 'null'
+          description: Trading fee amount
+        fee_token:
+          type:
+          - string
+          - 'null'
+          description: Fee denomination (e.g., USDC)
+        closed_pnl:
+          type:
+          - string
+          - 'null'
+          description: Realized PnL if closing a position
+        direction:
+          type:
+          - string
+          - 'null'
+          description: Position direction (e.g., 'Open Long', 'Close Short', 'Long > Short')
+        start_position:
+          type:
+          - string
+          - 'null'
+          description: Position size before this trade
+        user_address:
+          type:
+          - string
+          - 'null'
+          description: User's wallet address
+        maker_address:
+          type:
+          - string
+          - 'null'
+          description: Maker's wallet address (the resting order)
+        taker_address:
+          type:
+          - string
+          - 'null'
+          description: Taker's wallet address (crossed the spread)
+        builder_address:
+          type:
+          - string
+          - 'null'
+          description: Builder address that routed this order. Present only when the order was placed through a builder.
+        builder_fee:
+          type:
+          - string
+          - 'null'
+          description: Builder fee charged on this fill, paid to the builder (in quote currency, typically USDC). Present only when builder_address is set.
+        deployer_fee:
+          type:
+          - string
+          - 'null'
+          description: HIP-3 deployer fee share on this fill (in quote currency). Negative for the maker side (rebate), positive for the taker side. Present only on HIP-3 fills.
+        priority_gas:
+          type:
+          - number
+          - 'null'
+          description: Priority fee burned in HYPE (not USDC) for write priority on the Hyperliquid validator queue. Independent of builder_fee and deployer_fee — paid to the network, not to a builder or deployer. Present only when the order paid for priority.
+        cloid:
+          type:
+          - string
+          - 'null'
+          description: Client order ID
+        twap_id:
+          type:
+          - integer
+          - 'null'
+          description: TWAP execution ID
+    ApiResponseTradeArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

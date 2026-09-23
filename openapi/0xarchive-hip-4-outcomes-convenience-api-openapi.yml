@@ -1,0 +1,459 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-4 Outcomes - Convenience API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-4 Outcomes - Convenience
+  description: 'HIP-4 convenience endpoints: freshness, summary, and price history. `mark_price` for HIP-4 is an implied probability in [0,1], not a USD price.'
+paths:
+  /v1/hyperliquid/hip4/freshness/{symbol}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Convenience
+      summary: Get HIP-4 data freshness
+      description: Check when HIP-4 order book, trade, and outcome-side open-interest data was last updated. The shared freshness envelope can describe funding and liquidations for other families; those buckets are omitted for HIP-4 because HIP-4 has no funding dataset or liquidation endpoint.
+      operationId: getHip4Freshness
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      responses:
+        '200':
+          description: Data freshness for the coin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoinFreshness'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/summary/{symbol}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Convenience
+      summary: Get HIP-4 market summary
+      description: 'Get a combined market summary for a HIP-4 outcome side: latest mark price (implied probability in [0,1] for HIP-4, NOT USD), mid price, outcome-side open interest, and 24h volume. The shared summary schema retains optional funding, premium, oracle-price, and liquidation fields for compatibility across venue families; those fields are omitted for HIP-4 because they are not applicable. HIP-4 has no funding dataset or liquidation endpoint.'
+      operationId: getHip4Summary
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      responses:
+        '200':
+          description: Market summary for the coin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCoinSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/prices/{symbol}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Convenience
+      summary: Get HIP-4 price history
+      description: 'Get mark/mid price history for a HIP-4 outcome side. Lightweight projection of open interest data. Note: `mark_price` for HIP-4 outcomes is an implied probability in [0,1], not a USD price; same field name as perps because Hyperliquid upstream uses `markPx` for both. `oracle_price` is omitted for HIP-4 (outcomes have no oracle feed).'
+      operationId: getHip4PriceHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: start
+        in: query
+        description: Start timestamp in milliseconds
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in milliseconds
+        schema:
+          type: integer
+          format: int64
+      - name: interval
+        in: query
+        description: Aggregation interval
+        schema:
+          type: string
+          enum:
+          - 5m
+          - 15m
+          - 30m
+          - 1h
+          - 4h
+          - 1d
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: cursor
+        in: query
+        description: Cursor for pagination
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Price history data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePriceSnapshotArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    DataTypeFreshness:
+      type: object
+      description: Freshness information for a single data type
+      properties:
+        last_updated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this data type was last updated for the coin
+          example: '2026-02-23T12:00:00.000Z'
+        lag_ms:
+          type:
+          - integer
+          - 'null'
+          description: Current lag in milliseconds between now and last update
+          example: 1200
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseCoinSummary:
+      type: object
+      description: API response wrapping a market summary
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/CoinSummary'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseCoinFreshness:
+      type: object
+      description: API response wrapping coin freshness data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/CoinFreshness'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    CoinFreshness:
+      type: object
+      description: Shared route-family freshness shape. Unsupported data-type buckets may be omitted; consult the operation description for each family.
+      required:
+      - symbol
+      - coin
+      - exchange
+      - measured_at
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        exchange:
+          type: string
+          description: Exchange name
+          example: hyperliquid
+        measured_at:
+          type: string
+          format: date-time
+          description: When the freshness was measured
+          example: '2026-02-23T12:00:00.000Z'
+        orderbook:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        trades:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        funding:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        open_interest:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        liquidations:
+          $ref: '#/components/schemas/DataTypeFreshness'
+    CoinSummary:
+      type: object
+      description: Shared market-summary shape. Route families omit unsupported optional fields; consult the operation description for family-specific applicability.
+      required:
+      - symbol
+      - coin
+      - timestamp
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Summary timestamp (UTC)
+          example: '2026-02-23T12:00:00.000Z'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Current mark price
+          example: '95000.50'
+        oracle_price:
+          type:
+          - string
+          - 'null'
+          description: Current oracle price
+          example: '94998.25'
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Current mid price
+          example: '95000.00'
+        funding_rate:
+          type:
+          - string
+          - 'null'
+          description: Current funding rate
+          example: '0.00025'
+        premium:
+          type:
+          - string
+          - 'null'
+          description: Current premium
+          example: '0.0005'
+        open_interest:
+          type:
+          - string
+          - 'null'
+          description: Current open interest
+          example: '500000.00'
+        volume_24h:
+          type:
+          - string
+          - 'null'
+          description: 24-hour notional volume
+          example: '10000000.00'
+        liquidation_volume_24h:
+          type:
+          - number
+          - 'null'
+          description: Total 24h liquidation volume in USD
+          example: 2500000
+        long_liquidation_volume_24h:
+          type:
+          - number
+          - 'null'
+          description: Long 24h liquidation volume in USD
+          example: 1500000
+        short_liquidation_volume_24h:
+          type:
+          - number
+          - 'null'
+          description: Short 24h liquidation volume in USD
+          example: 1000000
+    PriceSnapshot:
+      type: object
+      description: Price snapshot with family-applicable price fields. Optional mark, oracle, or mid fields may be omitted when that route family does not supply them.
+      required:
+      - timestamp
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2026-02-23T12:00:00.000Z'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Mark price
+          example: '95000.50'
+        oracle_price:
+          type:
+          - string
+          - 'null'
+          description: Oracle price
+          example: '94998.25'
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Mid price
+          example: '95000.00'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponsePriceSnapshotArray:
+      type: object
+      description: API response containing an array of price snapshots
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceSnapshot'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

@@ -1,0 +1,323 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Hyperliquid - Open Interest API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Hyperliquid - Open Interest
+  description: Hyperliquid historical open interest and market context data. Data from May 2023.
+paths:
+  /v1/hyperliquid/openinterest/{symbol}:
+    get:
+      tags:
+      - Hyperliquid - Open Interest
+      summary: Get Hyperliquid open interest history
+      description: Get historical open interest data with associated market context (mark price, oracle price, volume, etc.). Data available from May 2023.
+      operationId: getHyperliquidOpenInterest
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: interval
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - 5m
+          - 15m
+          - 30m
+          - 1h
+          - 4h
+          - 1d
+        description: Aggregation interval. When omitted, returns raw ~1 min updates.
+      responses:
+        '200':
+          description: Open interest data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOpenInterestArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/openinterest/{symbol}/current:
+    get:
+      tags:
+      - Hyperliquid - Open Interest
+      summary: Get current Hyperliquid open interest
+      description: Get the latest open interest value and market context.
+      operationId: getCurrentHyperliquidOpenInterest
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      responses:
+        '200':
+          description: Current open interest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOpenInterest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseOpenInterestArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseOpenInterest:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    OpenInterest:
+      type: object
+      description: Open interest snapshot with market context
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - open_interest
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:00.000Z'
+        open_interest:
+          type: string
+          description: Total open interest in contracts
+          example: '500000.00'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Mark price used for liquidations
+          example: '42500.50'
+        oracle_price:
+          type:
+          - string
+          - 'null'
+          description: Oracle price from external feed
+          example: '42498.25'
+        day_ntl_volume:
+          type:
+          - string
+          - 'null'
+          description: 24-hour notional volume
+          example: '10000000.00'
+        prev_day_price:
+          type:
+          - string
+          - 'null'
+          description: Price 24 hours ago
+          example: '42000.00'
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Current mid price
+          example: '42500.75'
+        impact_bid_price:
+          type:
+          - string
+          - 'null'
+          description: Impact bid price for liquidations
+        impact_ask_price:
+          type:
+          - string
+          - 'null'
+          description: Impact ask price for liquidations
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

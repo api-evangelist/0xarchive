@@ -1,0 +1,250 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Hyperliquid - Candles API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Hyperliquid - Candles
+  description: 'Hyperliquid OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w.'
+paths:
+  /v1/hyperliquid/candles/{symbol}:
+    get:
+      tags:
+      - Hyperliquid - Candles
+      summary: Get Hyperliquid OHLCV candles
+      description: 'Get historical OHLCV candle data. Data available from March 2025.
+
+
+        **Available Intervals:** 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+
+
+        **Pagination:** Use the `cursor` parameter with the value from the previous response''s `next_cursor` for efficient pagination.'
+      operationId: getHyperliquidCandles
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: interval
+        in: query
+        description: 'Candle interval (default: 1h)'
+        schema:
+          type: string
+          enum:
+          - 1m
+          - 5m
+          - 15m
+          - 30m
+          - 1h
+          - 4h
+          - 1d
+          - 1w
+          default: 1h
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 10000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: List of OHLCV candles with cursor for next page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCandleArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  schemas:
+    ApiResponseCandleArray:
+      type: object
+      description: API response containing an array of candle data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candle'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    Candle:
+      type: object
+      description: OHLCV candle data
+      required:
+      - timestamp
+      - open
+      - high
+      - low
+      - close
+      - volume
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Candle start timestamp (ISO 8601 UTC)
+          example: '2026-01-01T12:00:00Z'
+        open:
+          type: number
+          format: double
+          description: Opening price
+          example: 42500.5
+        high:
+          type: number
+          format: double
+          description: Highest price during interval
+          example: 42750
+        low:
+          type: number
+          format: double
+          description: Lowest price during interval
+          example: 42300.25
+        close:
+          type: number
+          format: double
+          description: Closing price
+          example: 42650.75
+        volume:
+          type: number
+          format: double
+          description: Trading volume in base asset
+          example: 1250.5
+        quote_volume:
+          type: number
+          format: double
+          description: Trading volume in quote asset (USD)
+          example: 53187500
+        trade_count:
+          type: integer
+          description: Number of trades in interval
+          example: 4520
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

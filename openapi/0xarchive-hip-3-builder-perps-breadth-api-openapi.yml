@@ -1,0 +1,358 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-3 Builder Perps - Breadth API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-3 Builder Perps - Breadth
+  description: 'HIP-3 market breadth snapshots: percentage of eligible instruments trading above their current UTC-session VWAP.'
+paths:
+  /v1/hyperliquid/hip3/breadth/above-vwap/current:
+    get:
+      tags:
+      - HIP-3 Builder Perps - Breadth
+      summary: Get current HIP-3 breadth above session VWAP
+      description: Get the latest aggregate percentage of eligible HIP-3 instruments trading above their current UTC-session VWAP. Each instrument contributes one vote; VWAP uses candle quote volume divided by base volume and compares the last completed 1-minute candle close. The session resets at 00:00 UTC. Instruments with no session volume or a last completed candle older than 5 minutes are excluded, so coverage varies by market hours. `value_pct` is null when no instruments are eligible, never 0. This route is aggregate-only and does not expose per-symbol VWAPs. Snapshots are written every minute. Data collection begins August 28, 2026.
+      operationId: getHip3BreadthAboveVwapCurrent
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Current HIP-3 breadth snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBreadthSnapshot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip3/breadth/above-vwap:
+    get:
+      tags:
+      - HIP-3 Builder Perps - Breadth
+      summary: Get HIP-3 breadth above session VWAP history
+      description: Get historical aggregate HIP-3 breadth snapshots. Each row reports the percentage of eligible instruments above their current UTC-session VWAP and its auditable counts. Eligibility excludes instruments with no session volume or a last completed candle older than 5 minutes, so coverage varies by market hours. `start` and `end` are Unix timestamps in milliseconds and default to the last 24 hours. The optional `interval` downsamples by selecting the last stored snapshot in each bucket; percentages are never averaged because the denominator can vary. The optional `cursor` is an epoch-millisecond timestamp from `meta.next_cursor` and is exclusive. Snapshots are written every minute. Data collection begins August 28, 2026.
+      operationId: getHip3BreadthAboveVwap
+      parameters:
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor timestamp in Unix milliseconds. Pass `meta.next_cursor` from the prior response; results after this timestamp are returned.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of snapshots (default: 100, max: 1000).'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: interval
+        in: query
+        description: Optional aggregation interval. Downsampled intervals select the last stored snapshot in each bucket; percentages are never averaged.
+        schema:
+          type: string
+          enum:
+          - 5m
+          - 15m
+          - 30m
+          - 1h
+          - 4h
+          - 1d
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Historical HIP-3 breadth snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBreadthSnapshotArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    BreadthNamespaceCounts:
+      type: object
+      description: Per-builder-namespace count breakdowns keyed by namespace.
+      required:
+      - eligible
+      - above
+      - at
+      - below
+      properties:
+        eligible:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Eligible instrument counts by builder namespace.
+        above:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Above-VWAP counts by builder namespace.
+        at:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: At-VWAP counts by builder namespace.
+        below:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Below-VWAP counts by builder namespace.
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    BreadthCounts:
+      type: object
+      description: Auditable counts behind an aggregate HIP-3 breadth snapshot.
+      required:
+      - candidates
+      - eligible
+      - above
+      - at
+      - below
+      - excluded_no_session_volume
+      - excluded_stale_price
+      properties:
+        candidates:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Candidate instruments considered for the snapshot.
+        eligible:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Eligible instruments included in the headline percentage.
+        above:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Eligible instruments trading above their current UTC-session VWAP.
+        at:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Eligible instruments at their current UTC-session VWAP.
+        below:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Eligible instruments trading below their current UTC-session VWAP.
+        excluded_no_session_volume:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Candidates excluded because the current UTC session has no qualifying volume.
+        excluded_stale_price:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Candidates excluded because their price was stale.
+    BreadthSnapshot:
+      type: object
+      description: Aggregate percentage of eligible HIP-3 instruments trading above their current UTC-session VWAP. Per-symbol VWAPs are not served.
+      required:
+      - session_date
+      - calculated_at
+      - value_pct
+      - coverage_ratio
+      - counts
+      - namespaces
+      properties:
+        session_date:
+          type: string
+          format: date
+          description: UTC session date.
+        calculated_at:
+          type: string
+          format: date-time
+          description: Timestamp when this snapshot was calculated.
+        value_pct:
+          type:
+          - number
+          - 'null'
+          format: double
+          description: 100 times above divided by eligible; null when eligible is zero.
+        coverage_ratio:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Eligible divided by candidates, constrained to the range 0..1.
+        counts:
+          $ref: '#/components/schemas/BreadthCounts'
+        namespaces:
+          $ref: '#/components/schemas/BreadthNamespaceCounts'
+    ApiResponseBreadthSnapshotArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BreadthSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseBreadthSnapshot:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/BreadthSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

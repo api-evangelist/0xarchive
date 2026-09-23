@@ -1,0 +1,1285 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Hyperliquid Spot API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Hyperliquid Spot
+  description: Hyperliquid Spot pair, order book, trade, reconstruction, TWAP, and freshness routes.
+paths:
+  /v1/hyperliquid/spot/pairs:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: List Hyperliquid Spot pairs
+      description: List Hyperliquid Spot pairs available through 0xArchive.
+      operationId: getHyperliquidSpotPairs
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of Hyperliquid Spot pairs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSpotPairArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/spot/pairs/{symbol}:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot pair metadata
+      description: Get metadata for one Hyperliquid Spot pair.
+      operationId: getHyperliquidSpotPair
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      responses:
+        '200':
+          description: Hyperliquid Spot pair metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSpotPair'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/spot/orderbook/{symbol}:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot order book
+      description: Get the latest Hyperliquid Spot order book snapshot for a pair, or a historical snapshot when timestamp is supplied.
+      operationId: getHyperliquidSpotOrderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: timestamp
+        in: query
+        description: Timestamp for historical lookup. Supports the timestamp format used by the route family.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704067200000
+          - type: string
+            format: date-time
+            example: '2026-01-01T00:00:00Z'
+      - name: depth
+        in: query
+        description: Number of price levels per side.
+        schema:
+          type: integer
+          example: 20
+      responses:
+        '200':
+          description: Order book snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+  /v1/hyperliquid/spot/trades/{symbol}:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot trades
+      description: Get bounded historical trades for a Hyperliquid Spot pair.
+      operationId: getHyperliquidSpotTrades
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: start
+        in: query
+        description: Start timestamp for bounded historical queries.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704067200000
+          - type: string
+            format: date-time
+            example: '2026-01-01T00:00:00Z'
+      - name: end
+        in: query
+        description: End timestamp for bounded historical queries.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704070800000
+          - type: string
+            format: date-time
+            example: '2026-01-01T01:00:00Z'
+      - name: cursor
+        in: query
+        description: Cursor for pagination. Use the value from the previous response metadata.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: List of trades with cursor for next page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTradeArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+  /v1/hyperliquid/spot/trades/{symbol}/recent:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get recent Hyperliquid spot trades
+      description: Get the most recent trades for a Hyperliquid spot pair, ordered by timestamp descending.
+      operationId: getSpotTradesRecent
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: HYPE-USDC
+        description: Spot trading pair symbol in dashed form (e.g., HYPE-USDC, PURR-USDC)
+        example: HYPE-USDC
+      - name: limit
+        in: query
+        description: 'Number of trades to return (default: 100, max: 10000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: List of recent trades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTradeArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/spot/orderbook/{symbol}/l4:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot L4 order book
+      description: Get the L4 order-level reconstruction checkpoint for a Hyperliquid Spot pair. Within each price level, bids and asks are ordered by true queue priority (ALO priority insertions included), not by placement time. Depth truncation is by order count, so the orders at a depth cut can differ from responses served before 2026-07-21.
+      operationId: getHyperliquidSpotL4Orderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds for the Hyperliquid Spot snapshot. If omitted, returns the latest snapshot. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: depth
+        in: query
+        description: Maximum number of resting orders retained per side for this Hyperliquid Spot L4 snapshot. Omit for the full stored depth.
+        schema:
+          type: integer
+          format: int64
+          example: 20
+      responses:
+        '200':
+          description: Typed L4 orderbook snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseL4OrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+  /v1/hyperliquid/spot/orderbook/{symbol}/l4/diffs:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot L4 order book diffs
+      description: 'Get per-order diff events for Hyperliquid Spot L4 reconstruction. Diff items may include an optional insert_before field (order ID or null): for a new ALO order granted queue priority, it names the resting order this one is inserted ahead of within its price level. null or absent means tail append. Present on data from 2026-07-21 onward.'
+      operationId: getHyperliquidSpotL4Diffs
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: start
+        in: query
+        description: Start of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1704067200000
+      - name: end
+        in: query
+        description: End of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1704070800000
+      - name: cursor
+        in: query
+        description: Cursor for pagination. Use the value from the previous response metadata.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: L4 orderbook diff events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      description: A single L4 order book diff event.
+                      properties:
+                        timestamp:
+                          type: integer
+                          format: int64
+                          description: Event time in epoch milliseconds.
+                        block_number:
+                          type: integer
+                          format: int64
+                          description: Hyperliquid block number of the event.
+                        seq:
+                          type: integer
+                          description: Within-block sequence number.
+                        oid:
+                          type: integer
+                          format: int64
+                          description: Order ID.
+                        user_address:
+                          type: string
+                          description: Address that owns the order.
+                        coin:
+                          type: string
+                        side:
+                          type: string
+                          enum:
+                          - B
+                          - A
+                          description: B = bid, A = ask.
+                        price:
+                          type: number
+                        diff_type:
+                          type: string
+                          enum:
+                          - new
+                          - update
+                          - remove
+                          description: new = order joined the book, update = resting size changed, remove = filled or canceled.
+                        new_size:
+                          type:
+                          - number
+                          - 'null'
+                          description: Resting size after the event; null on remove.
+                        insert_before:
+                          type:
+                          - integer
+                          - 'null'
+                          format: int64
+                          description: 'ALO queue priority: the resting order ID this new order is inserted ahead of within its price level. null or absent means the order was appended at the queue tail. Populated on data from 2026-07-21 onward; absent on earlier history.'
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type: string
+                      request_id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+  /v1/hyperliquid/spot/orderbook/{symbol}/l4/history:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot L4 order book history
+      description: Get historical Hyperliquid Spot L4 order book reconstruction windows. Within each price level, bids and asks are ordered by true queue priority (ALO priority insertions included), not by placement time. Depth truncation is by order count, so the orders at a depth cut can differ from responses served before 2026-07-21.
+      operationId: getHyperliquidSpotL4History
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: start
+        in: query
+        description: Start of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1704067200000
+      - name: end
+        in: query
+        description: End of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1704070800000
+      - name: cursor
+        in: query
+        description: Timestamp cursor in Unix milliseconds from the previous response metadata.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of records to return (default: 10, hard cap: 10).'
+        schema:
+          type: integer
+          default: 10
+          maximum: 10
+          format: int64
+      responses:
+        '200':
+          description: Typed L4 orderbook checkpoint array
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseL4OrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+  /v1/hyperliquid/spot/orders/{symbol}/history:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot order history
+      description: Get historical order events for a Hyperliquid Spot pair.
+      operationId: getHyperliquidSpotOrderHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: start
+        in: query
+        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: end
+        in: query
+        description: End timestamp, Unix milliseconds
+        schema:
+          type: integer
+          format: int64
+          example: 1767225600000
+      - name: cursor
+        in: query
+        description: Cursor for pagination. Use the value from the previous response metadata.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: Order lifecycle events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type: string
+                      request_id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+  /v1/hyperliquid/spot/twap/{symbol}:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot TWAP
+      description: Get TWAP data for a Hyperliquid Spot pair.
+      operationId: getHyperliquidSpotTwap
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      - name: start
+        in: query
+        description: Start timestamp for bounded historical queries.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704067200000
+          - type: string
+            format: date-time
+            example: '2026-01-01T00:00:00Z'
+      - name: end
+        in: query
+        description: End timestamp for bounded historical queries.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704070800000
+          - type: string
+            format: date-time
+            example: '2026-01-01T01:00:00Z'
+      - name: cursor
+        in: query
+        description: Cursor for pagination. Use the value from the previous response metadata.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: Hyperliquid Spot TWAP data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSpotTwapArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/spot/twap/user/{user}:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot user TWAP
+      description: Get TWAP data scoped to a Hyperliquid user address.
+      operationId: getHyperliquidSpotUserTwap
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: user
+        in: path
+        required: true
+        description: Hyperliquid user address.
+        schema:
+          type: string
+          example: '0x0000000000000000000000000000000000000000'
+        example: '0x0000000000000000000000000000000000000000'
+      - name: start
+        in: query
+        description: Start timestamp for bounded historical queries.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704067200000
+          - type: string
+            format: date-time
+            example: '2026-01-01T00:00:00Z'
+      - name: end
+        in: query
+        description: End timestamp for bounded historical queries.
+        schema:
+          oneOf:
+          - type: integer
+            format: int64
+            example: 1704070800000
+          - type: string
+            format: date-time
+            example: '2026-01-01T01:00:00Z'
+      - name: cursor
+        in: query
+        description: Cursor for pagination. Use the value from the previous response metadata.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        '200':
+          description: Hyperliquid Spot user TWAP data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSpotTwapArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/spot/freshness/{symbol}:
+    get:
+      tags:
+      - Hyperliquid Spot
+      summary: Get Hyperliquid Spot freshness
+      description: Check when Spot order book, trade, L4, orders, and TWAP data was last updated for a Hyperliquid Spot pair.
+      operationId: getHyperliquidSpotFreshness
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Hyperliquid Spot pair symbol, for example HYPE-USDC
+        schema:
+          type: string
+          example: HYPE-USDC
+        example: HYPE-USDC
+      responses:
+        '200':
+          description: Hyperliquid Spot freshness data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSpotFreshness'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      security:
+      - ApiKeyAuth: []
+components:
+  schemas:
+    SpotFreshnessBucket:
+      type: object
+      description: Freshness state for one Hyperliquid Spot data type.
+      additionalProperties: true
+      properties:
+        lag_ms:
+          type:
+          - integer
+          - 'null'
+          description: Measured lag in milliseconds when available.
+          example: 440
+        last_updated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Most recent update timestamp when available.
+          example: '2026-05-08T21:20:34.837Z'
+    SpotFreshness:
+      type: object
+      description: Freshness state for a Hyperliquid Spot pair.
+      additionalProperties: true
+      required:
+      - symbol
+      - coin
+      - exchange
+      - measured_at
+      properties:
+        symbol:
+          type: string
+          example: HYPE-USDC
+        coin:
+          type: string
+          example: HYPE-USDC
+        exchange:
+          type: string
+          example: spot
+        measured_at:
+          type: string
+          format: date-time
+          example: '2026-05-08T21:20:35.277945340Z'
+        orderbook:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        trades:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        l4_checkpoints:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        l4_diffs:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        orders:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        twap:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+    ApiResponseL4OrderBook:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseSpotTwapArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotTwapRecord'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    L4OrderBookSnapshot:
+      type: object
+      description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
+      required:
+      - coin
+      - timestamp
+      - checkpoint_timestamp
+      - diffs_applied
+      - last_block_number
+      - bids
+      - asks
+      - bid_count
+      - ask_count
+      - total_bid_size
+      - total_ask_size
+      properties:
+        coin:
+          type: string
+          description: Trading pair or market symbol.
+          example: BTC
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp in UTC.
+          example: '2026-03-12T00:00:00.000Z'
+        checkpoint_timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the checkpoint used for this snapshot.
+          example: '2026-03-12T00:00:00.000Z'
+        diffs_applied:
+          type: integer
+          description: Number of L4 diffs applied after the checkpoint.
+          example: 0
+        last_block_number:
+          type: integer
+          format: int64
+          description: Last Hyperliquid block represented by this snapshot.
+          example: 1023882395
+        bids:
+          type: array
+          description: Bid-side resting orders, best price first.
+          items:
+            $ref: '#/components/schemas/L4Order'
+        asks:
+          type: array
+          description: Ask-side resting orders, best price first.
+          items:
+            $ref: '#/components/schemas/L4Order'
+        bid_count:
+          type: integer
+          description: Number of bid orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 12
+        ask_count:
+          type: integer
+          description: Number of ask orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 15
+        total_bid_size:
+          type: number
+          description: Aggregate venue-native bid size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 102.34
+        total_ask_size:
+          type: number
+          description: Aggregate venue-native ask size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 98.76
+        is_crossed:
+          type: boolean
+          description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
+          example: true
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    L4Order:
+      type: object
+      description: Individual resting order in a Hyperliquid-family L4 snapshot.
+      required:
+      - oid
+      - user_address
+      - side
+      - price
+      - size
+      - timestamp
+      properties:
+        oid:
+          type: integer
+          format: int64
+          description: Hyperliquid order identifier.
+          example: 18499128731
+        user_address:
+          type: string
+          description: Address attributed to the resting order.
+          example: '0x0000000000000000000000000000000000000000'
+        side:
+          type: string
+          enum:
+          - B
+          - A
+          description: 'Book side: B for bid or A for ask.'
+          example: B
+        price:
+          type: number
+          description: Venue-native resting order price.
+          example: 105384.5
+        size:
+          type: number
+          description: Venue-native remaining order size.
+          example: 0.824
+        timestamp:
+          type: integer
+          format: int64
+          description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
+          example: 1773273600123
+    ApiResponseTradeArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    SpotTwapRecord:
+      type: object
+      description: Hyperliquid Spot TWAP record. Fields may expand as TWAP coverage fills in for a pair.
+      additionalProperties: true
+    ApiResponseOrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+    Trade:
+      type: object
+      description: Trade/fill record with full execution details
+      required:
+      - symbol
+      - coin
+      - side
+      - price
+      - size
+      - timestamp
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        side:
+          type: string
+          description: 'Trade side: ''B'' (buy) or ''A'' (sell/ask)'
+          enum:
+          - A
+          - B
+          example: B
+        price:
+          type: string
+          description: Execution price
+          example: '42150.50'
+        size:
+          type: string
+          description: Trade size
+          example: '0.5'
+        timestamp:
+          type: string
+          format: date-time
+          description: Execution timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        tx_hash:
+          type:
+          - string
+          - 'null'
+          description: Blockchain transaction hash
+        trade_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Unique trade ID
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Associated order ID
+        crossed:
+          type:
+          - boolean
+          - 'null'
+          description: True if taker (crossed the spread), false if maker
+        fee:
+          type:
+          - string
+          - 'null'
+          description: Trading fee amount
+        fee_token:
+          type:
+          - string
+          - 'null'
+          description: Fee denomination (e.g., USDC)
+        closed_pnl:
+          type:
+          - string
+          - 'null'
+          description: Realized PnL if closing a position
+        direction:
+          type:
+          - string
+          - 'null'
+          description: Position direction (e.g., 'Open Long', 'Close Short', 'Long > Short')
+        start_position:
+          type:
+          - string
+          - 'null'
+          description: Position size before this trade
+        user_address:
+          type:
+          - string
+          - 'null'
+          description: User's wallet address
+        maker_address:
+          type:
+          - string
+          - 'null'
+          description: Maker's wallet address (the resting order)
+        taker_address:
+          type:
+          - string
+          - 'null'
+          description: Taker's wallet address (crossed the spread)
+        builder_address:
+          type:
+          - string
+          - 'null'
+          description: Builder address that routed this order. Present only when the order was placed through a builder.
+        builder_fee:
+          type:
+          - string
+          - 'null'
+          description: Builder fee charged on this fill, paid to the builder (in quote currency, typically USDC). Present only when builder_address is set.
+        deployer_fee:
+          type:
+          - string
+          - 'null'
+          description: HIP-3 deployer fee share on this fill (in quote currency). Negative for the maker side (rebate), positive for the taker side. Present only on HIP-3 fills.
+        priority_gas:
+          type:
+          - number
+          - 'null'
+          description: Priority fee burned in HYPE (not USDC) for write priority on the Hyperliquid validator queue. Independent of builder_fee and deployer_fee — paid to the network, not to a builder or deployer. Present only when the order paid for priority.
+        cloid:
+          type:
+          - string
+          - 'null'
+          description: Client order ID
+        twap_id:
+          type:
+          - integer
+          - 'null'
+          description: TWAP execution ID
+    ApiResponseSpotPair:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/SpotPair'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    OrderBook:
+      type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
+          type: array
+          description: Bid price levels (best bid first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
+    ApiResponseSpotFreshness:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/SpotFreshness'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseL4OrderBookArray:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    SpotPair:
+      type: object
+      description: Hyperliquid Spot pair metadata.
+      additionalProperties: true
+      properties:
+        symbol:
+          type: string
+          example: HYPE-USDC
+        base:
+          type: string
+          example: HYPE
+        quote:
+          type: string
+          example: USDC
+    ApiResponseSpotPairArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotPair'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

@@ -1,0 +1,688 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-4 Outcomes - Order Book API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-4 Outcomes - Order Book
+  description: HIP-4 outcome markets L2 and L4 order book snapshots and diffs. Coins are referenced by numeric id (0, 1, 10, 11, ...); the `#`-prefixed form is also accepted. Data from May 2026.
+paths:
+  /v1/hyperliquid/hip4/orderbook/{symbol}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Order Book
+      summary: Get HIP-4 order book
+      description: Get the latest L2 order book snapshot for a HIP-4 outcome side, or at a specific timestamp. Returns L2 depth with price, size, and order count at each level. Data available from May 2026.
+      operationId: getHip4Orderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds. If not provided, returns latest snapshot.
+        schema:
+          type: integer
+          format: int64
+      - name: depth
+        in: query
+        description: Requested price levels per side. The HIP-4 native L2 route is capped at 20 levels per side.
+        schema:
+          type: integer
+          example: 20
+          maximum: 20
+      responses:
+        '200':
+          description: Order book snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/orderbook/{symbol}/history:
+    get:
+      tags:
+      - HIP-4 Outcomes - Order Book
+      summary: Get HIP-4 order book history
+      description: Get historical L2 order book snapshots within a time range with cursor pagination. Data available from May 2026.
+      operationId: getHip4OrderbookHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: depth
+        in: query
+        description: Requested price levels per side. The HIP-4 native L2 route is capped at 20 levels per side.
+        schema:
+          type: integer
+          maximum: 20
+      responses:
+        '200':
+          description: List of order book snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/orderbook/{symbol}/l4:
+    get:
+      tags:
+      - HIP-4 Outcomes - Order Book
+      summary: Get HIP-4 L4 orderbook
+      description: Get the full L4 (individual order-level) orderbook reconstruction for a HIP-4 outcome side. Returns the latest snapshot if no timestamp is provided. Within each price level, bids and asks are ordered by true queue priority (ALO priority insertions included), not by placement time. Depth truncation is by order count, so the orders at a depth cut can differ from responses served before 2026-07-21.
+      operationId: getHip4L4Orderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds for the HIP-4 snapshot. If omitted, returns the latest snapshot. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1777680000000
+      - name: depth
+        in: query
+        description: Maximum number of resting orders retained per side for this HIP-4 L4 snapshot. Omit for the full stored depth.
+        schema:
+          type: integer
+          format: int64
+          example: 20
+      responses:
+        '200':
+          description: Typed L4 orderbook snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseL4OrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/orderbook/{symbol}/l4/diffs:
+    get:
+      tags:
+      - HIP-4 Outcomes - Order Book
+      summary: Get HIP-4 L4 orderbook diffs
+      description: 'Get per-order diff events for the HIP-4 L4 orderbook. Each diff represents an individual order placement, modification, fill, or cancellation. Diff items may include an optional insert_before field (order ID or null): for a new ALO order granted queue priority, it names the resting order this one is inserted ahead of within its price level. null or absent means tail append. Present on data from 2026-07-21 onward.'
+      operationId: getHip4L4Diffs
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: start
+        in: query
+        description: Start of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1777680000000
+      - name: end
+        in: query
+        description: End of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1777766400000
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 1000, max: 10000)'
+        schema:
+          type: integer
+          default: 1000
+          maximum: 10000
+      responses:
+        '200':
+          description: L4 orderbook diff events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      description: A single L4 order book diff event.
+                      properties:
+                        timestamp:
+                          type: integer
+                          format: int64
+                          description: Event time in epoch milliseconds.
+                        block_number:
+                          type: integer
+                          format: int64
+                          description: Hyperliquid block number of the event.
+                        seq:
+                          type: integer
+                          description: Within-block sequence number.
+                        oid:
+                          type: integer
+                          format: int64
+                          description: Order ID.
+                        user_address:
+                          type: string
+                          description: Address that owns the order.
+                        coin:
+                          type: string
+                        side:
+                          type: string
+                          enum:
+                          - B
+                          - A
+                          description: B = bid, A = ask.
+                        price:
+                          type: number
+                        diff_type:
+                          type: string
+                          enum:
+                          - new
+                          - update
+                          - remove
+                          description: new = order joined the book, update = resting size changed, remove = filled or canceled.
+                        new_size:
+                          type:
+                          - number
+                          - 'null'
+                          description: Resting size after the event; null on remove.
+                        insert_before:
+                          type:
+                          - integer
+                          - 'null'
+                          format: int64
+                          description: 'ALO queue priority: the resting order ID this new order is inserted ahead of within its price level. null or absent means the order was appended at the queue tail. Populated on data from 2026-07-21 onward; absent on earlier history.'
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type: string
+                      request_id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/orderbook/{symbol}/l4/history:
+    get:
+      tags:
+      - HIP-4 Outcomes - Order Book
+      summary: Get HIP-4 L4 orderbook history
+      description: Get historical L4 orderbook checkpoint list for a HIP-4 outcome side. Each checkpoint is a full L4 snapshot that can be used as a starting point for replay. The `limit` parameter defaults to 100 and is capped at 1000. Within each price level, bids and asks are ordered by true queue priority (ALO priority insertions included), not by placement time. Depth truncation is by order count, so the orders at a depth cut can differ from responses served before 2026-07-21.
+      operationId: getHip4L4History
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: start
+        in: query
+        description: Start of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1777680000000
+      - name: end
+        in: query
+        description: End of the requested window as a Unix timestamp in milliseconds. ISO 8601 strings are rejected.
+        schema:
+          type: integer
+          format: int64
+          example: 1777766400000
+      - name: cursor
+        in: query
+        description: Timestamp cursor in Unix milliseconds from the previous response metadata.
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+          format: int64
+      responses:
+        '200':
+          description: Typed L4 orderbook checkpoint array
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseL4OrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    OrderBook:
+      type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
+          type: array
+          description: Bid price levels (best bid first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
+    ApiResponseL4OrderBookArray:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseL4OrderBook:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+    L4Order:
+      type: object
+      description: Individual resting order in a Hyperliquid-family L4 snapshot.
+      required:
+      - oid
+      - user_address
+      - side
+      - price
+      - size
+      - timestamp
+      properties:
+        oid:
+          type: integer
+          format: int64
+          description: Hyperliquid order identifier.
+          example: 18499128731
+        user_address:
+          type: string
+          description: Address attributed to the resting order.
+          example: '0x0000000000000000000000000000000000000000'
+        side:
+          type: string
+          enum:
+          - B
+          - A
+          description: 'Book side: B for bid or A for ask.'
+          example: B
+        price:
+          type: number
+          description: Venue-native resting order price.
+          example: 105384.5
+        size:
+          type: number
+          description: Venue-native remaining order size.
+          example: 0.824
+        timestamp:
+          type: integer
+          format: int64
+          description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
+          example: 1773273600123
+    L4OrderBookSnapshot:
+      type: object
+      description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
+      required:
+      - coin
+      - timestamp
+      - checkpoint_timestamp
+      - diffs_applied
+      - last_block_number
+      - bids
+      - asks
+      - bid_count
+      - ask_count
+      - total_bid_size
+      - total_ask_size
+      properties:
+        coin:
+          type: string
+          description: Trading pair or market symbol.
+          example: BTC
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp in UTC.
+          example: '2026-03-12T00:00:00.000Z'
+        checkpoint_timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the checkpoint used for this snapshot.
+          example: '2026-03-12T00:00:00.000Z'
+        diffs_applied:
+          type: integer
+          description: Number of L4 diffs applied after the checkpoint.
+          example: 0
+        last_block_number:
+          type: integer
+          format: int64
+          description: Last Hyperliquid block represented by this snapshot.
+          example: 1023882395
+        bids:
+          type: array
+          description: Bid-side resting orders, best price first.
+          items:
+            $ref: '#/components/schemas/L4Order'
+        asks:
+          type: array
+          description: Ask-side resting orders, best price first.
+          items:
+            $ref: '#/components/schemas/L4Order'
+        bid_count:
+          type: integer
+          description: Number of bid orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 12
+        ask_count:
+          type: integer
+          description: Number of ask orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 15
+        total_bid_size:
+          type: number
+          description: Aggregate venue-native bid size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 102.34
+        total_ask_size:
+          type: number
+          description: Aggregate venue-native ask size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 98.76
+        is_crossed:
+          type: boolean
+          description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
+          example: true
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

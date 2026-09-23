@@ -1,0 +1,263 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-3 Builder Perps - Instruments API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-3 Builder Perps - Instruments
+  description: HIP-3 Builder Perps instrument discovery. Use this route with `/v1/symbols` `coverage_by_type` to resolve the current inventory and schema-specific dates.
+paths:
+  /v1/hyperliquid/hip3/instruments:
+    get:
+      tags:
+      - HIP-3 Builder Perps - Instruments
+      summary: List HIP-3 instruments
+      description: List currently available HIP-3 builder-deployed perpetuals with latest market data (mark price, open interest, mid price). Use this route for discovery before selecting a symbol-specific data route.
+      operationId: listHip3Instruments
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of HIP-3 instruments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip3InstrumentArray'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip3/instruments/{symbol}:
+    get:
+      tags:
+      - HIP-3 Builder Perps - Instruments
+      summary: Get HIP-3 instrument
+      description: Get a specific HIP-3 instrument by coin name with latest market data. Coin names are case-sensitive (e.g., km:US500, xyz:XYZ100).
+      operationId: getHip3Instrument
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+        description: HIP-3 symbol name (e.g., km:US500, xyz:XYZ100). Case-sensitive.
+        example: km:US500
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: HIP-3 instrument details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip3Instrument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseHip3Instrument:
+      type: object
+      description: API response wrapping a single HIP-3 instrument
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip3Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Hip3Instrument:
+      type: object
+      description: HIP-3 Builder Perps instrument with latest market data. Derived from live open interest data.
+      required:
+      - symbol
+      - coin
+      - namespace
+      - ticker
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: km:US500
+        coin:
+          type: string
+          description: Full coin name (e.g., km:US500, xyz:XYZ100) (deprecated, use symbol instead)
+          example: km:US500
+          deprecated: true
+        namespace:
+          type: string
+          description: Builder namespace (e.g., km, xyz)
+          example: km
+        ticker:
+          type: string
+          description: Ticker within the namespace (e.g., US500, XYZ100)
+          example: US500
+        mark_price:
+          type:
+          - number
+          - 'null'
+          description: Latest mark price
+          example: 5432.1
+        open_interest:
+          type:
+          - number
+          - 'null'
+          description: Latest open interest
+          example: 1234567.89
+        mid_price:
+          type:
+          - number
+          - 'null'
+          description: Latest mid price
+          example: 5432.05
+        latest_timestamp:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Timestamp of latest data point
+          example: '2026-02-18T12:00:00.000Z'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseHip3InstrumentArray:
+      type: object
+      description: API response wrapping an array of HIP-3 instruments
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip3Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

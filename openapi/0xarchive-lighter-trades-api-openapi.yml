@@ -1,0 +1,431 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Lighter - Trades API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Lighter - Trades
+  description: Lighter historical fill data across more than 200 markets. Served history begins August 27, 2025, with exact starts varying by market.
+paths:
+  /v1/lighter/trades/{symbol}:
+    get:
+      tags:
+      - Lighter - Trades
+      summary: Get Lighter trades
+      description: 'Get historical trades (fills) for a coin within a time range. Served fill history begins August 27, 2025; exact starts vary by market.
+
+
+        **Pagination:** Use the `cursor` parameter with the value from the previous response''s `next_cursor` for efficient pagination.'
+      operationId: getLighterTrades
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: ETH
+        description: Trading pair symbol (e.g., ETH, BTC)
+        example: ETH
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: List of trades with cursor for next page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLighterTradeArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/lighter/trades/{symbol}/recent:
+    get:
+      tags:
+      - Lighter - Trades
+      summary: Get recent Lighter trades
+      description: Get the most recent trades for a coin, ordered by timestamp descending.
+      operationId: getLighterRecentTrades
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: ETH
+        description: Trading pair symbol (e.g., ETH, BTC)
+        example: ETH
+      - name: limit
+        in: query
+        description: 'Number of trades to return (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      responses:
+        '200':
+          description: List of recent trades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLighterTradeArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  schemas:
+    ApiResponseLighterTradeArray:
+      type: object
+      description: API response containing an array of Lighter trades. History responses serve canonical rows only and clamp `end` to `finalized_through`; `/recent` responses serve preliminary rows and report `preliminary_row_count`.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LighterTrade'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination. Use this value as the `cursor` parameter to fetch the next page. History endpoint only.
+            request_id:
+              type: string
+              format: uuid
+              description: Unique request ID for support
+            finalized_through:
+              type: string
+              format: date-time
+              description: Timestamp through which canonical (bucket-reconciled) data is available.
+            requested_end:
+              type:
+              - string
+              - 'null'
+              format: date-time
+              description: The `end` the caller requested, echoed when it was clamped. History endpoint only.
+            clamped_to:
+              type:
+              - string
+              - 'null'
+              format: date-time
+              description: Effective end after clamping to `finalized_through`. History endpoint only.
+            preliminary_row_count:
+              type:
+              - integer
+              - 'null'
+              description: 'Number of preliminary (`source: "ws"`) rows in this response. `/recent` endpoint only.'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    LighterTrade:
+      type: object
+      description: 'Lighter trade (fill) record. Canonical rows (`source: "bucket"`) come from the daily Lighter Foundation reconcile and carry full enrichment. The `/recent` endpoint serves preliminary real-time rows (`source: "ws"`) without fee/tx_hash/order_id/realized_pnl and the other bucket-only enrichment fields until the daily reconcile finalizes them.'
+      required:
+      - coin
+      - symbol
+      - side
+      - price
+      - size
+      - timestamp
+      - trade_id
+      - crossed
+      - source
+      properties:
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        side:
+          type: string
+          enum:
+          - A
+          - B
+          description: 'Trade side of the account this row belongs to: ''B'' (buy) or ''A'' (sell/ask)'
+          example: B
+        price:
+          type: string
+          description: Execution price
+          example: '64708.5'
+        size:
+          type: string
+          description: Trade size in base units
+          example: '0.00005'
+        timestamp:
+          type: string
+          format: date-time
+          description: Execution timestamp (UTC)
+          example: '2026-07-26T14:47:59.174Z'
+        tx_hash:
+          type:
+          - string
+          - 'null'
+          description: Lighter settlement transaction hash (fixed-width hex). Canonical rows only.
+          example: 000000197b6fd6e90000019f9ee5a9c6000000000000000000000000000000000000000000000000
+        trade_id:
+          type: integer
+          format: int64
+          description: Unique Lighter trade ID. Each trade produces two rows (one per counterparty) sharing this ID.
+          example: 26121110211
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Order ID of this account's order. Canonical rows only.
+          example: 844421856609148
+        crossed:
+          type: boolean
+          description: True if this account was the taker (crossed the spread), false if maker
+          example: false
+        fee:
+          type:
+          - string
+          - 'null'
+          description: This account's fee for the fill. Canonical rows only.
+          example: '0.000028'
+        account_index:
+          type: string
+          description: Lighter numeric account index this row belongs to (serialized as a string)
+          example: '513030'
+        source:
+          type: string
+          enum:
+          - bucket
+          - ws
+          description: 'Row provenance: ''bucket'' = canonical (finalized by the daily Lighter Foundation reconcile), ''ws'' = preliminary real-time capture'
+          example: bucket
+        position_size_before:
+          type:
+          - number
+          - 'null'
+          description: This account's signed position size before the fill (long positive, short negative)
+          example: -0.94632
+        position_size_after:
+          type:
+          - number
+          - 'null'
+          description: 'Signed position size after the fill (derived: position_size_before plus/minus size by side)'
+          example: -0.94627
+        entry_quote_before:
+          type:
+          - number
+          - 'null'
+          description: This account's position entry quote value before the fill
+          example: 61179.114686
+        initial_margin_fraction_before:
+          type:
+          - number
+          - 'null'
+          description: This account's initial margin fraction before the fill
+          example: 0.02
+        allocated_margin_before:
+          type:
+          - number
+          - 'null'
+          description: Isolated-margin allocation before the fill (0 for cross)
+          example: 0
+        allocated_margin_after:
+          type:
+          - number
+          - 'null'
+          description: Isolated-margin allocation after the fill (0 for cross)
+          example: 0
+        position_sign_changed:
+          type:
+          - boolean
+          - 'null'
+          description: True if the fill flipped this account's position between long and short
+          example: false
+        trade_type:
+          type:
+          - string
+          - 'null'
+          description: Upstream trade type. Canonical rows only.
+          example: trade
+        is_maker:
+          type:
+          - boolean
+          - 'null'
+          description: True if this account was the maker. Canonical rows only.
+          example: true
+        counterparty_address:
+          type:
+          - string
+          - 'null'
+          description: Counterparty's Lighter account index (serialized as a string). Canonical rows only.
+          example: '710765'
+        client_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Client-assigned order ID. Canonical rows only.
+          example: 46758119273906
+        realized_pnl:
+          type:
+          - number
+          - 'null'
+          description: Matching-engine realized PnL for this fill. Canonical rows only.
+          example: -0.00295
+        integrator_fee:
+          type:
+          - number
+          - 'null'
+          description: Integrator fee charged on the fill. Canonical rows only.
+          example: 0
+        fee_account_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Account credited with the fee. Canonical rows only.
+          example: 0
+        l2_block_height:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Lighter L2 block height containing the trade. Canonical rows only.
+          example: 300075269
+        transaction_time_us:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Intra-block transaction time in microseconds. Canonical rows only.
+          example: 1785077279174437
+        usdc_amount:
+          type:
+          - number
+          - 'null'
+          description: Notional value of the fill in USDC. Canonical rows only.
+          example: 3.235425
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

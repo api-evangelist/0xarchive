@@ -1,0 +1,601 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-3 - Liquidations API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-3 - Liquidations
+paths:
+  /v1/hyperliquid/hip3/liquidations/{symbol}/levels:
+    get:
+      tags:
+      - HIP-3 - Liquidations
+      summary: Get HIP-3 liquidation levels
+      description: 'Projected forced-liquidation levels computed from clearinghouse positions and margin state, aggregated into price buckets around the snapshot mark price. Snapshots are computed roughly every 5 minutes; the response''s snapshot_ts identifies the snapshot served. Historical snapshots are retained from 2026-07-27: use the at parameter for a point-in-time read, or the /history variant to enumerate snapshots with cursor pagination. Available on every plan; the endpoint carries a premium per-request credit cost. Note: before 2026-07-27 this path served a pending trigger-order map; that data now lives at /orders/{symbol}/trigger-levels. For HIP-3, cross-margined exposure is reported in flagged_notional and excluded from buckets.'
+      operationId: getHip3LiquidationLevels
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol.
+        schema:
+          type: string
+          example: xyz:TSLA
+        example: xyz:TSLA
+      - name: range_pct
+        in: query
+        description: Percentage range around the snapshot mid/mark price. Clamped between 1 and 50. Default 10.
+        schema:
+          type: number
+          default: 10
+          minimum: 1
+          maximum: 50
+      - name: buckets
+        in: query
+        description: Number of price buckets. Clamped between 10 and 200. Default 50.
+        schema:
+          type: integer
+          default: 50
+          minimum: 10
+          maximum: 200
+      - name: side
+        in: query
+        description: Optional side filter. bid/buy/B keeps the long (or bid) side, ask/sell/A keeps the short (or ask) side; the other side is zeroed.
+        schema:
+          type: string
+          enum:
+          - bid
+          - ask
+          - buy
+          - sell
+          - B
+          - A
+      - name: at
+        in: query
+        description: 'Point-in-time read: epoch milliseconds (UTC). Serves the newest snapshot at or before this instant. Omit for the latest snapshot. History begins 2026-07-27; earlier instants return 404.'
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Get HIP-3 liquidation levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLiquidationLevels'
+              examples:
+                raw:
+                  summary: Representative current response sourced from raw liquidation levels
+                  value:
+                    success: true
+                    data:
+                      mid_price: 318.98
+                      snapshot_ts: '2026-08-06 13:20:14.000'
+                      block_number: 1100170000
+                      total_long: 9439936.86
+                      total_short: 12457314.46
+                      flagged_notional: 15437186.38
+                      levels:
+                      - price: 316.1092
+                        long_notional: 2947.38
+                        short_notional: 0
+                        long_count: 4
+                        short_count: 0
+                      - price: 316.7471
+                        long_notional: 5528.56
+                        short_notional: 0
+                        long_count: 6
+                        short_count: 0
+                      - price: 317.3851
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      - price: 318.0231
+                        long_notional: 2001.92
+                        short_notional: 0
+                        long_count: 4
+                        short_count: 0
+                      - price: 318.661
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      - price: 319.299
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      - price: 319.9369
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      - price: 320.5749
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      - price: 321.2129
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      - price: 321.8508
+                        long_notional: 0
+                        short_notional: 0
+                        long_count: 0
+                        short_count: 0
+                      source: raw
+                    meta:
+                      count: 10
+                      request_id: c3d4e5f6-a7b8-4901-abcd-f0123456789a
+                histogram:
+                  summary: Representative current response sourced from a stored histogram
+                  value:
+                    success: true
+                    data:
+                      mid_price: 322.86
+                      snapshot_ts: '2026-08-02 18:46:43.000'
+                      block_number: 1095610000
+                      total_long: 9707806.14
+                      total_short: 13189198.41
+                      flagged_notional: 15254536.42
+                      levels:
+                      - price: 293.8026
+                        long_notional: 221368.31
+                        short_notional: 0
+                        long_count: 64
+                        short_count: 0
+                      - price: 300.2598
+                        long_notional: 120836.17
+                        short_notional: 0
+                        long_count: 35
+                        short_count: 0
+                      - price: 306.717
+                        long_notional: 6712.26
+                        short_notional: 0
+                        long_count: 15
+                        short_count: 0
+                      - price: 313.1742
+                        long_notional: 0
+                        short_notional: 48.75
+                        long_count: 0
+                        short_count: 1
+                      - price: 319.6314
+                        long_notional: 0
+                        short_notional: 327341.3
+                        long_count: 0
+                        short_count: 10
+                      - price: 326.0886
+                        long_notional: 0
+                        short_notional: 3690.61
+                        long_count: 0
+                        short_count: 4
+                      - price: 332.5458
+                        long_notional: 0
+                        short_notional: 59987.71
+                        long_count: 0
+                        short_count: 10
+                      - price: 339.003
+                        long_notional: 0
+                        short_notional: 55121.89
+                        long_count: 0
+                        short_count: 3
+                      - price: 345.4602
+                        long_notional: 0
+                        short_notional: 461.37
+                        long_count: 0
+                        short_count: 3
+                      - price: 351.9174
+                        long_notional: 0
+                        short_notional: 374.52
+                        long_count: 0
+                        short_count: 4
+                      source: histogram
+                      source_bin_width: 1.6143
+                    meta:
+                      count: 10
+                      request_id: d4e5f6a7-b8c9-4012-bcde-0123456789ab
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip3/liquidations/{symbol}/levels/history:
+    get:
+      tags:
+      - HIP-3 - Liquidations
+      summary: Get HIP-3 liquidation levels history
+      description: 'Historical liquidation-levels snapshots (about every 5 minutes, retained from 2026-07-27), ascending by `snapshot_ts`. Cursor pagination: pass `start`/`end`/`limit` and follow `meta.next_cursor` as the `cursor` parameter. `summary=true` omits only `levels` while retaining `snapshot_ts`, `block_number`, `mid_price`, `total_long`, `total_short`, and `flagged_notional`.'
+      operationId: getHip3LiquidationLevelsHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol.
+        schema:
+          type: string
+          example: xyz:TSLA
+        example: xyz:TSLA
+      - name: start
+        in: query
+        description: 'Range start, epoch milliseconds inclusive. Default: 24 hours before end.'
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: 'Range end, epoch milliseconds inclusive. Default: now.'
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor from meta.next_cursor of the previous page (a snapshot_ts in epoch milliseconds, exclusive). The page continues strictly after it.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Snapshots per page. Default 24, maximum 100. When a page is full, meta.next_cursor carries the cursor for the next page.
+        schema:
+          type: integer
+          default: 24
+          minimum: 1
+          maximum: 100
+      - name: summary
+        in: query
+        description: When true, omits only `levels` while retaining `snapshot_ts`, `block_number`, `mid_price`, `total_long`, `total_short`, and `flagged_notional`. Cheap way to discover which snapshots exist before fetching full histograms.
+        schema:
+          type: boolean
+          default: false
+      - name: range_pct
+        in: query
+        description: Percentage range around the snapshot mid/mark price. Clamped between 1 and 50. Default 10.
+        schema:
+          type: number
+          default: 10
+          minimum: 1
+          maximum: 50
+      - name: buckets
+        in: query
+        description: Number of price buckets. Clamped between 10 and 200. Default 50.
+        schema:
+          type: integer
+          default: 50
+          minimum: 10
+          maximum: 200
+      - name: side
+        in: query
+        description: Optional side filter. bid/buy/B keeps the long (or bid) side, ask/sell/A keeps the short (or ask) side; the other side is zeroed.
+        schema:
+          type: string
+          enum:
+          - bid
+          - ask
+          - buy
+          - sell
+          - B
+          - A
+      responses:
+        '200':
+          description: Get HIP-3 liquidation levels history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseLiquidationLevelsHistory'
+              examples:
+                historical:
+                  summary: Representative historical response after proportional re-binning
+                  value:
+                    success: true
+                    data:
+                    - snapshot_ts: '2026-08-05 14:03:07.000'
+                      block_number: 1099000000
+                      mid_price: 325.07
+                      total_long: 9851910.14
+                      total_short: 12394193.54
+                      flagged_notional: 15392787.78
+                      levels:
+                      - price: 295.8137
+                        long_notional: 124883.12
+                        short_notional: 0
+                        long_count: 33
+                        short_count: 0
+                      - price: 302.3151
+                        long_notional: 106188.67
+                        short_notional: 0
+                        long_count: 51
+                        short_count: 0
+                      - price: 308.8165
+                        long_notional: 76139.52
+                        short_notional: 0
+                        long_count: 14
+                        short_count: 0
+                      - price: 315.3179
+                        long_notional: 48138.32
+                        short_notional: 0
+                        long_count: 47
+                        short_count: 0
+                      - price: 321.8193
+                        long_notional: 1856.47
+                        short_notional: 0
+                        long_count: 5
+                        short_count: 0
+                      - price: 328.3207
+                        long_notional: 0
+                        short_notional: 870.54
+                        long_count: 0
+                        short_count: 2
+                      - price: 334.8221
+                        long_notional: 0
+                        short_notional: 32169.58
+                        long_count: 0
+                        short_count: 11
+                      - price: 341.3235
+                        long_notional: 0
+                        short_notional: 17878.85
+                        long_count: 0
+                        short_count: 1
+                      - price: 347.8249
+                        long_notional: 0
+                        short_notional: 25706.21
+                        long_count: 0
+                        short_count: 9
+                      - price: 354.3263
+                        long_notional: 0
+                        short_notional: 1654.61
+                        long_count: 0
+                        short_count: 10
+                    meta:
+                      count: 1
+                      next_cursor: null
+                      request_id: f6a7b8c9-d0e1-4234-9efa-23456789abcd
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiResponseLiquidationLevelsHistory:
+      type: object
+      description: Paginated historical liquidation-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelsHistoryItem'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    LiquidationLevelsData:
+      type: object
+      description: Projected forced-liquidation levels computed from clearinghouse positions and margin state (positions plus maintenance-margin tiers), aggregated into price buckets around the snapshot mark price. Snapshots are computed roughly every 5 minutes; snapshot_ts identifies the snapshot served.
+      required:
+      - mid_price
+      - snapshot_ts
+      - block_number
+      - total_long
+      - total_short
+      - flagged_notional
+      - source
+      - levels
+      properties:
+        mid_price:
+          type: number
+          description: Mark price at the snapshot, center of the requested range.
+          example: 64215
+        snapshot_ts:
+          type: string
+          description: UTC snapshot time the levels reflect. Treat snapshots older than 2 hours as stale.
+        block_number:
+          type: integer
+          format: int64
+          description: Hyperliquid block height the snapshot reflects.
+        total_long:
+          type: number
+          description: Total long notional at risk across the whole book, not only the returned window.
+        total_short:
+          type: number
+          description: Total short notional at risk across the whole book.
+        flagged_notional:
+          type: number
+          description: Notional reported in totals but computed approximately or not assigned to a returned bucket. For HIP-3, cross-margined exposure is reported here and excluded from buckets.
+        source:
+          type: string
+          enum:
+          - raw
+          - histogram
+          description: Snapshot storage form used to answer the request. raw means query-time bins over stored fine-grained levels; histogram means proportional re-binning of a retained base histogram.
+        source_bin_width:
+          type: number
+          description: Stored source-bin width in price units. Present only when source is histogram.
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelBucket'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    LiquidationLevelsHistoryItem:
+      type: object
+      description: One historical liquidation-levels snapshot. levels is omitted when summary=true.
+      required:
+      - snapshot_ts
+      - block_number
+      - mid_price
+      - total_long
+      - total_short
+      - flagged_notional
+      properties:
+        snapshot_ts:
+          type: string
+        block_number:
+          type: integer
+          format: int64
+        mid_price:
+          type: number
+        total_long:
+          type: number
+        total_short:
+          type: number
+        flagged_notional:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelBucket'
+    ApiResponseLiquidationLevels:
+      type: object
+      description: API response containing projected forced-liquidation levels for one snapshot.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/LiquidationLevelsData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    LiquidationLevelBucket:
+      type: object
+      description: One price bucket of projected forced-liquidation exposure.
+      required:
+      - price
+      - long_notional
+      - short_notional
+      - long_count
+      - short_count
+      properties:
+        price:
+          type: number
+          description: Bucket center price.
+        long_notional:
+          type: number
+          description: USD notional of long positions projected to liquidate in this bucket.
+        short_notional:
+          type: number
+          description: USD notional of short positions projected to liquidate in this bucket.
+        long_count:
+          type: integer
+          description: Number of long positions in this bucket.
+        short_count:
+          type: integer
+          description: Number of short positions in this bucket.
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

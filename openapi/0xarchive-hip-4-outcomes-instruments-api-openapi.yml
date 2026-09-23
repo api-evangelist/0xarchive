@@ -1,0 +1,346 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-4 Outcomes - Instruments API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-4 Outcomes - Instruments
+  description: 'HIP-4 per-side instrument discovery (one row per `#N` coin). Each outcome has two sides: side 0 (Yes) and side 1 (No). Coins are `#`-prefixed. Data from May 2026.'
+paths:
+  /v1/hyperliquid/hip4/instruments:
+    get:
+      tags:
+      - HIP-4 Outcomes - Instruments
+      summary: List HIP-4 instruments
+      description: 'List all HIP-4 outcome-market per-side instruments (one row per `#N` coin). Each outcome has two sides: side 0 (Yes) and side 1 (No). Coins are `#`-prefixed.'
+      operationId: listHip4Instruments
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of HIP-4 per-side instruments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip4OutcomeArray'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/instruments/{symbol}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Instruments
+      summary: Get HIP-4 instrument
+      description: Get a single HIP-4 per-side instrument by coin id (e.g., `0`, `1`). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+      operationId: getHip4Instrument
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: HIP-4 instrument detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip4Outcome'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseHip4OutcomeArray:
+      type: object
+      description: API response wrapping an array of HIP-4 per-side instruments
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip4Outcome'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Hip4Outcome:
+      type: object
+      description: 'HIP-4 per-side instrument metadata. One row per `#N` coin. Each outcome has two sides: side 0 (Yes) and side 1 (No). Public asset_id formula: `100_000_000 + 10*outcome_id + side`. Coin format: `#<10*outcome_id + side>`.'
+      required:
+      - outcome_id
+      - side
+      - asset_id
+      - coin
+      - symbol
+      properties:
+        outcome_id:
+          type: integer
+          format: int64
+          description: Numeric outcome identifier
+          example: 0
+        side:
+          type: integer
+          description: 'Side index: 0 = Yes, 1 = No'
+          enum:
+          - 0
+          - 1
+          example: 0
+        asset_id:
+          type: integer
+          format: int64
+          description: 'Public asset ID. Formula: `100_000_000 + 10*outcome_id + side`.'
+          example: 100000000
+        coin:
+          type: string
+          description: 'Coin identifier. Returned in `#`-prefixed form. REST paths accept either the bare numeric id (e.g. `0`) or the `#`-prefixed form (e.g. `#0`). Format: `10*outcome_id + side`.'
+          example: '#0'
+        symbol:
+          type: string
+          description: Same value as `coin`. Provided for consistency with other venues.
+          example: '#0'
+        name:
+          type:
+          - string
+          - 'null'
+          description: Human-readable per-side market name
+          example: BTC ≥ 78213 by 2026-05-03 06:00 UTC — Yes
+        description:
+          type:
+          - string
+          - 'null'
+          description: Pipe-delimited recurring-market metadata
+          example: class:priceBinary|underlying:BTC|expiry:20260503-0600|targetPrice:78213|period:1d
+        side_name:
+          type:
+          - string
+          - 'null'
+          description: Human label for this side (typically `Yes` or `No`)
+          example: 'Yes'
+        recurring_class:
+          type:
+          - string
+          - 'null'
+          description: Recurring market class (e.g., `priceBinary`)
+          example: priceBinary
+        recurring_underlying:
+          type:
+          - string
+          - 'null'
+          description: Underlying asset for recurring price-binary outcomes
+          example: BTC
+        recurring_expiry:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Settlement timestamp (UTC)
+          example: '2026-05-03T06:00:00Z'
+        recurring_target_px:
+          type:
+          - number
+          - 'null'
+          description: Target price for the binary outcome
+          example: 78213
+        recurring_period:
+          type:
+          - string
+          - 'null'
+          description: Cadence of the recurring market (e.g., `1d`, `1h`)
+          example: 1d
+        builder_address:
+          type:
+          - string
+          - 'null'
+          description: Builder wallet address that deployed the outcome
+          example: '0x0000000000000000000000000000000000000000'
+        is_settled:
+          type: boolean
+          description: Whether the outcome has settled. Once settled, live tracking ends for the market, but historical data remains queryable.
+          example: false
+        settlement_value:
+          type:
+          - number
+          - 'null'
+          description: Settlement value once the outcome settles (0.0 or 1.0 for binary outcomes). Omitted while unsettled.
+          example: 0
+        settlement_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Settlement timestamp (UTC). Omitted while unsettled.
+          example: '2026-05-03T06:00:05.149Z'
+        first_seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this outcome side was first observed by 0xArchive (UTC)
+          example: '2026-05-02T07:47:00Z'
+        last_updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Timestamp when the side metadata was last updated
+          example: '2026-05-02T20:25:00Z'
+        display_title:
+          type:
+          - string
+          - 'null'
+          description: Per-side human-readable title, deterministic from parsed metadata.
+          example: BTC above 78,213 on May 3 at 06:00 UTC? — Yes
+        slug:
+          type:
+          - string
+          - 'null'
+          description: Per-side URL slug mirroring Hyperliquid's pattern.
+          example: btc-above-78213-yes-may-03-0600
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseHip4Outcome:
+      type: object
+      description: API response wrapping a single HIP-4 per-side instrument
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip4Outcome'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

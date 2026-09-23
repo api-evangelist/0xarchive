@@ -1,0 +1,329 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Hyperliquid - Order Book API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Hyperliquid - Order Book
+  description: Hyperliquid venue-native L2 order book snapshots. Native Hyperliquid source snapshots are capped at 20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
+paths:
+  /v1/hyperliquid/orderbook/{symbol}:
+    get:
+      tags:
+      - Hyperliquid - Order Book
+      summary: Get Hyperliquid native L2 order book (20 levels)
+      description: Get the latest venue-native Hyperliquid L2 order book snapshot, or a snapshot at a specific timestamp. This native route is capped at the 20 price levels per side provided by Hyperliquid source snapshots. Use `/v1/hyperliquid/orderbook/{symbol}/l2` for full-depth aggregated L2 derived from L4.
+      operationId: getHyperliquidOrderbook
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        schema:
+          type: string
+          example: BTC
+        example: BTC
+      - name: timestamp
+        in: query
+        description: Unix timestamp in milliseconds. If not provided, returns latest snapshot.
+        schema:
+          type: integer
+          format: int64
+          example: 1704067200000
+      - name: depth
+        in: query
+        description: Requested price levels per side for this native venue snapshot. Hyperliquid native L2 data is capped at 20 levels per side; values above 20 do not return full depth on this route. Use the /l2 routes for full-depth aggregated L2.
+        schema:
+          type: integer
+          example: 20
+          maximum: 20
+      responses:
+        '200':
+          description: Order book snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBook'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/orderbook/{symbol}/history:
+    get:
+      tags:
+      - Hyperliquid - Order Book
+      summary: Get Hyperliquid native L2 order book history (20 levels)
+      description: Get historical venue-native Hyperliquid L2 order book snapshots within a time range. Historical windows use `start` and `end` Unix-millisecond query parameters. This native route is capped at 20 price levels per side; use `/v1/hyperliquid/orderbook/{symbol}/l2/history` for full-depth checkpoint history derived from L4.
+      operationId: getHyperliquidOrderbookHistory
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: BTC
+        description: Trading pair symbol (e.g., BTC, ETH, SOL)
+        example: BTC
+      - name: start
+        in: query
+        description: Start timestamp in Unix milliseconds. Defaults to 24h ago.
+        schema:
+          type: integer
+          format: int64
+      - name: end
+        in: query
+        description: End timestamp in Unix milliseconds. Defaults to now.
+        schema:
+          type: integer
+          format: int64
+      - name: cursor
+        in: query
+        description: Cursor for pagination (timestamp from previous response's `next_cursor`)
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      - name: depth
+        in: query
+        description: Requested price levels per side for this native venue snapshot. Hyperliquid native L2 data is capped at 20 levels per side; values above 20 do not return full depth on this route. Use the /l2 routes for full-depth aggregated L2.
+        schema:
+          type: integer
+          maximum: 20
+      responses:
+        '200':
+          description: List of order book snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderBookArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    OrderBook:
+      type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
+          type: array
+          description: Bid price levels (best bid first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

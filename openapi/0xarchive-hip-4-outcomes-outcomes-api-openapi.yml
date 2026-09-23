@@ -1,0 +1,437 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive HIP-4 Outcomes - Outcomes API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: HIP-4 Outcomes - Outcomes
+  description: HIP-4 outcome market discovery (one row per outcome, both sides combined). Use these to enumerate live and settled binary outcome markets. Data from May 2026.
+paths:
+  /v1/hyperliquid/hip4/outcomes:
+    get:
+      tags:
+      - HIP-4 Outcomes - Outcomes
+      summary: List HIP-4 outcomes
+      description: List HIP-4 outcome markets (one row per outcome, both sides combined). Optional `is_settled` filter. Cursor pagination. Response uses `Hip4OutcomeAggregate` and OMITS the `aggregated_oi` field. Use `/outcomes/{outcome_id}` to fetch a single outcome with `aggregated_oi` populated. Data available from May 2026.
+      operationId: listHip4Outcomes
+      parameters:
+      - name: is_settled
+        in: query
+        description: Filter by settlement status. Omit to return both live and settled outcomes.
+        schema:
+          type: boolean
+      - name: cursor
+        in: query
+        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of results (default: 100, max: 1000)'
+        schema:
+          type: integer
+          default: 100
+          maximum: 1000
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of HIP-4 outcomes (without `aggregated_oi`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip4OutcomeAggregateArray'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/outcomes/{outcome_id}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Outcomes
+      summary: Get HIP-4 outcome detail
+      description: 'Get a single HIP-4 outcome by `outcome_id`. Response uses `Hip4OutcomeAggregate` WITH `aggregated_oi` populated: latest both-sides OI snapshot including `outcome_display_open_interest_contracts` (sum of side0 + side1), `paired_set_supply_contracts` (paired-set notional), and `side_supply_parity` (whether side0 == side1 within tolerance). Currency is always `USDH`. Data available from May 2026.'
+      operationId: getHip4Outcome
+      parameters:
+      - name: outcome_id
+        in: path
+        required: true
+        description: 'Numeric outcome ID (integer >= 0). Each outcome has two sides: side 0 (Yes) and side 1 (No).'
+        schema:
+          type: integer
+          format: int64
+          example: 0
+        example: 0
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: HIP-4 outcome detail (with `aggregated_oi`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip4OutcomeAggregate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/hyperliquid/hip4/outcomes/by-slug/{slug}:
+    get:
+      tags:
+      - HIP-4 Outcomes - Outcomes
+      summary: Get HIP-4 outcome by slug
+      description: Look up a HIP-4 outcome aggregate by synthesized outcome slug or side slug, for example `btc-above-78213-may-04-0600` or `btc-above-78213-yes-may-04-0600`. Returns the same aggregate shape as `/outcomes/{outcome_id}` with `aggregated_oi` populated when available.
+      operationId: getHip4OutcomeBySlug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        description: HIP-4 outcome or side slug.
+        schema:
+          type: string
+          example: btc-above-78213-may-04-0600
+        example: btc-above-78213-may-04-0600
+      responses:
+        '200':
+          description: HIP-4 outcome aggregate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHip4OutcomeAggregate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseHip4OutcomeAggregateArray:
+      type: object
+      description: API response wrapping an array of HIP-4 outcome aggregates (without `aggregated_oi`; use `/outcomes/{outcome_id}` for the detail variant)
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip4OutcomeAggregate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Hip4OutcomeAggregate:
+      type: object
+      description: Per-outcome aggregate (both sides combined). Returned by `/outcomes` (list, without `aggregated_oi`) and `/outcomes/{outcome_id}` (detail, with `aggregated_oi` populated).
+      required:
+      - outcome_id
+      - side_specs
+      - is_settled
+      properties:
+        outcome_id:
+          type: integer
+          format: int64
+          description: Numeric outcome identifier
+          example: 0
+        name:
+          type:
+          - string
+          - 'null'
+          description: Human-readable outcome name (without per-side suffix)
+          example: BTC ≥ 78213 by 2026-05-03 06:00 UTC
+        description_raw:
+          type:
+          - string
+          - 'null'
+          description: Pipe-delimited recurring-market metadata as emitted upstream
+          example: class:priceBinary|underlying:BTC|expiry:20260503-0600|targetPrice:78213|period:1d
+        class:
+          type:
+          - string
+          - 'null'
+          description: Outcome class (e.g., `priceBinary`)
+          example: priceBinary
+        underlying:
+          type:
+          - string
+          - 'null'
+          description: Underlying asset for recurring price-binary outcomes
+          example: BTC
+        expiry:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Settlement timestamp (UTC)
+          example: '2026-05-03T06:00:00Z'
+        target_price:
+          type:
+          - number
+          - 'null'
+          description: Target price for the binary outcome
+          example: 78213
+        period:
+          type:
+          - string
+          - 'null'
+          description: Cadence of the recurring market (e.g., `1d`, `1h`)
+          example: 1d
+        side_specs:
+          type: array
+          description: 'Per-side specs. Typically two elements: side 0 (Yes) and side 1 (No).'
+          items:
+            $ref: '#/components/schemas/Hip4SideSpec'
+        is_settled:
+          type: boolean
+          description: Whether the outcome has settled
+          example: false
+        status:
+          type:
+          - string
+          - 'null'
+          description: Lifecycle status (`live`, `settled`, ...)
+          example: live
+        source_seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Last time the outcome was seen upstream
+          example: '2026-05-02T20:25:00Z'
+        aggregated_oi:
+          allOf:
+          - $ref: '#/components/schemas/Hip4AggregatedOi'
+          description: Display/paired/parity OI aggregates. Populated ONLY on the `/outcomes/{outcome_id}` detail response. Omitted (or null) on the `/outcomes` list response.
+    ApiResponseHip4OutcomeAggregate:
+      type: object
+      description: API response wrapping a single HIP-4 outcome aggregate (with `aggregated_oi` populated on the detail endpoint)
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip4OutcomeAggregate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Hip4AggregatedOi:
+      type: object
+      description: Derived OI display fields combining both sides of a HIP-4 outcome. Currency is always `USDH` (Hyperliquid's stablecoin). Only populated on `/outcomes/{outcome_id}` (detail), NOT on `/outcomes` (list).
+      required:
+      - currency
+      properties:
+        side0_open_interest_contracts:
+          type:
+          - number
+          - 'null'
+          description: Latest open-interest contracts for side 0 (Yes)
+          example: 568048
+        side1_open_interest_contracts:
+          type:
+          - number
+          - 'null'
+          description: Latest open-interest contracts for side 1 (No)
+          example: 568048
+        outcome_display_open_interest_contracts:
+          type:
+          - number
+          - 'null'
+          description: 'Display total: sum of side0 + side1 OI contracts. Use this for outcome-level OI dashboards.'
+          example: 1136096
+        paired_set_supply_contracts:
+          type:
+          - number
+          - 'null'
+          description: 'Paired-set supply: minimum of side0 and side1 OI contracts. Represents the count of fully collateralized Yes+No pairs in circulation.'
+          example: 568048
+        side_supply_parity:
+          type:
+          - boolean
+          - 'null'
+          description: True when side0 OI equals side1 OI within tolerance. Parity should hold for binary outcomes; a sustained false value indicates ingestion drift.
+          example: true
+        currency:
+          type: string
+          description: Notional currency. Always `USDH` for HIP-4.
+          enum:
+          - USDH
+          example: USDH
+        as_of:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Latest timestamp across both sides
+          example: '2026-05-02T20:27:21Z'
+        side0_as_of:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Timestamp of the side 0 OI sample
+          example: '2026-05-02T20:27:21Z'
+        side1_as_of:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Timestamp of the side 1 OI sample
+          example: '2026-05-02T20:27:21Z'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    Hip4SideSpec:
+      type: object
+      description: 'Per-side spec nested in `Hip4OutcomeAggregate.side_specs`. One element per side (typically two: side 0 = Yes, side 1 = No).'
+      required:
+      - side
+      - name
+      - coin
+      - asset_id
+      properties:
+        side:
+          type: integer
+          description: 'Side index: 0 = Yes, 1 = No'
+          enum:
+          - 0
+          - 1
+          example: 0
+        name:
+          type: string
+          description: Human label for this side
+          example: 'Yes'
+        coin:
+          type: string
+          description: Coin identifier for this side. Returned in `#`-prefixed form. REST paths accept either the bare numeric id (e.g. `0`) or the `#`-prefixed form (e.g. `#0`).
+          example: '#0'
+        asset_id:
+          type: integer
+          format: int64
+          description: Public asset ID for this side
+          example: 100000000
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

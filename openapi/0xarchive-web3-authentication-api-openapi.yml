@@ -1,0 +1,530 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Web3 Authentication API
+  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
+  version: 1.6.1
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Web3 Authentication
+  description: SIWE authentication for existing wallet accounts and autonomous paid wallet access via x402. Standard Free accounts are created through the browser signup flow.
+paths:
+  /v1/auth/web3/challenge:
+    post:
+      tags:
+      - Web3 Authentication
+      summary: Get SIWE challenge message
+      description: Get a single-use SIWE (Sign-In with Ethereum) challenge message for existing-wallet sign-in, wallet key management, or paid x402 access. The nonce expires after 10 minutes. A challenge does not create a Free account.
+      operationId: web3Challenge
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Web3ChallengeRequest'
+      responses:
+        '200':
+          description: SIWE challenge message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3ChallengeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/web3/signup:
+    post:
+      tags:
+      - Web3 Authentication
+      summary: Wallet free signup retired
+      description: Compatibility tombstone for the retired wallet-only Free signup flow. This endpoint never creates an account or API key and always returns HTTP 410 with `wallet_free_signup_retired`. Create a standard Free account at https://0xarchive.io/signup, or use `/v1/web3/subscribe` for paid wallet access.
+      operationId: web3Signup
+      security: []
+      responses:
+        '410':
+          description: Wallet-only Free signup is retired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3ErrorResponse'
+              example:
+                code: 410
+                error: Free wallet signup has been retired. Use standard signup for Free access or purchase paid wallet access.
+                error_code: wallet_free_signup_retired
+                request_id: 00000000-0000-0000-0000-000000000000
+      deprecated: true
+  /v1/web3/keys:
+    post:
+      tags:
+      - Web3 Authentication
+      summary: List API keys for wallet
+      description: List all API keys belonging to the authenticated wallet. Requires a fresh SIWE challenge signed with `personal_sign` (EIP-191).
+      operationId: web3ListKeys
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Web3KeysRequest'
+      responses:
+        '200':
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3KeysResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/web3/keys/revoke:
+    post:
+      tags:
+      - Web3 Authentication
+      summary: Revoke an API key
+      description: Revoke a specific API key by its ID. Requires a fresh SIWE challenge signed with `personal_sign` (EIP-191).
+      operationId: web3RevokeKey
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Web3RevokeRequest'
+      responses:
+        '200':
+          description: Key revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3RevokeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/web3/subscribe:
+    post:
+      tags:
+      - Web3 Authentication
+      summary: Start Build or Pro access via x402 USDC payment
+      description: 'x402-protected endpoint for purchasing 30-day Build or Pro access with USDC on Base. Unknown wallets receive an account and API key only after successful payment settlement. Existing disabled wallets are rejected before facilitator verification or settlement.
+
+
+        **Flow:**
+
+        1. POST with `{ "tier": "build" }` (no payment header) → Server returns 402 with payment details (amount, pay_to address, network)
+
+        2. Sign an EIP-712 `TransferWithAuthorization` (EIP-3009) on USDC Base for the specified amount
+
+        3. Build x402 v2 payment payload, base64-encode it, and retry with `payment-signature` header
+
+        4. Server verifies and settles payment via the facilitator → grants access → returns API key
+
+
+        No API key required. Payment establishes paid wallet access.'
+      operationId: web3Subscribe
+      security: []
+      parameters:
+      - name: payment-signature
+        in: header
+        description: Base64-encoded x402 v2 payment payload containing the EIP-3009 signed USDC transfer authorization. Omit on first request to receive payment details.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Web3SubscribeRequest'
+      responses:
+        '200':
+          description: Subscription created successfully (returned when valid payment-signature header is provided)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3SubscribeResponse'
+        '402':
+          description: 'Payment required. Response includes payment details: amount (micro-USDC), pay_to address, and network. Sign and retry with payment-signature header.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payment:
+                    type: object
+                    properties:
+                      amount:
+                        type: string
+                        description: Amount in micro-USDC (6 decimals)
+                        example: '49000000'
+                      pay_to:
+                        type: string
+                        description: Treasury address to send USDC to
+                        example: 0x...
+                      network:
+                        type: string
+                        description: Blockchain network
+                        example: base
+        '403':
+          description: The existing wallet account is disabled. No facilitator verification or settlement is attempted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3ErrorResponse'
+              example:
+                code: 403
+                error: Account is disabled
+                error_code: account_disabled
+                request_id: 00000000-0000-0000-0000-000000000000
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/auth/web3/verify:
+    post:
+      tags:
+      - Web3 Authentication
+      summary: Verify SIWE signature
+      description: Verify a signed SIWE message for an existing active wallet account, consume the single-use nonce, and set auth cookies for browser/session flows. Unknown wallets receive HTTP 403 with `wallet_account_required`; verification never creates a Free account. Standard Free signup is available at https://0xarchive.io/signup and paid wallet access at `/v1/web3/subscribe`.
+      operationId: web3Verify
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Web3VerifyRequest'
+      responses:
+        '200':
+          description: SIWE verification succeeded and session cookies were set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Authentication cookies for browser/session clients.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The wallet does not have an existing account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Web3ErrorResponse'
+              example:
+                code: 403
+                error: This wallet does not have an existing account. Use standard signup for Free access or purchase paid wallet access.
+                error_code: wallet_account_required
+                request_id: 00000000-0000-0000-0000-000000000000
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  schemas:
+    Web3ErrorResponse:
+      type: object
+      required:
+      - code
+      - error
+      - error_code
+      - request_id
+      properties:
+        code:
+          type: integer
+          format: int32
+        error:
+          type: string
+        error_code:
+          type: string
+        request_id:
+          type: string
+    Web3SubscribeRequest:
+      type: object
+      required:
+      - tier
+      properties:
+        tier:
+          type: string
+          enum:
+          - build
+          - pro
+          description: Subscription tier to purchase
+          example: build
+    Web3KeysResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/Web3ApiKey'
+        wallet_address:
+          type: string
+          description: The wallet address
+    Web3ChallengeRequest:
+      type: object
+      required:
+      - address
+      properties:
+        address:
+          type: string
+          description: Ethereum wallet address
+          example: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18'
+    Web3VerifyRequest:
+      type: object
+      required:
+      - message
+      - signature
+      properties:
+        message:
+          type: string
+          description: SIWE message returned by `/v1/auth/web3/challenge` and signed by the wallet.
+        signature:
+          type: string
+          description: 65-byte hex ECDSA signature, with or without 0x prefix.
+          example: '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    Web3RevokeResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message
+          example: API key revoked successfully
+        wallet_address:
+          type: string
+          description: The wallet address that owned the key
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    Web3AuthResponse:
+      type: object
+      description: Successful SIWE verification response for an existing wallet account. The route also sets auth cookies for browser/session flows.
+      required:
+      - success
+      - user
+      - is_new_user
+      properties:
+        success:
+          type: boolean
+          example: true
+        user:
+          $ref: '#/components/schemas/Web3UserInfo'
+        is_new_user:
+          type: boolean
+          description: Always false. SIWE verification does not create wallet accounts.
+          example: false
+          enum:
+          - false
+    Web3RevokeRequest:
+      type: object
+      required:
+      - message
+      - signature
+      - key_id
+      properties:
+        message:
+          type: string
+          description: The SIWE message from the challenge endpoint
+        signature:
+          type: string
+          description: Hex-encoded signature from personal_sign (0x-prefixed)
+        key_id:
+          type: string
+          format: uuid
+          description: UUID of the key to revoke
+    Web3ChallengeResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message to sign with personal_sign (EIP-191)
+        nonce:
+          type: string
+          description: Single-use nonce (expires after 10 minutes)
+    Web3ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique key ID
+        name:
+          type: string
+          description: Key name
+        key_prefix:
+          type: string
+          description: First characters of the key for identification
+          example: 0xa_live_abc1
+        is_active:
+          type: boolean
+          description: Whether the key is currently active
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Last usage timestamp
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+    Web3SubscribeResponse:
+      type: object
+      properties:
+        api_key:
+          type: string
+          description: The generated API key for the new subscription
+          example: 0xa_...
+        tier:
+          type: string
+          description: The subscription tier activated
+          example: build
+        expires_at:
+          type: string
+          format: date-time
+          description: Subscription expiration date (30 days from purchase)
+        wallet_address:
+          type: string
+          description: The wallet address associated with the subscription
+        tx_hash:
+          type:
+          - string
+          - 'null'
+          description: On-chain transaction hash for the USDC transfer (if settled)
+    Web3KeysRequest:
+      type: object
+      required:
+      - message
+      - signature
+      properties:
+        message:
+          type: string
+          description: The SIWE message from the challenge endpoint
+        signature:
+          type: string
+          description: Hex-encoded signature from personal_sign (0x-prefixed)
+    Web3UserInfo:
+      type: object
+      required:
+      - id
+      - email
+      - tier
+      - wallet_address
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          description: Account email associated with the wallet user.
+        tier:
+          type: string
+          description: Current subscription tier.
+          example: free
+        wallet_address:
+          type: string
+          description: Authenticated wallet address.
+          example: '0x742d35cc6634c0532925a3b844bc9e7595f2bd18'
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.
