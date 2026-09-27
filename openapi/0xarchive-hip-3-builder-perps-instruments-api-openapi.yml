@@ -74,29 +74,23 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiMeta:
+    Error:
       type: object
-      description: Response metadata
+      description: Error response
       properties:
-        count:
+        code:
           type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     ApiResponseHip3Instrument:
       type: object
       description: API response wrapping a single HIP-3 instrument
@@ -106,6 +100,19 @@ components:
           example: true
         data:
           $ref: '#/components/schemas/Hip3Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseHip3InstrumentArray:
+      type: object
+      description: API response wrapping an array of HIP-3 instruments
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip3Instrument'
         meta:
           $ref: '#/components/schemas/ApiMeta'
     Hip3Instrument:
@@ -159,36 +166,29 @@ components:
           format: date-time
           description: Timestamp of latest data point
           example: '2026-02-18T12:00:00.000Z'
-    Error:
+    ApiMeta:
       type: object
-      description: Error response
+      description: Response metadata
       properties:
-        code:
+        count:
           type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-    ApiResponseHip3InstrumentArray:
-      type: object
-      description: API response wrapping an array of HIP-3 instruments
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hip3Instrument'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required
@@ -210,6 +210,15 @@ components:
             error: 'Failed to deserialize query string: limit: invalid digit found in string'
             error_code: invalid_query_params
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -232,15 +241,6 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 404
-            error: Resource not found
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

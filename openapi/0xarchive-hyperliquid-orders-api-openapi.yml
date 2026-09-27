@@ -431,53 +431,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    ApiResponseTriggerLevelsHistory:
-      type: object
-      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseTriggerLevels:
-      type: object
-      description: API response containing the pending trigger-order map.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/TriggerLevelsData'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     Error:
       type: object
       description: Error response
@@ -495,6 +448,45 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
+    TriggerLevelsData:
+      type: object
+      description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets around the current mid/mark price. Voluntary trigger orders, not projected forced liquidations.
+      required:
+      - mid_price
+      - as_of
+      - total_bid_size
+      - total_ask_size
+      - levels
+      properties:
+        mid_price:
+          type: number
+          description: Current mid/mark price, center of the requested range.
+        as_of:
+          type: string
+          description: UTC RFC3339 server time the pending-trigger state was read. The map is current-state; use this to detect staleness.
+        total_bid_size:
+          type: number
+          description: Total pending bid size across the returned window.
+        total_ask_size:
+          type: number
+          description: Total pending ask size across the returned window.
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevel'
+    ApiResponseTriggerLevelsHistory:
+      type: object
+      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     TriggerLevelsHistoryItem:
       type: object
       description: One historical trigger-levels snapshot (15-minute cadence). levels is omitted when summary=true.
@@ -548,32 +540,40 @@ components:
           type: number
           description: Ask-side trigger size in the bucket.
           example: 18.75
-    TriggerLevelsData:
+    ApiResponseTriggerLevels:
       type: object
-      description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets around the current mid/mark price. Voluntary trigger orders, not projected forced liquidations.
-      required:
-      - mid_price
-      - as_of
-      - total_bid_size
-      - total_ask_size
-      - levels
+      description: API response containing the pending trigger-order map.
       properties:
-        mid_price:
-          type: number
-          description: Current mid/mark price, center of the requested range.
-        as_of:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/TriggerLevelsData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
           type: string
-          description: UTC RFC3339 server time the pending-trigger state was read. The map is current-state; use this to detect staleness.
-        total_bid_size:
-          type: number
-          description: Total pending bid size across the returned window.
-        total_ask_size:
-          type: number
-          description: Total pending ask size across the returned window.
-        levels:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevel'
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required

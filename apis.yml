@@ -58,10 +58,11 @@ tags:
 - Parquet
 - Bulk Data
 - MCP
-- agent-native
+- Agent-Native
 - x402
 - OpenAPI
 - REST
+- A2A
 tags_raw:
 - market-data
 - historical-data
@@ -85,6 +86,7 @@ tags_raw:
 - x402
 - openapi
 - rest
+- A2A
 apis:
 - name: 0xArchive WebSocket API
   description: Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid
@@ -3051,3 +3053,10 @@ x-enrichment:
   status: enriched
   artifacts_added: 41
   pass: local-v1
+x-a2a:
+  verified: true
+  probed: '2026-09-26'
+  url: "https://docs.0xarchive.io/.well-known/agent-card.json"
+  grade: "conformant"
+  protocol_version: "0.3"
+  control: 404

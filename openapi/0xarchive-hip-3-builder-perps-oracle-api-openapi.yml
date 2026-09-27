@@ -79,29 +79,68 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiMeta:
+    Error:
       type: object
-      description: Response metadata
+      description: Error response
       properties:
-        count:
+        code:
           type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-        coverage_from:
+    ApiResponseHip3OracleExternalPrice:
+      type: object
+      description: API response containing HIP-3 oracle external price data.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip3OracleExternalPrice'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Hip3OracleExternalPrice:
+      type: object
+      description: Latest deployer-pushed external and mark price for a HIP-3 market.
+      required:
+      - symbol
+      - block_number
+      - timestamp
+      properties:
+        symbol:
           type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+          description: HIP-3 symbol.
+          example: km:US500
+        external_price:
+          type:
+          - number
+          - 'null'
+          description: Externally derived reference price when available.
+          example: 752.24
+        mark_price:
+          type:
+          - number
+          - 'null'
+          description: On-chain mark input.
+          example: 752.1
+        block_number:
+          type: integer
+          format: int64
+          description: Source block number.
+          example: 1038634032
+        timestamp:
+          type: integer
+          format: int64
+          description: Source timestamp in Unix milliseconds.
+          example: 1781678086894
     Hip3OracleDiscoveryBounds:
       type: object
       description: Instantaneous HIP-3 discovery bounds derived from the current reference price and max leverage.
@@ -157,57 +196,6 @@ components:
           format: int64
           description: Source timestamp in Unix milliseconds.
           example: 1781678086894
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    Hip3OracleExternalPrice:
-      type: object
-      description: Latest deployer-pushed external and mark price for a HIP-3 market.
-      required:
-      - symbol
-      - block_number
-      - timestamp
-      properties:
-        symbol:
-          type: string
-          description: HIP-3 symbol.
-          example: km:US500
-        external_price:
-          type:
-          - number
-          - 'null'
-          description: Externally derived reference price when available.
-          example: 752.24
-        mark_price:
-          type:
-          - number
-          - 'null'
-          description: On-chain mark input.
-          example: 752.1
-        block_number:
-          type: integer
-          format: int64
-          description: Source block number.
-          example: 1038634032
-        timestamp:
-          type: integer
-          format: int64
-          description: Source timestamp in Unix milliseconds.
-          example: 1781678086894
     ApiResponseHip3OracleDiscoveryBounds:
       type: object
       description: API response containing HIP-3 oracle discovery bounds.
@@ -219,17 +207,29 @@ components:
           $ref: '#/components/schemas/Hip3OracleDiscoveryBounds'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiResponseHip3OracleExternalPrice:
+    ApiMeta:
       type: object
-      description: API response containing HIP-3 oracle external price data.
+      description: Response metadata
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Hip3OracleExternalPrice'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required

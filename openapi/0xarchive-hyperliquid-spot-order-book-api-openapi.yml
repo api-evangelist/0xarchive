@@ -82,29 +82,55 @@ paths:
       - ApiKeyAuth: []
 components:
   schemas:
-    ApiMeta:
+    Error:
       type: object
-      description: Response metadata
+      description: Error response
       properties:
-        count:
+        code:
           type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-        coverage_from:
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
           type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
+          description: Price
+          example: '42150.00'
+        sz:
           type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     OrderBook:
       type: object
       description: L2 order book snapshot
@@ -151,55 +177,29 @@ components:
           type: string
           description: Spread in basis points
           example: '2.37'
-    ApiResponseOrderBookArray:
+    ApiMeta:
       type: object
+      description: Response metadata
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    PriceLevel:
-      type: object
-      description: Single price level in the order book
-      required:
-      - px
-      - sz
-      - n
-      properties:
-        px:
-          type: string
-          description: Price
-          example: '42150.00'
-        sz:
-          type: string
-          description: Total size at this price level
-          example: '1.5'
-        n:
+        count:
           type: integer
-          description: Number of orders at this level
-          example: 15
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required

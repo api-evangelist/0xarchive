@@ -85,6 +85,36 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseHip4QuestionArray:
+      type: object
+      description: API response containing HIP-4 questions.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip4Question'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     ApiResponseHip4Question:
       type: object
       description: API response containing one HIP-4 question.
@@ -96,29 +126,6 @@ components:
           $ref: '#/components/schemas/Hip4Question'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Hip4Question:
       type: object
       description: 'HIP-4 question: multi-choice resolver that groups N binary outcomes under one ballot. One named outcome per choice plus a fallback outcome that wins when no named choice resolves.'
@@ -178,36 +185,29 @@ components:
           description: When this question row was last updated (UTC).
           example: '2026-05-08T05:57:28.326Z'
       additionalProperties: true
-    Error:
+    ApiMeta:
       type: object
-      description: Error response
+      description: Response metadata
       properties:
-        code:
+        count:
           type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-    ApiResponseHip4QuestionArray:
-      type: object
-      description: API response containing HIP-4 questions.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hip4Question'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required

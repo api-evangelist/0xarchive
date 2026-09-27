@@ -100,51 +100,43 @@ paths:
         '429':
           $ref: '#/components/responses/RateLimited'
 components:
-  responses:
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 400
-            error: 'Failed to deserialize query string: limit: invalid digit found in string'
-            error_code: invalid_query_params
-            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        X-RateLimit-Limit:
-          schema:
-            type: integer
-          description: Requests per second limit
-        X-RateLimit-Remaining:
-          schema:
-            type: integer
-          description: Remaining requests this second
-        X-RateLimit-Reset:
-          schema:
-            type: integer
-          description: Unix timestamp when limit resets
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 429
-            error: Rate limit exceeded
   schemas:
-    SymbolsResponse:
+    Error:
       type: object
-      description: Public symbol universe response.
-      required:
-      - symbols
+      description: Error response
       properties:
-        symbols:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ExchangeCoverageResponse:
+      type: object
+      description: Coverage for a single exchange
+      properties:
+        exchange:
+          type: string
+          description: Exchange name
+        data_types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DataTypeCoverage'
+    CoverageResponse:
+      type: object
+      description: Overall coverage response
+      properties:
+        exchanges:
           type: array
           items:
-            $ref: '#/components/schemas/SymbolEntry'
+            $ref: '#/components/schemas/ExchangeCoverageResponse'
     StatsResponse:
       type: object
       description: Public lightweight API/site statistics.
@@ -223,31 +215,6 @@ components:
           - boolean
           - 'null'
       additionalProperties: false
-    CoverageResponse:
-      type: object
-      description: Overall coverage response
-      properties:
-        exchanges:
-          type: array
-          items:
-            $ref: '#/components/schemas/ExchangeCoverageResponse'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     DataTypeCoverage:
       type: object
       description: Coverage for a data type
@@ -280,17 +247,50 @@ components:
         completeness:
           type: number
           description: Completeness percentage (0-100)
-    ExchangeCoverageResponse:
+    SymbolsResponse:
       type: object
-      description: Coverage for a single exchange
+      description: Public symbol universe response.
+      required:
+      - symbols
       properties:
-        exchange:
-          type: string
-          description: Exchange name
-        data_types:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/DataTypeCoverage'
+        symbols:
+          type: array
+          items:
+            $ref: '#/components/schemas/SymbolEntry'
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 429
+            error: Rate limit exceeded
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

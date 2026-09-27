@@ -268,6 +268,43 @@ paths:
           $ref: '#/components/responses/Unauthorized'
 components:
   schemas:
+    SymbolCoverageResponse:
+      type: object
+      description: Per-symbol coverage response with gap detection
+      required:
+      - exchange
+      - symbol
+      - data_types
+      properties:
+        exchange:
+          type: string
+          description: Exchange name
+        symbol:
+          type: string
+          description: Symbol name
+        data_types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SymbolDataTypeCoverage'
+    ExchangeCoverageResponse:
+      type: object
+      description: Coverage for a single exchange
+      properties:
+        exchange:
+          type: string
+          description: Exchange name
+        data_types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DataTypeCoverage'
+    CoverageResponse:
+      type: object
+      description: Overall coverage response
+      properties:
+        exchanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExchangeCoverageResponse'
     CompletenessMetrics:
       type: object
       properties:
@@ -279,78 +316,6 @@ components:
           type: number
         overall:
           type: number
-    LatencyResponse:
-      type: object
-      description: Latency metrics response
-      properties:
-        measured_at:
-          type: string
-          format: date-time
-        exchanges:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ExchangeLatency'
-    DataFreshness:
-      type: object
-      description: Data freshness metrics
-      properties:
-        orderbook_lag_ms:
-          type:
-          - integer
-          - 'null'
-        fills_lag_ms:
-          type:
-          - integer
-          - 'null'
-        funding_lag_ms:
-          type:
-          - integer
-          - 'null'
-        oi_lag_ms:
-          type:
-          - integer
-          - 'null'
-    ExchangeStatus:
-      type: object
-      description: Status of a single exchange
-      properties:
-        status:
-          type: string
-          enum:
-          - operational
-          - degraded
-          - outage
-          - maintenance
-        last_data_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Timestamp of last received data
-        latency_ms:
-          type:
-          - integer
-          - 'null'
-          description: Current latency in milliseconds
-    CoverageGap:
-      type: object
-      description: A gap in data coverage
-      required:
-      - start
-      - end
-      - duration_minutes
-      properties:
-        start:
-          type: string
-          format: date-time
-          description: Start of gap (last data before gap)
-        end:
-          type: string
-          format: date-time
-          description: End of gap (first data after gap)
-        duration_minutes:
-          type: integer
-          description: Gap duration in minutes
     Incident:
       type: object
       description: Data quality incident
@@ -423,102 +388,6 @@ components:
           - integer
           - 'null'
           format: int64
-    SlaResponse:
-      type: object
-      description: SLA compliance response
-      properties:
-        period:
-          type: string
-          description: Period covered (e.g., '2026-01')
-        sla_targets:
-          $ref: '#/components/schemas/SlaTargets'
-        actual:
-          $ref: '#/components/schemas/SlaActual'
-        incidents_this_period:
-          type: integer
-        total_downtime_minutes:
-          type: integer
-    ApiLatency:
-      type: object
-      properties:
-        current_ms:
-          type: integer
-        avg_1h_ms:
-          type: integer
-        avg_24h_ms:
-          type: integer
-    IncidentsResponse:
-      type: object
-      description: Incidents list response
-      properties:
-        incidents:
-          type: array
-          items:
-            $ref: '#/components/schemas/Incident'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    DataTypeStatus:
-      type: object
-      description: Status of a data type
-      properties:
-        status:
-          type: string
-          enum:
-          - operational
-          - degraded
-          - outage
-          - maintenance
-        completeness_24h:
-          type: number
-          description: Data completeness over last 24 hours (0-100)
-    Pagination:
-      type: object
-      description: Pagination info
-      properties:
-        total:
-          type: integer
-          description: Total number of items
-        limit:
-          type: integer
-          description: Page size limit
-        offset:
-          type: integer
-          description: Current offset
-    DataCadence:
-      type: object
-      description: Empirical data cadence measurement based on last 7 days of data
-      required:
-      - median_interval_seconds
-      - p95_interval_seconds
-      - sample_count
-      properties:
-        median_interval_seconds:
-          type: number
-          description: Median interval between consecutive records in seconds
-        p95_interval_seconds:
-          type: number
-          description: 95th percentile interval between consecutive records in seconds
-        sample_count:
-          type: integer
-          format: int64
-          description: Number of intervals sampled for this measurement
     SlaTargets:
       type: object
       properties:
@@ -531,145 +400,25 @@ components:
         api_latency_p99_ms:
           type: integer
           description: API P99 latency target in ms
-    SlaActual:
+    CoverageGap:
       type: object
-      properties:
-        uptime:
-          type: number
-        uptime_status:
-          type: string
-          enum:
-          - met
-          - missed
-        data_completeness:
-          $ref: '#/components/schemas/CompletenessMetrics'
-        completeness_status:
-          type: string
-          enum:
-          - met
-          - missed
-        api_latency_p99_ms:
-          type: integer
-        latency_status:
-          type: string
-          enum:
-          - met
-          - missed
-    ExchangeLatency:
-      type: object
-      description: Latency metrics for an exchange
-      properties:
-        websocket:
-          allOf:
-          - $ref: '#/components/schemas/WebSocketLatency'
-        rest_api:
-          allOf:
-          - $ref: '#/components/schemas/ApiLatency'
-        data_freshness:
-          $ref: '#/components/schemas/DataFreshness'
-    WebSocketLatency:
-      type: object
-      properties:
-        current_ms:
-          type: integer
-        avg_1h_ms:
-          type: integer
-        avg_24h_ms:
-          type: integer
-        p99_24h_ms:
-          type:
-          - integer
-          - 'null'
-    DataTypeCoverage:
-      type: object
-      description: Coverage for a data type
-      properties:
-        earliest:
-          type: string
-          format: date-time
-          description: Earliest available data timestamp
-        latest:
-          type: string
-          format: date-time
-          description: Latest available data timestamp
-        total_records:
-          type: integer
-          format: int64
-          description: Total number of records
-        symbols:
-          type: integer
-          description: Number of symbols with data
-        resolution:
-          type:
-          - string
-          - 'null'
-          description: Data resolution (e.g., '1.2s', '1m')
-        lag:
-          type:
-          - string
-          - 'null'
-          description: Current data lag
-        completeness:
-          type: number
-          description: Completeness percentage (0-100)
-    ExchangeCoverageResponse:
-      type: object
-      description: Coverage for a single exchange
-      properties:
-        exchange:
-          type: string
-          description: Exchange name
-        data_types:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/DataTypeCoverage'
-    SymbolCoverageResponse:
-      type: object
-      description: Per-symbol coverage response with gap detection
+      description: A gap in data coverage
       required:
-      - exchange
-      - symbol
-      - data_types
+      - start
+      - end
+      - duration_minutes
       properties:
-        exchange:
-          type: string
-          description: Exchange name
-        symbol:
-          type: string
-          description: Symbol name
-        data_types:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/SymbolDataTypeCoverage'
-    StatusResponse:
-      type: object
-      description: Overall system status
-      properties:
-        status:
-          type: string
-          enum:
-          - operational
-          - degraded
-          - outage
-          - maintenance
-          description: Overall system status
-        updated_at:
+        start:
           type: string
           format: date-time
-          description: When this status was computed
-        exchanges:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ExchangeStatus'
-          description: Per-exchange status
-        data_types:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/DataTypeStatus'
-          description: Per-data-type status
-        active_incidents:
+          description: Start of gap (last data before gap)
+        end:
+          type: string
+          format: date-time
+          description: End of gap (first data after gap)
+        duration_minutes:
           type: integer
-          description: Number of active incidents
+          description: Gap duration in minutes
     SymbolDataTypeCoverage:
       type: object
       description: Coverage for a symbol and data type
@@ -706,15 +455,284 @@ components:
           allOf:
           - $ref: '#/components/schemas/DataCadence'
           description: Empirical data cadence measurement (present when sufficient data exists)
-    CoverageResponse:
+    IncidentsResponse:
       type: object
-      description: Overall coverage response
+      description: Incidents list response
       properties:
-        exchanges:
+        incidents:
           type: array
           items:
-            $ref: '#/components/schemas/ExchangeCoverageResponse'
+            $ref: '#/components/schemas/Incident'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    SlaActual:
+      type: object
+      properties:
+        uptime:
+          type: number
+        uptime_status:
+          type: string
+          enum:
+          - met
+          - missed
+        data_completeness:
+          $ref: '#/components/schemas/CompletenessMetrics'
+        completeness_status:
+          type: string
+          enum:
+          - met
+          - missed
+        api_latency_p99_ms:
+          type: integer
+        latency_status:
+          type: string
+          enum:
+          - met
+          - missed
+    DataFreshness:
+      type: object
+      description: Data freshness metrics
+      properties:
+        orderbook_lag_ms:
+          type:
+          - integer
+          - 'null'
+        fills_lag_ms:
+          type:
+          - integer
+          - 'null'
+        funding_lag_ms:
+          type:
+          - integer
+          - 'null'
+        oi_lag_ms:
+          type:
+          - integer
+          - 'null'
+    DataCadence:
+      type: object
+      description: Empirical data cadence measurement based on last 7 days of data
+      required:
+      - median_interval_seconds
+      - p95_interval_seconds
+      - sample_count
+      properties:
+        median_interval_seconds:
+          type: number
+          description: Median interval between consecutive records in seconds
+        p95_interval_seconds:
+          type: number
+          description: 95th percentile interval between consecutive records in seconds
+        sample_count:
+          type: integer
+          format: int64
+          description: Number of intervals sampled for this measurement
+    DataTypeStatus:
+      type: object
+      description: Status of a data type
+      properties:
+        status:
+          type: string
+          enum:
+          - operational
+          - degraded
+          - outage
+          - maintenance
+        completeness_24h:
+          type: number
+          description: Data completeness over last 24 hours (0-100)
+    SlaResponse:
+      type: object
+      description: SLA compliance response
+      properties:
+        period:
+          type: string
+          description: Period covered (e.g., '2026-01')
+        sla_targets:
+          $ref: '#/components/schemas/SlaTargets'
+        actual:
+          $ref: '#/components/schemas/SlaActual'
+        incidents_this_period:
+          type: integer
+        total_downtime_minutes:
+          type: integer
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ExchangeLatency:
+      type: object
+      description: Latency metrics for an exchange
+      properties:
+        websocket:
+          allOf:
+          - $ref: '#/components/schemas/WebSocketLatency'
+        rest_api:
+          allOf:
+          - $ref: '#/components/schemas/ApiLatency'
+        data_freshness:
+          $ref: '#/components/schemas/DataFreshness'
+    ExchangeStatus:
+      type: object
+      description: Status of a single exchange
+      properties:
+        status:
+          type: string
+          enum:
+          - operational
+          - degraded
+          - outage
+          - maintenance
+        last_data_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Timestamp of last received data
+        latency_ms:
+          type:
+          - integer
+          - 'null'
+          description: Current latency in milliseconds
+    DataTypeCoverage:
+      type: object
+      description: Coverage for a data type
+      properties:
+        earliest:
+          type: string
+          format: date-time
+          description: Earliest available data timestamp
+        latest:
+          type: string
+          format: date-time
+          description: Latest available data timestamp
+        total_records:
+          type: integer
+          format: int64
+          description: Total number of records
+        symbols:
+          type: integer
+          description: Number of symbols with data
+        resolution:
+          type:
+          - string
+          - 'null'
+          description: Data resolution (e.g., '1.2s', '1m')
+        lag:
+          type:
+          - string
+          - 'null'
+          description: Current data lag
+        completeness:
+          type: number
+          description: Completeness percentage (0-100)
+    StatusResponse:
+      type: object
+      description: Overall system status
+      properties:
+        status:
+          type: string
+          enum:
+          - operational
+          - degraded
+          - outage
+          - maintenance
+          description: Overall system status
+        updated_at:
+          type: string
+          format: date-time
+          description: When this status was computed
+        exchanges:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ExchangeStatus'
+          description: Per-exchange status
+        data_types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DataTypeStatus'
+          description: Per-data-type status
+        active_incidents:
+          type: integer
+          description: Number of active incidents
+    ApiLatency:
+      type: object
+      properties:
+        current_ms:
+          type: integer
+        avg_1h_ms:
+          type: integer
+        avg_24h_ms:
+          type: integer
+    LatencyResponse:
+      type: object
+      description: Latency metrics response
+      properties:
+        measured_at:
+          type: string
+          format: date-time
+        exchanges:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ExchangeLatency'
+    WebSocketLatency:
+      type: object
+      properties:
+        current_ms:
+          type: integer
+        avg_1h_ms:
+          type: integer
+        avg_24h_ms:
+          type: integer
+        p99_24h_ms:
+          type:
+          - integer
+          - 'null'
+    Pagination:
+      type: object
+      description: Pagination info
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+        limit:
+          type: integer
+          description: Page size limit
+        offset:
+          type: integer
+          description: Current offset
   responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
     BadRequest:
       description: Invalid request
       content:
@@ -726,24 +744,6 @@ components:
             error: 'Failed to deserialize query string: limit: invalid digit found in string'
             error_code: invalid_query_params
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 404
-            error: Resource not found
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

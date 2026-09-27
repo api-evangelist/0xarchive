@@ -373,6 +373,62 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    LiquidationLevelsHistoryItem:
+      type: object
+      description: One historical liquidation-levels snapshot. levels is omitted when summary=true.
+      required:
+      - snapshot_ts
+      - block_number
+      - mid_price
+      - total_long
+      - total_short
+      - flagged_notional
+      properties:
+        snapshot_ts:
+          type: string
+        block_number:
+          type: integer
+          format: int64
+        mid_price:
+          type: number
+        total_long:
+          type: number
+        total_short:
+          type: number
+        flagged_notional:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelBucket'
+    ApiResponseLiquidationLevels:
+      type: object
+      description: API response containing projected forced-liquidation levels for one snapshot.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/LiquidationLevelsData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     ApiResponseLiquidationLevelsHistory:
       type: object
       description: Paginated historical liquidation-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
@@ -432,85 +488,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LiquidationLevelBucket'
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    LiquidationLevelsHistoryItem:
-      type: object
-      description: One historical liquidation-levels snapshot. levels is omitted when summary=true.
-      required:
-      - snapshot_ts
-      - block_number
-      - mid_price
-      - total_long
-      - total_short
-      - flagged_notional
-      properties:
-        snapshot_ts:
-          type: string
-        block_number:
-          type: integer
-          format: int64
-        mid_price:
-          type: number
-        total_long:
-          type: number
-        total_short:
-          type: number
-        flagged_notional:
-          type: number
-        levels:
-          type: array
-          items:
-            $ref: '#/components/schemas/LiquidationLevelBucket'
-    ApiResponseLiquidationLevels:
-      type: object
-      description: API response containing projected forced-liquidation levels for one snapshot.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/LiquidationLevelsData'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     LiquidationLevelBucket:
       type: object
       description: One price bucket of projected forced-liquidation exposure.
@@ -536,6 +513,29 @@ components:
         short_count:
           type: integer
           description: Number of short positions in this bucket.
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required

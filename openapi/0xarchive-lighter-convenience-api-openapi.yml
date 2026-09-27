@@ -145,46 +145,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    DataTypeFreshness:
-      type: object
-      description: Freshness information for a single data type
-      properties:
-        last_updated:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When this data type was last updated for the coin
-          example: '2026-02-23T12:00:00.000Z'
-        lag_ms:
-          type:
-          - integer
-          - 'null'
-          description: Current lag in milliseconds between now and last update
-          example: 1200
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     ApiResponseCoinSummary:
       type: object
       description: API response wrapping a market summary
@@ -196,54 +156,23 @@ components:
           $ref: '#/components/schemas/CoinSummary'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiResponseCoinFreshness:
+    Error:
       type: object
-      description: API response wrapping coin freshness data
+      description: Error response
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/CoinFreshness'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    CoinFreshness:
-      type: object
-      description: Shared route-family freshness shape. Unsupported data-type buckets may be omitted; consult the operation description for each family.
-      required:
-      - symbol
-      - coin
-      - exchange
-      - measured_at
-      properties:
-        symbol:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
           type: string
-          description: Trading pair symbol
-          example: BTC
-        coin:
+          description: Error message
+        error_code:
           type: string
-          description: Trading pair symbol (deprecated, use symbol instead)
-          example: BTC
-          deprecated: true
-        exchange:
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
           type: string
-          description: Exchange name
-          example: hyperliquid
-        measured_at:
-          type: string
-          format: date-time
-          description: When the freshness was measured
-          example: '2026-02-23T12:00:00.000Z'
-        orderbook:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        trades:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        funding:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        open_interest:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        liquidations:
-          $ref: '#/components/schemas/DataTypeFreshness'
+          format: uuid
+          description: Unique request ID for support
     CoinSummary:
       type: object
       description: Shared market-summary shape. Route families omit unsupported optional fields; consult the operation description for family-specific applicability.
@@ -326,6 +255,39 @@ components:
           - 'null'
           description: Short 24h liquidation volume in USD
           example: 1000000
+    ApiResponsePriceSnapshotArray:
+      type: object
+      description: API response containing an array of price snapshots
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceSnapshot'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination
+    ApiResponseCoinFreshness:
+      type: object
+      description: API response wrapping coin freshness data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/CoinFreshness'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     PriceSnapshot:
       type: object
       description: Price snapshot with family-applicable price fields. Optional mark, oracle, or mid fields may be omitted when that route family does not supply them.
@@ -355,45 +317,83 @@ components:
           - 'null'
           description: Mid price
           example: '95000.00'
-    Error:
+    CoinFreshness:
       type: object
-      description: Error response
+      description: Shared route-family freshness shape. Unsupported data-type buckets may be omitted; consult the operation description for each family.
+      required:
+      - symbol
+      - coin
+      - exchange
+      - measured_at
       properties:
-        code:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        exchange:
+          type: string
+          description: Exchange name
+          example: hyperliquid
+        measured_at:
+          type: string
+          format: date-time
+          description: When the freshness was measured
+          example: '2026-02-23T12:00:00.000Z'
+        orderbook:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        trades:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        funding:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        open_interest:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        liquidations:
+          $ref: '#/components/schemas/DataTypeFreshness'
+    DataTypeFreshness:
+      type: object
+      description: Freshness information for a single data type
+      properties:
+        last_updated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this data type was last updated for the coin
+          example: '2026-02-23T12:00:00.000Z'
+        lag_ms:
+          type:
+          - integer
+          - 'null'
+          description: Current lag in milliseconds between now and last update
+          example: 1200
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
           type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-    ApiResponsePriceSnapshotArray:
-      type: object
-      description: API response containing an array of price snapshots
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/PriceSnapshot'
-        meta:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Number of records returned
-            next_cursor:
-              type:
-              - string
-              - 'null'
-              description: Cursor for pagination
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     Unauthorized:
       description: Authentication required
