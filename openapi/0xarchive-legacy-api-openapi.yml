@@ -509,6 +509,77 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseOpenInterest:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseFundingRateArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundingRate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseFundingRate:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/FundingRate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOpenInterestArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     FundingRate:
       type: object
       description: Funding rate record
@@ -542,25 +613,14 @@ components:
           - 'null'
           description: Premium component of funding rate
           example: '0.0005'
-    ApiResponseInstrument:
+    OpenInterest:
       type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Instrument'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    OrderBook:
-      type: object
-      description: L2 order book snapshot
+      description: Open interest snapshot with market context
       required:
       - symbol
       - coin
       - timestamp
-      - bids
-      - asks
+      - open_interest
       properties:
         symbol:
           type: string
@@ -575,134 +635,51 @@ components:
           type: string
           format: date-time
           description: Snapshot timestamp (UTC)
-          example: '2025-01-21T10:30:45.123Z'
-        bids:
-          type: array
-          description: Bid price levels (best bid first)
-          items:
-            $ref: '#/components/schemas/PriceLevel'
-        asks:
-          type: array
-          description: Ask price levels (best ask first)
-          items:
-            $ref: '#/components/schemas/PriceLevel'
-        mid_price:
+          example: '2025-01-21T10:30:00.000Z'
+        open_interest:
           type: string
-          description: Mid price (best bid + best ask) / 2
-          example: '42150.50'
-        spread:
-          type: string
-          description: Spread in absolute terms (best ask - best bid)
-          example: '1.00'
-        spread_bps:
-          type: string
-          description: Spread in basis points
-          example: '2.37'
-    ApiResponseFundingRateArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/FundingRate'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    Instrument:
-      type: object
-      description: Trading instrument specification (Hyperliquid)
-      required:
-      - name
-      - sz_decimals
-      - is_active
-      properties:
-        name:
-          type: string
-          description: Instrument symbol
-          example: BTC
-        sz_decimals:
-          type: integer
-          description: Size decimal precision
-          example: 4
-        max_leverage:
-          type:
-          - integer
-          - 'null'
-          description: Maximum leverage allowed
-          example: 50
-        only_isolated:
-          type:
-          - boolean
-          - 'null'
-          description: If true, only isolated margin mode is allowed
-        instrument_type:
+          description: Total open interest in contracts
+          example: '500000.00'
+        mark_price:
           type:
           - string
           - 'null'
-          description: Type of instrument
-          enum:
-          - perp
-          - spot
-          example: perp
-        is_active:
-          type: boolean
-          description: Whether the instrument is currently tradeable
-          example: true
-    ApiResponseOrderBookArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseInstrumentArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Instrument'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseOpenInterestArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/OpenInterest'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
+          description: Mark price used for liquidations
+          example: '42500.50'
+        oracle_price:
+          type:
+          - string
+          - 'null'
+          description: Oracle price from external feed
+          example: '42498.25'
+        day_ntl_volume:
+          type:
+          - string
+          - 'null'
+          description: 24-hour notional volume
+          example: '10000000.00'
+        prev_day_price:
+          type:
+          - string
+          - 'null'
+          description: Price 24 hours ago
+          example: '42000.00'
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Current mid price
+          example: '42500.75'
+        impact_bid_price:
+          type:
+          - string
+          - 'null'
+          description: Impact bid price for liquidations
+        impact_ask_price:
+          type:
+          - string
+          - 'null'
+          description: Impact ask price for liquidations
     Trade:
       type: object
       description: Trade/fill record with full execution details
@@ -835,38 +812,52 @@ components:
           - integer
           - 'null'
           description: TWAP execution ID
-    ApiResponseTradeArray:
+    OrderBook:
       type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
           type: array
+          description: Bid price levels (best bid first)
           items:
-            $ref: '#/components/schemas/Trade'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseOrderBook:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseFundingRate:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/FundingRate'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
     ApiMeta:
       type: object
       description: Response metadata
@@ -890,83 +881,92 @@ components:
         notice:
           type: string
           description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    OpenInterest:
-      type: object
-      description: Open interest snapshot with market context
-      required:
-      - symbol
-      - coin
-      - timestamp
-      - open_interest
-      properties:
-        symbol:
-          type: string
-          description: Trading pair symbol
-          example: BTC
-        coin:
-          type: string
-          description: Trading pair symbol (deprecated, use symbol instead)
-          example: BTC
-          deprecated: true
-        timestamp:
-          type: string
-          format: date-time
-          description: Snapshot timestamp (UTC)
-          example: '2025-01-21T10:30:00.000Z'
-        open_interest:
-          type: string
-          description: Total open interest in contracts
-          example: '500000.00'
-        mark_price:
-          type:
-          - string
-          - 'null'
-          description: Mark price used for liquidations
-          example: '42500.50'
-        oracle_price:
-          type:
-          - string
-          - 'null'
-          description: Oracle price from external feed
-          example: '42498.25'
-        day_ntl_volume:
-          type:
-          - string
-          - 'null'
-          description: 24-hour notional volume
-          example: '10000000.00'
-        prev_day_price:
-          type:
-          - string
-          - 'null'
-          description: Price 24 hours ago
-          example: '42000.00'
-        mid_price:
-          type:
-          - string
-          - 'null'
-          description: Current mid price
-          example: '42500.75'
-        impact_bid_price:
-          type:
-          - string
-          - 'null'
-          description: Impact bid price for liquidations
-        impact_ask_price:
-          type:
-          - string
-          - 'null'
-          description: Impact ask price for liquidations
-    ApiResponseOpenInterest:
+    ApiResponseTradeArray:
       type: object
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/OpenInterest'
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
         meta:
           $ref: '#/components/schemas/ApiMeta'
+    ApiResponseInstrument:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseInstrumentArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Instrument:
+      type: object
+      description: Trading instrument specification (Hyperliquid)
+      required:
+      - name
+      - sz_decimals
+      - is_active
+      properties:
+        name:
+          type: string
+          description: Instrument symbol
+          example: BTC
+        sz_decimals:
+          type: integer
+          description: Size decimal precision
+          example: 4
+        max_leverage:
+          type:
+          - integer
+          - 'null'
+          description: Maximum leverage allowed
+          example: 50
+        only_isolated:
+          type:
+          - boolean
+          - 'null'
+          description: If true, only isolated margin mode is allowed
+        instrument_type:
+          type:
+          - string
+          - 'null'
+          description: Type of instrument
+          enum:
+          - perp
+          - spot
+          example: perp
+        is_active:
+          type: boolean
+          description: Whether the instrument is currently tradeable
+          example: true
     PriceLevel:
       type: object
       description: Single price level in the order book
@@ -1010,6 +1010,17 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
     Unauthorized:
       description: Authentication required
       content:
@@ -1028,17 +1039,6 @@ components:
           example:
             code: 404
             error: Resource not found
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 400
-            error: 'Failed to deserialize query string: limit: invalid digit found in string'
-            error_code: invalid_query_params
-            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

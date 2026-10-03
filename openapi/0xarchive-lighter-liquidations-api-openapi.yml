@@ -140,75 +140,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    LiquidationVolume:
-      type: object
-      description: Aggregated liquidation volume for a time bucket
-      required:
-      - symbol
-      - coin
-      - timestamp
-      - total_usd
-      - long_usd
-      - short_usd
-      - count
-      - long_count
-      - short_count
-      properties:
-        symbol:
-          type: string
-          description: Trading pair symbol
-          example: BTC
-        coin:
-          type: string
-          description: Trading pair symbol (deprecated, use symbol instead)
-          example: BTC
-          deprecated: true
-        timestamp:
-          type: string
-          format: date-time
-          description: Bucket start timestamp (UTC)
-          example: '2025-05-21T10:00:00.000Z'
-        total_usd:
-          type: number
-          description: Total liquidation volume in USD
-          example: 1250000.5
-        long_usd:
-          type: number
-          description: Long liquidation volume in USD
-          example: 750000.25
-        short_usd:
-          type: number
-          description: Short liquidation volume in USD
-          example: 500000.25
-        count:
-          type: integer
-          description: Total number of liquidations
-          example: 42
-        long_count:
-          type: integer
-          description: Number of long liquidations
-          example: 25
-        short_count:
-          type: integer
-          description: Number of short liquidations
-          example: 17
     ApiResponseLighterLiquidationArray:
       type: object
       description: API response containing an array of native Lighter liquidation events
@@ -235,28 +166,23 @@ components:
               type: string
               format: uuid
               description: Unique request ID for support
-    ApiResponseLiquidationVolumeArray:
+    Error:
       type: object
-      description: API response containing an array of aggregated liquidation volumes
+      description: Error response
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/LiquidationVolume'
-        meta:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Number of records returned
-            next_cursor:
-              type:
-              - string
-              - 'null'
-              description: Cursor for pagination
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
     LighterLiquidation:
       type: object
       description: 'Native Lighter liquidation event. Raw ask/bid account fields are preserved instead of a derived `liquidated_user`: the upstream payload does not reliably flag which side was liquidated, so the liquidated side is derived at read time from position signs. Margin and fee integer fields are raw upstream units.'
@@ -426,27 +352,81 @@ components:
           type: string
           description: Row provenance
           example: ws
+    LiquidationVolume:
+      type: object
+      description: Aggregated liquidation volume for a time bucket
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - total_usd
+      - long_usd
+      - short_usd
+      - count
+      - long_count
+      - short_count
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Bucket start timestamp (UTC)
+          example: '2025-05-21T10:00:00.000Z'
+        total_usd:
+          type: number
+          description: Total liquidation volume in USD
+          example: 1250000.5
+        long_usd:
+          type: number
+          description: Long liquidation volume in USD
+          example: 750000.25
+        short_usd:
+          type: number
+          description: Short liquidation volume in USD
+          example: 500000.25
+        count:
+          type: integer
+          description: Total number of liquidations
+          example: 42
+        long_count:
+          type: integer
+          description: Number of long liquidations
+          example: 25
+        short_count:
+          type: integer
+          description: Number of short liquidations
+          example: 17
+    ApiResponseLiquidationVolumeArray:
+      type: object
+      description: API response containing an array of aggregated liquidation volumes
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationVolume'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 400
-            error: 'Failed to deserialize query string: limit: invalid digit found in string'
-            error_code: invalid_query_params
-            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -469,6 +449,26 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

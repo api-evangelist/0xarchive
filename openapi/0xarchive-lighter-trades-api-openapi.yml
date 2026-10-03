@@ -114,70 +114,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseLighterTradeArray:
-      type: object
-      description: API response containing an array of Lighter trades. History responses serve canonical rows only and clamp `end` to `finalized_through`; `/recent` responses serve preliminary rows and report `preliminary_row_count`.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/LighterTrade'
-        meta:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Number of records returned
-            next_cursor:
-              type:
-              - string
-              - 'null'
-              description: Cursor for pagination. Use this value as the `cursor` parameter to fetch the next page. History endpoint only.
-            request_id:
-              type: string
-              format: uuid
-              description: Unique request ID for support
-            finalized_through:
-              type: string
-              format: date-time
-              description: Timestamp through which canonical (bucket-reconciled) data is available.
-            requested_end:
-              type:
-              - string
-              - 'null'
-              format: date-time
-              description: The `end` the caller requested, echoed when it was clamped. History endpoint only.
-            clamped_to:
-              type:
-              - string
-              - 'null'
-              format: date-time
-              description: Effective end after clamping to `finalized_through`. History endpoint only.
-            preliminary_row_count:
-              type:
-              - integer
-              - 'null'
-              description: 'Number of preliminary (`source: "ws"`) rows in this response. `/recent` endpoint only.'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     LighterTrade:
       type: object
       description: 'Lighter trade (fill) record. Canonical rows (`source: "bucket"`) come from the daily Lighter Foundation reconcile and carry full enrichment. The `/recent` endpoint serves preliminary real-time rows (`source: "ws"`) without fee/tx_hash/order_id/realized_pnl and the other bucket-only enrichment fields until the daily reconcile finalizes them.'
@@ -366,27 +302,71 @@ components:
           - 'null'
           description: Notional value of the fill in USDC. Canonical rows only.
           example: 3.235425
+    ApiResponseLighterTradeArray:
+      type: object
+      description: API response containing an array of Lighter trades. History responses serve canonical rows only and clamp `end` to `finalized_through`; `/recent` responses serve preliminary rows and report `preliminary_row_count`.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LighterTrade'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination. Use this value as the `cursor` parameter to fetch the next page. History endpoint only.
+            request_id:
+              type: string
+              format: uuid
+              description: Unique request ID for support
+            finalized_through:
+              type: string
+              format: date-time
+              description: Timestamp through which canonical (bucket-reconciled) data is available.
+            requested_end:
+              type:
+              - string
+              - 'null'
+              format: date-time
+              description: The `end` the caller requested, echoed when it was clamped. History endpoint only.
+            clamped_to:
+              type:
+              - string
+              - 'null'
+              format: date-time
+              description: Effective end after clamping to `finalized_through`. History endpoint only.
+            preliminary_row_count:
+              type:
+              - integer
+              - 'null'
+              description: 'Number of preliminary (`source: "ws"`) rows in this response. `/recent` endpoint only.'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 400
-            error: 'Failed to deserialize query string: limit: invalid digit found in string'
-            error_code: invalid_query_params
-            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -409,6 +389,26 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

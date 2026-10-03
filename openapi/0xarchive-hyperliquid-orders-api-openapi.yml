@@ -431,6 +431,29 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Error:
       type: object
       description: Error response
@@ -448,66 +471,17 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
-    TriggerLevelsData:
+    ApiResponseTriggerLevels:
       type: object
-      description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets around the current mid/mark price. Voluntary trigger orders, not projected forced liquidations.
-      required:
-      - mid_price
-      - as_of
-      - total_bid_size
-      - total_ask_size
-      - levels
-      properties:
-        mid_price:
-          type: number
-          description: Current mid/mark price, center of the requested range.
-        as_of:
-          type: string
-          description: UTC RFC3339 server time the pending-trigger state was read. The map is current-state; use this to detect staleness.
-        total_bid_size:
-          type: number
-          description: Total pending bid size across the returned window.
-        total_ask_size:
-          type: number
-          description: Total pending ask size across the returned window.
-        levels:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevel'
-    ApiResponseTriggerLevelsHistory:
-      type: object
-      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      description: API response containing the pending trigger-order map.
       properties:
         success:
           type: boolean
           example: true
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
+          $ref: '#/components/schemas/TriggerLevelsData'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    TriggerLevelsHistoryItem:
-      type: object
-      description: One historical trigger-levels snapshot (15-minute cadence). levels is omitted when summary=true.
-      required:
-      - snapshot_ts
-      - mid_price
-      - total_bid_size
-      - total_ask_size
-      properties:
-        snapshot_ts:
-          type: string
-        mid_price:
-          type: number
-        total_bid_size:
-          type: number
-        total_ask_size:
-          type: number
-        levels:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevel'
     TriggerLevel:
       type: object
       description: Aggregated currently open trigger orders at one rounded price bucket.
@@ -540,61 +514,67 @@ components:
           type: number
           description: Ask-side trigger size in the bucket.
           example: 18.75
-    ApiResponseTriggerLevels:
+    ApiResponseTriggerLevelsHistory:
       type: object
-      description: API response containing the pending trigger-order map.
+      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/TriggerLevelsData'
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiMeta:
+    TriggerLevelsData:
       type: object
-      description: Response metadata
+      description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets around the current mid/mark price. Voluntary trigger orders, not projected forced liquidations.
+      required:
+      - mid_price
+      - as_of
+      - total_bid_size
+      - total_ask_size
+      - levels
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
+        mid_price:
+          type: number
+          description: Current mid/mark price, center of the requested range.
+        as_of:
           type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
+          description: UTC RFC3339 server time the pending-trigger state was read. The map is current-state; use this to detect staleness.
+        total_bid_size:
+          type: number
+          description: Total pending bid size across the returned window.
+        total_ask_size:
+          type: number
+          description: Total pending ask size across the returned window.
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevel'
+    TriggerLevelsHistoryItem:
+      type: object
+      description: One historical trigger-levels snapshot (15-minute cadence). levels is omitted when summary=true.
+      required:
+      - snapshot_ts
+      - mid_price
+      - total_bid_size
+      - total_ask_size
+      properties:
+        snapshot_ts:
           type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        mid_price:
+          type: number
+        total_bid_size:
+          type: number
+        total_ask_size:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevel'
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 400
-            error: 'Failed to deserialize query string: limit: invalid digit found in string'
-            error_code: invalid_query_params
-            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -617,6 +597,26 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            error: 'Failed to deserialize query string: limit: invalid digit found in string'
+            error_code: invalid_query_params
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
