@@ -243,46 +243,22 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiMeta:
+    ApiResponseL4OrderBookArray:
       type: object
-      description: Response metadata
+      required:
+      - success
+      - data
+      - meta
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     L4Order:
       type: object
       description: Individual resting order in a Hyperliquid-family L4 snapshot.
@@ -323,20 +299,6 @@ components:
           format: int64
           description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
           example: 1773273600123
-    ApiResponseL4OrderBook:
-      type: object
-      required:
-      - success
-      - data
-      - meta
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/L4OrderBookSnapshot'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     L4OrderBookSnapshot:
       type: object
       description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
@@ -406,7 +368,47 @@ components:
           type: boolean
           description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
           example: true
-    ApiResponseL4OrderBookArray:
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseL4OrderBook:
       type: object
       required:
       - success
@@ -417,9 +419,7 @@ components:
           type: boolean
           example: true
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/L4OrderBookSnapshot'
+          $ref: '#/components/schemas/L4OrderBookSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
   responses:

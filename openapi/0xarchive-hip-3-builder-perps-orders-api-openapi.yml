@@ -286,15 +286,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -317,6 +308,15 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
     BadRequest:
       description: Invalid request
       content:

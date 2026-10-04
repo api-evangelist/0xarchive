@@ -262,42 +262,54 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseCvdBucketArray:
+    ApiResponseCoinFreshness:
       type: object
-      description: API response containing CVD buckets.
+      description: API response wrapping coin freshness data
       properties:
         success:
           type: boolean
           example: true
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/CvdBucket'
+          $ref: '#/components/schemas/CoinFreshness'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiMeta:
+    CoinFreshness:
       type: object
-      description: Response metadata
+      description: Shared route-family freshness shape. Unsupported data-type buckets may be omitted; consult the operation description for each family.
+      required:
+      - symbol
+      - coin
+      - exchange
+      - measured_at
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
+        symbol:
           type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        exchange:
+          type: string
+          description: Exchange name
+          example: hyperliquid
+        measured_at:
           type: string
           format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+          description: When the freshness was measured
+          example: '2026-02-23T12:00:00.000Z'
+        orderbook:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        trades:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        funding:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        open_interest:
+          $ref: '#/components/schemas/DataTypeFreshness'
+        liquidations:
+          $ref: '#/components/schemas/DataTypeFreshness'
     Error:
       type: object
       description: Error response
@@ -315,6 +327,137 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
+    ApiResponsePriceSnapshotArray:
+      type: object
+      description: API response containing an array of price snapshots
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceSnapshot'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination
+    LiquidationVolume:
+      type: object
+      description: Aggregated liquidation volume for a time bucket
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - total_usd
+      - long_usd
+      - short_usd
+      - count
+      - long_count
+      - short_count
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Bucket start timestamp (UTC)
+          example: '2025-05-21T10:00:00.000Z'
+        total_usd:
+          type: number
+          description: Total liquidation volume in USD
+          example: 1250000.5
+        long_usd:
+          type: number
+          description: Long liquidation volume in USD
+          example: 750000.25
+        short_usd:
+          type: number
+          description: Short liquidation volume in USD
+          example: 500000.25
+        count:
+          type: integer
+          description: Total number of liquidations
+          example: 42
+        long_count:
+          type: integer
+          description: Number of long liquidations
+          example: 25
+        short_count:
+          type: integer
+          description: Number of short liquidations
+          example: 17
+    PriceSnapshot:
+      type: object
+      description: Price snapshot with family-applicable price fields. Optional mark, oracle, or mid fields may be omitted when that route family does not supply them.
+      required:
+      - timestamp
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2026-02-23T12:00:00.000Z'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Mark price
+          example: '95000.50'
+        oracle_price:
+          type:
+          - string
+          - 'null'
+          description: Oracle price
+          example: '94998.25'
+        mid_price:
+          type:
+          - string
+          - 'null'
+          description: Mid price
+          example: '95000.00'
+    DataTypeFreshness:
+      type: object
+      description: Freshness information for a single data type
+      properties:
+        last_updated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this data type was last updated for the coin
+          example: '2026-02-23T12:00:00.000Z'
+        lag_ms:
+          type:
+          - integer
+          - 'null'
+          description: Current lag in milliseconds between now and last update
+          example: 1200
+    ApiResponseCoinSummary:
+      type: object
+      description: API response wrapping a market summary
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/CoinSummary'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     CoinSummary:
       type: object
       description: Shared market-summary shape. Route families omit unsupported optional fields; consult the operation description for family-specific applicability.
@@ -397,17 +540,51 @@ components:
           - 'null'
           description: Short 24h liquidation volume in USD
           example: 1000000
-    ApiResponseCoinFreshness:
+    ApiResponseLiquidationVolumeArray:
       type: object
-      description: API response wrapping coin freshness data
+      description: API response containing an array of aggregated liquidation volumes
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/CoinFreshness'
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationVolume'
         meta:
-          $ref: '#/components/schemas/ApiMeta'
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: Cursor for pagination
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     CvdBucket:
       type: object
       description: Cumulative volume delta bucket.
@@ -439,9 +616,9 @@ components:
           type: number
           description: Running cumulative delta over the returned window.
           example: -2740918.55881
-    ApiResponsePriceSnapshotArray:
+    ApiResponseCvdBucketArray:
       type: object
-      description: API response containing an array of price snapshots
+      description: API response containing CVD buckets.
       properties:
         success:
           type: boolean
@@ -449,187 +626,19 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/PriceSnapshot'
-        meta:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Number of records returned
-            next_cursor:
-              type:
-              - string
-              - 'null'
-              description: Cursor for pagination
-    CoinFreshness:
-      type: object
-      description: Shared route-family freshness shape. Unsupported data-type buckets may be omitted; consult the operation description for each family.
-      required:
-      - symbol
-      - coin
-      - exchange
-      - measured_at
-      properties:
-        symbol:
-          type: string
-          description: Trading pair symbol
-          example: BTC
-        coin:
-          type: string
-          description: Trading pair symbol (deprecated, use symbol instead)
-          example: BTC
-          deprecated: true
-        exchange:
-          type: string
-          description: Exchange name
-          example: hyperliquid
-        measured_at:
-          type: string
-          format: date-time
-          description: When the freshness was measured
-          example: '2026-02-23T12:00:00.000Z'
-        orderbook:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        trades:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        funding:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        open_interest:
-          $ref: '#/components/schemas/DataTypeFreshness'
-        liquidations:
-          $ref: '#/components/schemas/DataTypeFreshness'
-    ApiResponseCoinSummary:
-      type: object
-      description: API response wrapping a market summary
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/CoinSummary'
+            $ref: '#/components/schemas/CvdBucket'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    PriceSnapshot:
-      type: object
-      description: Price snapshot with family-applicable price fields. Optional mark, oracle, or mid fields may be omitted when that route family does not supply them.
-      required:
-      - timestamp
-      properties:
-        timestamp:
-          type: string
-          format: date-time
-          description: Snapshot timestamp (UTC)
-          example: '2026-02-23T12:00:00.000Z'
-        mark_price:
-          type:
-          - string
-          - 'null'
-          description: Mark price
-          example: '95000.50'
-        oracle_price:
-          type:
-          - string
-          - 'null'
-          description: Oracle price
-          example: '94998.25'
-        mid_price:
-          type:
-          - string
-          - 'null'
-          description: Mid price
-          example: '95000.00'
-    DataTypeFreshness:
-      type: object
-      description: Freshness information for a single data type
-      properties:
-        last_updated:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When this data type was last updated for the coin
-          example: '2026-02-23T12:00:00.000Z'
-        lag_ms:
-          type:
-          - integer
-          - 'null'
-          description: Current lag in milliseconds between now and last update
-          example: 1200
-    LiquidationVolume:
-      type: object
-      description: Aggregated liquidation volume for a time bucket
-      required:
-      - symbol
-      - coin
-      - timestamp
-      - total_usd
-      - long_usd
-      - short_usd
-      - count
-      - long_count
-      - short_count
-      properties:
-        symbol:
-          type: string
-          description: Trading pair symbol
-          example: BTC
-        coin:
-          type: string
-          description: Trading pair symbol (deprecated, use symbol instead)
-          example: BTC
-          deprecated: true
-        timestamp:
-          type: string
-          format: date-time
-          description: Bucket start timestamp (UTC)
-          example: '2025-05-21T10:00:00.000Z'
-        total_usd:
-          type: number
-          description: Total liquidation volume in USD
-          example: 1250000.5
-        long_usd:
-          type: number
-          description: Long liquidation volume in USD
-          example: 750000.25
-        short_usd:
-          type: number
-          description: Short liquidation volume in USD
-          example: 500000.25
-        count:
-          type: integer
-          description: Total number of liquidations
-          example: 42
-        long_count:
-          type: integer
-          description: Number of long liquidations
-          example: 25
-        short_count:
-          type: integer
-          description: Number of short liquidations
-          example: 17
-    ApiResponseLiquidationVolumeArray:
-      type: object
-      description: API response containing an array of aggregated liquidation volumes
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/LiquidationVolume'
-        meta:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Number of records returned
-            next_cursor:
-              type:
-              - string
-              - 'null'
-              description: Cursor for pagination
   responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -663,15 +672,6 @@ components:
             error: 'Failed to deserialize query string: limit: invalid digit found in string'
             error_code: invalid_query_params
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

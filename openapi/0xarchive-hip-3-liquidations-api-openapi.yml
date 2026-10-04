@@ -373,123 +373,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    ApiResponseLiquidationLevelsHistory:
-      type: object
-      description: Paginated historical liquidation-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/LiquidationLevelsHistoryItem'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseLiquidationLevels:
-      type: object
-      description: API response containing projected forced-liquidation levels for one snapshot.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/LiquidationLevelsData'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    LiquidationLevelBucket:
-      type: object
-      description: One price bucket of projected forced-liquidation exposure.
-      required:
-      - price
-      - long_notional
-      - short_notional
-      - long_count
-      - short_count
-      properties:
-        price:
-          type: number
-          description: Bucket center price.
-        long_notional:
-          type: number
-          description: USD notional of long positions projected to liquidate in this bucket.
-        short_notional:
-          type: number
-          description: USD notional of short positions projected to liquidate in this bucket.
-        long_count:
-          type: integer
-          description: Number of long positions in this bucket.
-        short_count:
-          type: integer
-          description: Number of short positions in this bucket.
-    LiquidationLevelsHistoryItem:
-      type: object
-      description: One historical liquidation-levels snapshot. levels is omitted when summary=true.
-      required:
-      - snapshot_ts
-      - block_number
-      - mid_price
-      - total_long
-      - total_short
-      - flagged_notional
-      properties:
-        snapshot_ts:
-          type: string
-        block_number:
-          type: integer
-          format: int64
-        mid_price:
-          type: number
-        total_long:
-          type: number
-        total_short:
-          type: number
-        flagged_notional:
-          type: number
-        levels:
-          type: array
-          items:
-            $ref: '#/components/schemas/LiquidationLevelBucket'
     LiquidationLevelsData:
       type: object
       description: Projected forced-liquidation levels computed from clearinghouse positions and margin state (positions plus maintenance-margin tiers), aggregated into price buckets around the snapshot mark price. Snapshots are computed roughly every 5 minutes; snapshot_ts identifies the snapshot served.
@@ -536,6 +419,123 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LiquidationLevelBucket'
+    LiquidationLevelBucket:
+      type: object
+      description: One price bucket of projected forced-liquidation exposure.
+      required:
+      - price
+      - long_notional
+      - short_notional
+      - long_count
+      - short_count
+      properties:
+        price:
+          type: number
+          description: Bucket center price.
+        long_notional:
+          type: number
+          description: USD notional of long positions projected to liquidate in this bucket.
+        short_notional:
+          type: number
+          description: USD notional of short positions projected to liquidate in this bucket.
+        long_count:
+          type: integer
+          description: Number of long positions in this bucket.
+        short_count:
+          type: integer
+          description: Number of short positions in this bucket.
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseLiquidationLevels:
+      type: object
+      description: API response containing projected forced-liquidation levels for one snapshot.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/LiquidationLevelsData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    LiquidationLevelsHistoryItem:
+      type: object
+      description: One historical liquidation-levels snapshot. levels is omitted when summary=true.
+      required:
+      - snapshot_ts
+      - block_number
+      - mid_price
+      - total_long
+      - total_short
+      - flagged_notional
+      properties:
+        snapshot_ts:
+          type: string
+        block_number:
+          type: integer
+          format: int64
+        mid_price:
+          type: number
+        total_long:
+          type: number
+        total_short:
+          type: number
+        flagged_notional:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelBucket'
+    ApiResponseLiquidationLevelsHistory:
+      type: object
+      description: Paginated historical liquidation-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelsHistoryItem'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     RateLimited:
       description: Rate limit exceeded
@@ -559,6 +559,15 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
     BadRequest:
       description: Invalid request
       content:
@@ -570,15 +579,6 @@ components:
             error: 'Failed to deserialize query string: limit: invalid digit found in string'
             error_code: invalid_query_params
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

@@ -101,6 +101,42 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    ExchangeCoverageResponse:
+      type: object
+      description: Coverage for a single exchange
+      properties:
+        exchange:
+          type: string
+          description: Exchange name
+        data_types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DataTypeCoverage'
+    CoverageResponse:
+      type: object
+      description: Overall coverage response
+      properties:
+        exchanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExchangeCoverageResponse'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
     SymbolEntry:
       type: object
       description: Public market symbol entry.
@@ -179,41 +215,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SymbolEntry'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    CoverageResponse:
-      type: object
-      description: Overall coverage response
-      properties:
-        exchanges:
-          type: array
-          items:
-            $ref: '#/components/schemas/ExchangeCoverageResponse'
-    StatsResponse:
-      type: object
-      description: Public lightweight API/site statistics.
-      properties:
-        l4_open_orders:
-          type: integer
-          format: int64
-          description: Current L4 open-order count used by public status/product surfaces.
-          example: 1234567
-      additionalProperties: true
     DataTypeCoverage:
       type: object
       description: Coverage for a data type
@@ -246,17 +247,16 @@ components:
         completeness:
           type: number
           description: Completeness percentage (0-100)
-    ExchangeCoverageResponse:
+    StatsResponse:
       type: object
-      description: Coverage for a single exchange
+      description: Public lightweight API/site statistics.
       properties:
-        exchange:
-          type: string
-          description: Exchange name
-        data_types:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/DataTypeCoverage'
+        l4_open_orders:
+          type: integer
+          format: int64
+          description: Current L4 open-order count used by public status/product surfaces.
+          example: 1234567
+      additionalProperties: true
   responses:
     RateLimited:
       description: Rate limit exceeded

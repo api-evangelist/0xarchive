@@ -482,46 +482,77 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiMeta:
+    LiquidationLevelsData:
       type: object
-      description: Response metadata
+      description: Projected forced-liquidation levels computed from clearinghouse positions and margin state (positions plus maintenance-margin tiers), aggregated into price buckets around the snapshot mark price. Snapshots are computed roughly every 5 minutes; snapshot_ts identifies the snapshot served.
+      required:
+      - mid_price
+      - snapshot_ts
+      - block_number
+      - total_long
+      - total_short
+      - flagged_notional
+      - source
+      - levels
       properties:
-        count:
+        mid_price:
+          type: number
+          description: Mark price at the snapshot, center of the requested range.
+          example: 64215
+        snapshot_ts:
+          type: string
+          description: UTC snapshot time the levels reflect. Treat snapshots older than 2 hours as stale.
+        block_number:
           type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
+          format: int64
+          description: Hyperliquid block height the snapshot reflects.
+        total_long:
+          type: number
+          description: Total long notional at risk across the whole book, not only the returned window.
+        total_short:
+          type: number
+          description: Total short notional at risk across the whole book.
+        flagged_notional:
+          type: number
+          description: Notional reported in totals but computed approximately or not assigned to a returned bucket. For HIP-3, cross-margined exposure is reported here and excluded from buckets.
+        source:
           type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    Error:
+          enum:
+          - raw
+          - histogram
+          description: Snapshot storage form used to answer the request. raw means query-time bins over stored fine-grained levels; histogram means proportional re-binning of a retained base histogram.
+        source_bin_width:
+          type: number
+          description: Stored source-bin width in price units. Present only when source is histogram.
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationLevelBucket'
+    LiquidationLevelBucket:
       type: object
-      description: Error response
+      description: One price bucket of projected forced-liquidation exposure.
+      required:
+      - price
+      - long_notional
+      - short_notional
+      - long_count
+      - short_count
       properties:
-        code:
+        price:
+          type: number
+          description: Bucket center price.
+        long_notional:
+          type: number
+          description: USD notional of long positions projected to liquidate in this bucket.
+        short_notional:
+          type: number
+          description: USD notional of short positions projected to liquidate in this bucket.
+        long_count:
           type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
+          description: Number of long positions in this bucket.
+        short_count:
+          type: integer
+          description: Number of short positions in this bucket.
     Liquidation:
       type: object
       description: Liquidation event
@@ -600,19 +631,23 @@ components:
           - 'null'
           description: Blockchain transaction hash
           example: '0xe266d353038e679c5d7e042433054f0000e1d8e52f7860ecda84573b9b5a02ca'
-    ApiResponseLiquidationLevelsHistory:
+    Error:
       type: object
-      description: Paginated historical liquidation-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      description: Error response
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/LiquidationLevelsHistoryItem'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
     ApiResponseLiquidationLevels:
       type: object
       description: API response containing projected forced-liquidation levels for one snapshot.
@@ -624,53 +659,6 @@ components:
           $ref: '#/components/schemas/LiquidationLevelsData'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiResponseLiquidationArray:
-      type: object
-      description: API response containing an array of liquidation events
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Liquidation'
-        meta:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Number of records returned
-            next_cursor:
-              type:
-              - string
-              - 'null'
-              description: 'Cursor for pagination (format: timestamp_tradeId)'
-    LiquidationLevelBucket:
-      type: object
-      description: One price bucket of projected forced-liquidation exposure.
-      required:
-      - price
-      - long_notional
-      - short_notional
-      - long_count
-      - short_count
-      properties:
-        price:
-          type: number
-          description: Bucket center price.
-        long_notional:
-          type: number
-          description: USD notional of long positions projected to liquidate in this bucket.
-        short_notional:
-          type: number
-          description: USD notional of short positions projected to liquidate in this bucket.
-        long_count:
-          type: integer
-          description: Number of long positions in this bucket.
-        short_count:
-          type: integer
-          description: Number of short positions in this bucket.
     LiquidationLevelsHistoryItem:
       type: object
       description: One historical liquidation-levels snapshot. levels is omitted when summary=true.
@@ -699,52 +687,64 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LiquidationLevelBucket'
-    LiquidationLevelsData:
+    ApiMeta:
       type: object
-      description: Projected forced-liquidation levels computed from clearinghouse positions and margin state (positions plus maintenance-margin tiers), aggregated into price buckets around the snapshot mark price. Snapshots are computed roughly every 5 minutes; snapshot_ts identifies the snapshot served.
-      required:
-      - mid_price
-      - snapshot_ts
-      - block_number
-      - total_long
-      - total_short
-      - flagged_notional
-      - source
-      - levels
+      description: Response metadata
       properties:
-        mid_price:
-          type: number
-          description: Mark price at the snapshot, center of the requested range.
-          example: 64215
-        snapshot_ts:
-          type: string
-          description: UTC snapshot time the levels reflect. Treat snapshots older than 2 hours as stale.
-        block_number:
+        count:
           type: integer
-          format: int64
-          description: Hyperliquid block height the snapshot reflects.
-        total_long:
-          type: number
-          description: Total long notional at risk across the whole book, not only the returned window.
-        total_short:
-          type: number
-          description: Total short notional at risk across the whole book.
-        flagged_notional:
-          type: number
-          description: Notional reported in totals but computed approximately or not assigned to a returned bucket. For HIP-3, cross-margined exposure is reported here and excluded from buckets.
-        source:
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
           type: string
-          enum:
-          - raw
-          - histogram
-          description: Snapshot storage form used to answer the request. raw means query-time bins over stored fine-grained levels; histogram means proportional re-binning of a retained base histogram.
-        source_bin_width:
-          type: number
-          description: Stored source-bin width in price units. Present only when source is histogram.
-        levels:
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseLiquidationLevelsHistory:
+      type: object
+      description: Paginated historical liquidation-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
           type: array
           items:
-            $ref: '#/components/schemas/LiquidationLevelBucket'
+            $ref: '#/components/schemas/LiquidationLevelsHistoryItem'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseLiquidationArray:
+      type: object
+      description: API response containing an array of liquidation events
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Liquidation'
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of records returned
+            next_cursor:
+              type:
+              - string
+              - 'null'
+              description: 'Cursor for pagination (format: timestamp_tradeId)'
   responses:
     RateLimited:
       description: Rate limit exceeded
@@ -768,6 +768,15 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
     BadRequest:
       description: Invalid request
       content:
@@ -779,15 +788,6 @@ components:
             error: 'Failed to deserialize query string: limit: invalid digit found in string'
             error_code: invalid_query_params
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

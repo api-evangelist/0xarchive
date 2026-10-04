@@ -347,92 +347,52 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    OrderBook:
+    ApiResponseL4OrderBookArray:
       type: object
-      description: L2 order book snapshot
       required:
-      - symbol
-      - coin
-      - timestamp
-      - bids
-      - asks
+      - success
+      - data
+      - meta
       properties:
-        symbol:
-          type: string
-          description: Trading pair symbol
-          example: BTC
-        coin:
-          type: string
-          description: Trading pair symbol (deprecated, use symbol instead)
-          example: BTC
-          deprecated: true
-        timestamp:
-          type: string
-          format: date-time
-          description: Snapshot timestamp (UTC)
-          example: '2025-01-21T10:30:45.123Z'
-        bids:
+        success:
+          type: boolean
+          example: true
+        data:
           type: array
-          description: Bid price levels (best bid first)
           items:
-            $ref: '#/components/schemas/PriceLevel'
-        asks:
-          type: array
-          description: Ask price levels (best ask first)
-          items:
-            $ref: '#/components/schemas/PriceLevel'
-        mid_price:
-          type: string
-          description: Mid price (best bid + best ask) / 2
-          example: '42150.50'
-        spread:
-          type: string
-          description: Spread in absolute terms (best ask - best bid)
-          example: '1.00'
-        spread_bps:
-          type: string
-          description: Spread in basis points
-          example: '2.37'
-    ApiMeta:
+            $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseOrderBook:
       type: object
-      description: Response metadata
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    Error:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    PriceLevel:
       type: object
-      description: Error response
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
       properties:
-        code:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
           type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
+          description: Number of orders at this level
+          example: 15
     L4Order:
       type: object
       description: Individual resting order in a Hyperliquid-family L4 snapshot.
@@ -473,18 +433,6 @@ components:
           format: int64
           description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
           example: 1773273600123
-    ApiResponseOrderBookArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     L4OrderBookSnapshot:
       type: object
       description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
@@ -554,6 +502,104 @@ components:
           type: boolean
           description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
           example: true
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    OrderBook:
+      type: object
+      description: L2 order book snapshot
+      required:
+      - symbol
+      - coin
+      - timestamp
+      - bids
+      - asks
+      properties:
+        symbol:
+          type: string
+          description: Trading pair symbol
+          example: BTC
+        coin:
+          type: string
+          description: Trading pair symbol (deprecated, use symbol instead)
+          example: BTC
+          deprecated: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp (UTC)
+          example: '2025-01-21T10:30:45.123Z'
+        bids:
+          type: array
+          description: Bid price levels (best bid first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          description: Ask price levels (best ask first)
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        mid_price:
+          type: string
+          description: Mid price (best bid + best ask) / 2
+          example: '42150.50'
+        spread:
+          type: string
+          description: Spread in absolute terms (best ask - best bid)
+          example: '1.00'
+        spread_bps:
+          type: string
+          description: Spread in basis points
+          example: '2.37'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     ApiResponseL4OrderBook:
       type: object
       required:
@@ -568,62 +614,7 @@ components:
           $ref: '#/components/schemas/L4OrderBookSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiResponseOrderBook:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseL4OrderBookArray:
-      type: object
-      required:
-      - success
-      - data
-      - meta
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/L4OrderBookSnapshot'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    PriceLevel:
-      type: object
-      description: Single price level in the order book
-      required:
-      - px
-      - sz
-      - n
-      properties:
-        px:
-          type: string
-          description: Price
-          example: '42150.00'
-        sz:
-          type: string
-          description: Total size at this price level
-          example: '1.5'
-        n:
-          type: integer
-          description: Number of orders at this level
-          example: 15
   responses:
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 404
-            error: Resource not found
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -655,6 +646,15 @@ components:
           example:
             code: 401
             error: Missing or invalid API key. Provide X-API-Key header.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
     BadRequest:
       description: Invalid request
       content:

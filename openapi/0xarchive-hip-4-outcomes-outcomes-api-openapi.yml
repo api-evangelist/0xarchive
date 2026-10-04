@@ -154,29 +154,47 @@ components:
           format: int64
           description: Public asset ID for this side
           example: 100000000
-    ApiMeta:
+    ApiResponseHip4OutcomeAggregateArray:
       type: object
-      description: Response metadata
+      description: API response wrapping an array of HIP-4 outcome aggregates (without `aggregated_oi`; use `/outcomes/{outcome_id}` for the detail variant)
       properties:
-        count:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip4OutcomeAggregate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
           type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseHip4OutcomeAggregate:
+      type: object
+      description: API response wrapping a single HIP-4 outcome aggregate (with `aggregated_oi` populated on the detail endpoint)
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip4OutcomeAggregate'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     Hip4OutcomeAggregate:
       type: object
       description: Per-outcome aggregate (both sides combined). Returned by `/outcomes` (list, without `aggregated_oi`) and `/outcomes/{outcome_id}` (detail, with `aggregated_oi` populated).
@@ -259,34 +277,6 @@ components:
           allOf:
           - $ref: '#/components/schemas/Hip4AggregatedOi'
           description: Display/paired/parity OI aggregates. Populated ONLY on the `/outcomes/{outcome_id}` detail response. Omitted (or null) on the `/outcomes` list response.
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    ApiResponseHip4OutcomeAggregate:
-      type: object
-      description: API response wrapping a single HIP-4 outcome aggregate (with `aggregated_oi` populated on the detail endpoint)
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Hip4OutcomeAggregate'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     Hip4AggregatedOi:
       type: object
       description: Derived OI display fields combining both sides of a HIP-4 outcome. Currency is always `USDH` (Hyperliquid's stablecoin). Only populated on `/outcomes/{outcome_id}` (detail), NOT on `/outcomes` (list).
@@ -350,29 +340,30 @@ components:
           format: date-time
           description: Timestamp of the side 1 OI sample
           example: '2026-05-02T20:27:21Z'
-    ApiResponseHip4OutcomeAggregateArray:
+    ApiMeta:
       type: object
-      description: API response wrapping an array of HIP-4 outcome aggregates (without `aggregated_oi`; use `/outcomes/{outcome_id}` for the detail variant)
+      description: Response metadata
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hip4OutcomeAggregate'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 404
-            error: Resource not found
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -395,6 +386,24 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
     BadRequest:
       description: Invalid request
       content:
@@ -406,15 +415,6 @@ components:
             error: 'Failed to deserialize query string: limit: invalid digit found in string'
             error_code: invalid_query_params
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
