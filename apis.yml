@@ -2940,6 +2940,9 @@ apis:
   - type: SDKs
     url: packages/0xarchive-packages.yml
 common:
+- type: CapabilityMap
+  url: capabilities/0xarchive-capability-edges.yml
+  name: 0xArchive Business Capability Map
 - type: MCPServer
   url: https://mcp.0xarchive.io/mcp
 - type: Website

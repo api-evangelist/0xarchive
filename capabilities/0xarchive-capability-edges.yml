@@ -1,0 +1,26 @@
+slug: 0xarchive
+provider: 0xArchive
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 1
+edges:
+- tag: Web3 Authentication
+  spec_file: 0xarchive-web3-authentication-api-openapi.yml
+  capability_id: BC-4270.40
+  capability_id_l1: BC-4270
+  capability_name: Developer Identity & Credential Management
+  confidence: 0.7
+  evidence: POST /v1/web3/keys web3ListKeys List API keys for wallet; POST /v1/web3/keys/revoke web3RevokeKey
+    Revoke an API key; POST /v1/auth/web3/verify Verify SIWE signature
+  reason: Operations issue, list and revoke API credentials for a developer/consumer wallet identity (SIWE
+    challenge/verify), i.e. developer identity and credential stewardship for the public data API. A subscribe-by-payment
+    call is present but credential issuance dominates, hence moderate confidence.
