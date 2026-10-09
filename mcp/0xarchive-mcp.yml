@@ -83,3 +83,21 @@ tools:
   - Web3 wallet auth
 documentation: https://docs.0xarchive.io/mcp-server
 server_card: https://0xarchive.io/.well-known/mcp/server-card.json
+rfc9728:
+  endpoint: https://mcp.0xarchive.io/mcp
+  metadata_url: https://mcp.0xarchive.io/.well-known/oauth-protected-resource
+  discovered_via: WWW-Authenticate resource_metadata on an anonymous POST initialize
+  fetched: '2026-09-25'
+  http_status: 200
+  content_type: application/json
+  document:
+    resource: https://mcp.0xarchive.io/mcp
+    authorization_servers:
+    - https://auth.0xarchive.io
+    scopes_supported:
+    - mcp:market.read
+    - mcp:webhooks.read
+    - mcp:webhooks.write
+    bearer_methods_supported:
+    - header
+    resource_documentation: https://docs.0xarchive.io/mcp-server
