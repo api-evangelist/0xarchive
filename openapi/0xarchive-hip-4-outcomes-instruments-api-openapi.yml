@@ -75,17 +75,42 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseHip4Outcome:
+    ApiResponseHip4OutcomeArray:
       type: object
-      description: API response wrapping a single HIP-4 per-side instrument
+      description: API response wrapping an array of HIP-4 per-side instruments
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/Hip4Outcome'
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip4Outcome'
         meta:
           $ref: '#/components/schemas/ApiMeta'
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Error:
       type: object
       description: Error response
@@ -103,19 +128,6 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
-    ApiResponseHip4OutcomeArray:
-      type: object
-      description: API response wrapping an array of HIP-4 per-side instruments
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hip4Outcome'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     Hip4Outcome:
       type: object
       description: 'HIP-4 per-side instrument metadata. One row per `#N` coin. Each outcome has two sides: side 0 (Yes) and side 1 (No). Public asset_id formula: `100_000_000 + 10*outcome_id + side`. Coin format: `#<10*outcome_id + side>`.'
@@ -249,29 +261,17 @@ components:
           - 'null'
           description: Per-side URL slug mirroring Hyperliquid's pattern.
           example: btc-above-78213-yes-may-03-0600
-    ApiMeta:
+    ApiResponseHip4Outcome:
       type: object
-      description: Response metadata
+      description: API response wrapping a single HIP-4 per-side instrument
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip4Outcome'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
   responses:
     RateLimited:
       description: Rate limit exceeded

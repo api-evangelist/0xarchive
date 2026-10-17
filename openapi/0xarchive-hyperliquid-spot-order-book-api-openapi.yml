@@ -82,6 +82,49 @@ paths:
       - ApiKeyAuth: []
 components:
   schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
     Error:
       type: object
       description: Error response
@@ -99,6 +142,18 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
+    ApiResponseOrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     OrderBook:
       type: object
       description: L2 order book snapshot
@@ -145,61 +200,6 @@ components:
           type: string
           description: Spread in basis points
           example: '2.37'
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    PriceLevel:
-      type: object
-      description: Single price level in the order book
-      required:
-      - px
-      - sz
-      - n
-      properties:
-        px:
-          type: string
-          description: Price
-          example: '42150.00'
-        sz:
-          type: string
-          description: Total size at this price level
-          example: '1.5'
-        n:
-          type: integer
-          description: Number of orders at this level
-          example: 15
-    ApiResponseOrderBookArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
   responses:
     RateLimited:
       description: Rate limit exceeded

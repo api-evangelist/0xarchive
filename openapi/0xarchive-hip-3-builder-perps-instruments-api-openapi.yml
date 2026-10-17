@@ -74,30 +74,29 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseHip3InstrumentArray:
+    ApiMeta:
       type: object
-      description: API response wrapping an array of HIP-3 instruments
+      description: Response metadata
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hip3Instrument'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseHip3Instrument:
-      type: object
-      description: API response wrapping a single HIP-3 instrument
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Hip3Instrument'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Error:
       type: object
       description: Error response
@@ -115,6 +114,17 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
+    ApiResponseHip3Instrument:
+      type: object
+      description: API response wrapping a single HIP-3 instrument
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip3Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     Hip3Instrument:
       type: object
       description: HIP-3 Builder Perps instrument with latest market data. Derived from live open interest data.
@@ -166,29 +176,19 @@ components:
           format: date-time
           description: Timestamp of latest data point
           example: '2026-02-18T12:00:00.000Z'
-    ApiMeta:
+    ApiResponseHip3InstrumentArray:
       type: object
-      description: Response metadata
+      description: API response wrapping an array of HIP-3 instruments
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip3Instrument'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
   responses:
     RateLimited:
       description: Rate limit exceeded

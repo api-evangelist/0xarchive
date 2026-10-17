@@ -148,62 +148,29 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    L3Order:
+    ApiMeta:
       type: object
-      description: Individual resting order in a Lighter L3 snapshot.
-      required:
-      - order_index
-      - owner_account_index
-      - side
-      - price
-      - remaining_size
-      - original_size
+      description: Response metadata
       properties:
-        order_index:
+        count:
           type: integer
-          format: int64
-          description: Numeric order index assigned by Lighter.
-          example: 562953074779869
-        owner_account_index:
-          type: integer
-          format: int64
-          description: Numeric Lighter account index associated with the resting order.
-          example: 281474976710654
-        side:
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
           type: string
-          enum:
-          - bid
-          - ask
-          description: Book side.
-          example: bid
-        price:
-          type: number
-          description: Lighter venue-native resting order price.
-          example: 65127.5
-        remaining_size:
-          type: number
-          description: Remaining venue-native order size.
-          example: 0.02303
-        original_size:
-          type: number
-          description: Original venue-native order size.
-          example: 0.02303
-    ApiResponseL3OrderBookArray:
-      type: object
-      required:
-      - success
-      - data
-      - meta
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/L3OrderBookSnapshot'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Error:
       type: object
       description: Error response
@@ -221,6 +188,22 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
+    ApiResponseL3OrderBookArray:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/L3OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     L3OrderBookSnapshot:
       type: object
       description: Current or historical Lighter L3 orderbook snapshot.
@@ -289,6 +272,46 @@ components:
           type: boolean
           description: True when the stored checkpoint reached the 250-orders-per-side ingestion cap.
           example: true
+    L3Order:
+      type: object
+      description: Individual resting order in a Lighter L3 snapshot.
+      required:
+      - order_index
+      - owner_account_index
+      - side
+      - price
+      - remaining_size
+      - original_size
+      properties:
+        order_index:
+          type: integer
+          format: int64
+          description: Numeric order index assigned by Lighter.
+          example: 562953074779869
+        owner_account_index:
+          type: integer
+          format: int64
+          description: Numeric Lighter account index associated with the resting order.
+          example: 281474976710654
+        side:
+          type: string
+          enum:
+          - bid
+          - ask
+          description: Book side.
+          example: bid
+        price:
+          type: number
+          description: Lighter venue-native resting order price.
+          example: 65127.5
+        remaining_size:
+          type: number
+          description: Remaining venue-native order size.
+          example: 0.02303
+        original_size:
+          type: number
+          description: Original venue-native order size.
+          example: 0.02303
     ApiResponseL3OrderBook:
       type: object
       required:
@@ -303,29 +326,6 @@ components:
           $ref: '#/components/schemas/L3OrderBookSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     RateLimited:
       description: Rate limit exceeded

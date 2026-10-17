@@ -182,6 +182,88 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    PriceLevel:
+      type: object
+      description: Single price level in the order book
+      required:
+      - px
+      - sz
+      - n
+      properties:
+        px:
+          type: string
+          description: Price
+          example: '42150.00'
+        sz:
+          type: string
+          description: Total size at this price level
+          example: '1.5'
+        n:
+          type: integer
+          description: Number of orders at this level
+          example: 15
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseFullDepthL2OrderBookArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FullDepthL2OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseFullDepthL2OrderBook:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/FullDepthL2OrderBook'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     L2OrderBookDiff:
       type: object
       description: Full-depth L2 aggregate diff event derived from L4 deltas
@@ -222,57 +304,6 @@ components:
           type: integer
           description: Number of orders at the price level after the diff
           example: 3
-    ApiResponseFullDepthL2OrderBookArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/FullDepthL2OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    FullDepthL2OrderBook:
-      allOf:
-      - $ref: '#/components/schemas/OrderBook'
-      - type: object
-        description: 0xArchive full-depth aggregated L2 order book snapshot derived from L4 data
-        properties:
-          bid_levels:
-            type: integer
-            description: Total bid price levels available before any depth truncation
-            example: 9842
-          ask_levels:
-            type: integer
-            description: Total ask price levels available before any depth truncation
-            example: 10318
-          total_bid_size:
-            type: number
-            description: Aggregate bid size across the available full-depth L2 book
-            example: 10234.56
-          total_ask_size:
-            type: number
-            description: Aggregate ask size across the available full-depth L2 book
-            example: 9876.54
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     ApiResponseL2OrderBookDiffArray:
       type: object
       properties:
@@ -331,59 +362,28 @@ components:
           type: string
           description: Spread in basis points
           example: '2.37'
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    ApiResponseFullDepthL2OrderBook:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/FullDepthL2OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    PriceLevel:
-      type: object
-      description: Single price level in the order book
-      required:
-      - px
-      - sz
-      - n
-      properties:
-        px:
-          type: string
-          description: Price
-          example: '42150.00'
-        sz:
-          type: string
-          description: Total size at this price level
-          example: '1.5'
-        n:
-          type: integer
-          description: Number of orders at this level
-          example: 15
+    FullDepthL2OrderBook:
+      allOf:
+      - $ref: '#/components/schemas/OrderBook'
+      - type: object
+        description: 0xArchive full-depth aggregated L2 order book snapshot derived from L4 data
+        properties:
+          bid_levels:
+            type: integer
+            description: Total bid price levels available before any depth truncation
+            example: 9842
+          ask_levels:
+            type: integer
+            description: Total ask price levels available before any depth truncation
+            example: 10318
+          total_bid_size:
+            type: number
+            description: Aggregate bid size across the available full-depth L2 book
+            example: 10234.56
+          total_ask_size:
+            type: number
+            description: Aggregate ask size across the available full-depth L2 book
+            example: 9876.54
   responses:
     RateLimited:
       description: Rate limit exceeded

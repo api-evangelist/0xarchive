@@ -697,24 +697,146 @@ paths:
       - ApiKeyAuth: []
 components:
   schemas:
-    ApiResponseOrderBook:
+    L4OrderBookSnapshot:
       type: object
+      description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
+      required:
+      - coin
+      - timestamp
+      - checkpoint_timestamp
+      - diffs_applied
+      - last_block_number
+      - bids
+      - asks
+      - bid_count
+      - ask_count
+      - total_bid_size
+      - total_ask_size
+      properties:
+        coin:
+          type: string
+          description: Trading pair or market symbol.
+          example: BTC
+        timestamp:
+          type: string
+          format: date-time
+          description: Snapshot timestamp in UTC.
+          example: '2026-03-12T00:00:00.000Z'
+        checkpoint_timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the checkpoint used for this snapshot.
+          example: '2026-03-12T00:00:00.000Z'
+        diffs_applied:
+          type: integer
+          description: Number of L4 diffs applied after the checkpoint.
+          example: 0
+        last_block_number:
+          type: integer
+          format: int64
+          description: Last Hyperliquid block represented by this snapshot.
+          example: 1023882395
+        bids:
+          type: array
+          description: Bid-side resting orders, best price first.
+          items:
+            $ref: '#/components/schemas/L4Order'
+        asks:
+          type: array
+          description: Ask-side resting orders, best price first.
+          items:
+            $ref: '#/components/schemas/L4Order'
+        bid_count:
+          type: integer
+          description: Number of bid orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 12
+        ask_count:
+          type: integer
+          description: Number of ask orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 15
+        total_bid_size:
+          type: number
+          description: Aggregate venue-native bid size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 102.34
+        total_ask_size:
+          type: number
+          description: Aggregate venue-native ask size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
+          example: 98.76
+        is_crossed:
+          type: boolean
+          description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
+          example: true
+    L4Order:
+      type: object
+      description: Individual resting order in a Hyperliquid-family L4 snapshot.
+      required:
+      - oid
+      - user_address
+      - side
+      - price
+      - size
+      - timestamp
+      properties:
+        oid:
+          type: integer
+          format: int64
+          description: Hyperliquid order identifier.
+          example: 18499128731
+        user_address:
+          type: string
+          description: Address attributed to the resting order.
+          example: '0x0000000000000000000000000000000000000000'
+        side:
+          type: string
+          enum:
+          - B
+          - A
+          description: 'Book side: B for bid or A for ask.'
+          example: B
+        price:
+          type: number
+          description: Venue-native resting order price.
+          example: 105384.5
+        size:
+          type: number
+          description: Venue-native remaining order size.
+          example: 0.824
+        timestamp:
+          type: integer
+          format: int64
+          description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
+          example: 1773273600123
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseL4OrderBookArray:
+      type: object
+      required:
+      - success
+      - data
+      - meta
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/OrderBook'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseSpotPair:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/SpotPair'
+          type: array
+          items:
+            $ref: '#/components/schemas/L4OrderBookSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
     ApiResponseSpotFreshness:
@@ -727,6 +849,71 @@ components:
           $ref: '#/components/schemas/SpotFreshness'
         meta:
           $ref: '#/components/schemas/ApiMeta'
+    SpotPair:
+      type: object
+      description: Hyperliquid Spot pair metadata.
+      additionalProperties: true
+      properties:
+        symbol:
+          type: string
+          example: HYPE-USDC
+        base:
+          type: string
+          example: HYPE
+        quote:
+          type: string
+          example: USDC
+    SpotFreshness:
+      type: object
+      description: Freshness state for a Hyperliquid Spot pair.
+      additionalProperties: true
+      required:
+      - symbol
+      - coin
+      - exchange
+      - measured_at
+      properties:
+        symbol:
+          type: string
+          example: HYPE-USDC
+        coin:
+          type: string
+          example: HYPE-USDC
+        exchange:
+          type: string
+          example: spot
+        measured_at:
+          type: string
+          format: date-time
+          example: '2026-05-08T21:20:35.277945340Z'
+        orderbook:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        trades:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        l4_checkpoints:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        l4_diffs:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        orders:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+        twap:
+          $ref: '#/components/schemas/SpotFreshnessBucket'
+    ApiResponseSpotTwapArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotTwapRecord'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    SpotTwapRecord:
+      type: object
+      description: Hyperliquid Spot TWAP record. Fields may expand as TWAP coverage fills in for a pair.
+      additionalProperties: true
     SpotFreshnessBucket:
       type: object
       description: Freshness state for one Hyperliquid Spot data type.
@@ -745,10 +932,30 @@ components:
           format: date-time
           description: Most recent update timestamp when available.
           example: '2026-05-08T21:20:34.837Z'
-    SpotTwapRecord:
+    ApiResponseSpotPairArray:
       type: object
-      description: Hyperliquid Spot TWAP record. Fields may expand as TWAP coverage fills in for a pair.
-      additionalProperties: true
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotPair'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseTradeArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     Trade:
       type: object
       description: Trade/fill record with full execution details
@@ -904,104 +1111,6 @@ components:
         notice:
           type: string
           description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
-    L4OrderBookSnapshot:
-      type: object
-      description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
-      required:
-      - coin
-      - timestamp
-      - checkpoint_timestamp
-      - diffs_applied
-      - last_block_number
-      - bids
-      - asks
-      - bid_count
-      - ask_count
-      - total_bid_size
-      - total_ask_size
-      properties:
-        coin:
-          type: string
-          description: Trading pair or market symbol.
-          example: BTC
-        timestamp:
-          type: string
-          format: date-time
-          description: Snapshot timestamp in UTC.
-          example: '2026-03-12T00:00:00.000Z'
-        checkpoint_timestamp:
-          type: string
-          format: date-time
-          description: Timestamp of the checkpoint used for this snapshot.
-          example: '2026-03-12T00:00:00.000Z'
-        diffs_applied:
-          type: integer
-          description: Number of L4 diffs applied after the checkpoint.
-          example: 0
-        last_block_number:
-          type: integer
-          format: int64
-          description: Last Hyperliquid block represented by this snapshot.
-          example: 1023882395
-        bids:
-          type: array
-          description: Bid-side resting orders, best price first.
-          items:
-            $ref: '#/components/schemas/L4Order'
-        asks:
-          type: array
-          description: Ask-side resting orders, best price first.
-          items:
-            $ref: '#/components/schemas/L4Order'
-        bid_count:
-          type: integer
-          description: Number of bid orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
-          example: 12
-        ask_count:
-          type: integer
-          description: Number of ask orders in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
-          example: 15
-        total_bid_size:
-          type: number
-          description: Aggregate venue-native bid size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
-          example: 102.34
-        total_ask_size:
-          type: number
-          description: Aggregate venue-native ask size in the full stored/reconstructed checkpoint before optional depth truncates returned bids/asks.
-          example: 98.76
-        is_crossed:
-          type: boolean
-          description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
-          example: true
-    ApiResponseTradeArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Trade'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     PriceLevel:
       type: object
       description: Single price level in the order book
@@ -1022,19 +1131,7 @@ components:
           type: integer
           description: Number of orders at this level
           example: 15
-    ApiResponseSpotPairArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpotPair'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseL4OrderBookArray:
+    ApiResponseL4OrderBook:
       type: object
       required:
       - success
@@ -1045,51 +1142,9 @@ components:
           type: boolean
           example: true
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/L4OrderBookSnapshot'
+          $ref: '#/components/schemas/L4OrderBookSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    L4Order:
-      type: object
-      description: Individual resting order in a Hyperliquid-family L4 snapshot.
-      required:
-      - oid
-      - user_address
-      - side
-      - price
-      - size
-      - timestamp
-      properties:
-        oid:
-          type: integer
-          format: int64
-          description: Hyperliquid order identifier.
-          example: 18499128731
-        user_address:
-          type: string
-          description: Address attributed to the resting order.
-          example: '0x0000000000000000000000000000000000000000'
-        side:
-          type: string
-          enum:
-          - B
-          - A
-          description: 'Book side: B for bid or A for ask.'
-          example: B
-        price:
-          type: number
-          description: Venue-native resting order price.
-          example: 105384.5
-        size:
-          type: number
-          description: Venue-native remaining order size.
-          example: 0.824
-        timestamp:
-          type: integer
-          format: int64
-          description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
-          example: 1773273600123
     OrderBook:
       type: object
       description: L2 order book snapshot
@@ -1136,91 +1191,27 @@ components:
           type: string
           description: Spread in basis points
           example: '2.37'
-    SpotPair:
-      type: object
-      description: Hyperliquid Spot pair metadata.
-      additionalProperties: true
-      properties:
-        symbol:
-          type: string
-          example: HYPE-USDC
-        base:
-          type: string
-          example: HYPE
-        quote:
-          type: string
-          example: USDC
-    SpotFreshness:
-      type: object
-      description: Freshness state for a Hyperliquid Spot pair.
-      additionalProperties: true
-      required:
-      - symbol
-      - coin
-      - exchange
-      - measured_at
-      properties:
-        symbol:
-          type: string
-          example: HYPE-USDC
-        coin:
-          type: string
-          example: HYPE-USDC
-        exchange:
-          type: string
-          example: spot
-        measured_at:
-          type: string
-          format: date-time
-          example: '2026-05-08T21:20:35.277945340Z'
-        orderbook:
-          $ref: '#/components/schemas/SpotFreshnessBucket'
-        trades:
-          $ref: '#/components/schemas/SpotFreshnessBucket'
-        l4_checkpoints:
-          $ref: '#/components/schemas/SpotFreshnessBucket'
-        l4_diffs:
-          $ref: '#/components/schemas/SpotFreshnessBucket'
-        orders:
-          $ref: '#/components/schemas/SpotFreshnessBucket'
-        twap:
-          $ref: '#/components/schemas/SpotFreshnessBucket'
-    ApiResponseSpotTwapArray:
+    ApiResponseSpotPair:
       type: object
       properties:
         success:
           type: boolean
           example: true
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpotTwapRecord'
+          $ref: '#/components/schemas/SpotPair'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiResponseL4OrderBook:
+    ApiResponseOrderBook:
       type: object
-      required:
-      - success
-      - data
-      - meta
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/L4OrderBookSnapshot'
+          $ref: '#/components/schemas/OrderBook'
         meta:
           $ref: '#/components/schemas/ApiMeta'
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -1243,6 +1234,15 @@ components:
           example:
             code: 429
             error: Rate limit exceeded
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            error: Missing or invalid API key. Provide X-API-Key header.
     BadRequest:
       description: Invalid request
       content:

@@ -140,6 +140,64 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    ClassifiedWallet:
+      type: object
+      description: Wallet plus its precomputed behavior metrics.
+      required:
+      - address
+      - metrics
+      - period
+      properties:
+        address:
+          type: string
+          description: Wallet address.
+          example: '0x010461c14e146ac35fe42271bdc1134ee31c703a'
+        metrics:
+          $ref: '#/components/schemas/WalletClassifyMetrics'
+        period:
+          type: string
+          description: Metric lookback period.
+          example: 24h
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
     WalletClassifyData:
       type: object
       description: Bulk wallet classification response body.
@@ -161,52 +219,6 @@ components:
           type: string
           description: Daily snapshot date.
           example: '2026-06-16'
-    ClassifiedWallet:
-      type: object
-      description: Wallet plus its precomputed behavior metrics.
-      required:
-      - address
-      - metrics
-      - period
-      properties:
-        address:
-          type: string
-          description: Wallet address.
-          example: '0x010461c14e146ac35fe42271bdc1134ee31c703a'
-        metrics:
-          $ref: '#/components/schemas/WalletClassifyMetrics'
-        period:
-          type: string
-          description: Metric lookback period.
-          example: 24h
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    ApiResponseWalletClassifyData:
-      type: object
-      description: API response containing bulk wallet classification results.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/WalletClassifyData'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     WalletClassifyMetrics:
       type: object
       description: Precomputed wallet behavior metrics.
@@ -288,29 +300,17 @@ components:
           type: number
         total_builder_fees_paid:
           type: number
-    ApiMeta:
+    ApiResponseWalletClassifyData:
       type: object
-      description: Response metadata
+      description: API response containing bulk wallet classification results.
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WalletClassifyData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
   responses:
     RateLimited:
       description: Rate limit exceeded

@@ -166,68 +166,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseTriggerLevels:
-      type: object
-      description: API response containing the pending trigger-order map.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/TriggerLevelsData'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseTriggerLevelsHistory:
-      type: object
-      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    TriggerLevelsHistoryItem:
-      type: object
-      description: One historical trigger-levels snapshot (15-minute cadence). levels is omitted when summary=true.
-      required:
-      - snapshot_ts
-      - mid_price
-      - total_bid_size
-      - total_ask_size
-      properties:
-        snapshot_ts:
-          type: string
-        mid_price:
-          type: number
-        total_bid_size:
-          type: number
-        total_ask_size:
-          type: number
-        levels:
-          type: array
-          items:
-            $ref: '#/components/schemas/TriggerLevel'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     TriggerLevel:
       type: object
       description: Aggregated currently open trigger orders at one rounded price bucket.
@@ -260,6 +198,29 @@ components:
           type: number
           description: Ask-side trigger size in the bucket.
           example: 18.75
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     TriggerLevelsData:
       type: object
       description: Currently pending stop-loss and take-profit trigger orders grouped into price buckets around the current mid/mark price. Voluntary trigger orders, not projected forced liquidations.
@@ -286,29 +247,68 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TriggerLevel'
-    ApiMeta:
+    ApiResponseTriggerLevelsHistory:
       type: object
-      description: Response metadata
+      description: Paginated historical trigger-levels snapshots, ascending by snapshot_ts. When a page is full, meta.next_cursor carries the cursor for the next page.
       properties:
-        count:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevelsHistoryItem'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
           type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
         request_id:
           type: string
           format: uuid
           description: Unique request ID for support
-        coverage_from:
+    ApiResponseTriggerLevels:
+      type: object
+      description: API response containing the pending trigger-order map.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/TriggerLevelsData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    TriggerLevelsHistoryItem:
+      type: object
+      description: One historical trigger-levels snapshot (15-minute cadence). levels is omitted when summary=true.
+      required:
+      - snapshot_ts
+      - mid_price
+      - total_bid_size
+      - total_ask_size
+      properties:
+        snapshot_ts:
           type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        mid_price:
+          type: number
+        total_bid_size:
+          type: number
+        total_ask_size:
+          type: number
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerLevel'
   responses:
     RateLimited:
       description: Rate limit exceeded

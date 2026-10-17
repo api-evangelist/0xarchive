@@ -114,18 +114,29 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseTradeArray:
+    ApiMeta:
       type: object
+      description: Response metadata
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Trade'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Error:
       type: object
       description: Error response
@@ -143,6 +154,18 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
+    ApiResponseTradeArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     Trade:
       type: object
       description: Trade/fill record with full execution details
@@ -275,29 +298,6 @@ components:
           - integer
           - 'null'
           description: TWAP execution ID
-    ApiMeta:
-      type: object
-      description: Response metadata
-      properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
   responses:
     RateLimited:
       description: Rate limit exceeded

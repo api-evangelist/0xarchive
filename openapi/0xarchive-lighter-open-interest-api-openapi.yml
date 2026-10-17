@@ -120,18 +120,29 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseOpenInterestArray:
+    ApiMeta:
       type: object
+      description: Response metadata
       properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/OpenInterest'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
     Error:
       type: object
       description: Error response
@@ -216,29 +227,18 @@ components:
           - string
           - 'null'
           description: Impact ask price for liquidations
-    ApiMeta:
+    ApiResponseOpenInterestArray:
       type: object
-      description: Response metadata
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpenInterest'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     ApiResponseOpenInterest:
       type: object
       properties:
@@ -250,15 +250,6 @@ components:
         meta:
           $ref: '#/components/schemas/ApiMeta'
   responses:
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 404
-            error: Resource not found
     RateLimited:
       description: Rate limit exceeded
       headers:
@@ -290,6 +281,15 @@ components:
           example:
             code: 401
             error: Missing or invalid API key. Provide X-API-Key header.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            error: Resource not found
     BadRequest:
       description: Invalid request
       content:

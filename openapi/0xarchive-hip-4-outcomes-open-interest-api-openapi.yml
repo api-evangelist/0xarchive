@@ -120,47 +120,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseHip4OpenInterestArray:
-      type: object
-      description: API response wrapping an array of HIP-4 per-side open-interest records
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hip4OpenInterestRecord'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    ApiResponseHip4OpenInterest:
-      type: object
-      description: API response wrapping a single HIP-4 per-side open-interest record
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          $ref: '#/components/schemas/Hip4OpenInterestRecord'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
     Hip4OpenInterestRecord:
       type: object
       description: 'HIP-4 per-side open-interest record. Mirrors the HIP-3 OI shape and adds `outcome_id` and `side`. `oracle_price` is omitted for HIP-4 (outcomes have no oracle feed). Note: `mark_price` is an implied probability in [0,1], not a USD price; same field name as perps because Hyperliquid upstream uses `markPx` for both.'
@@ -236,6 +195,47 @@ components:
         notice:
           type: string
           description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseHip4OpenInterestArray:
+      type: object
+      description: API response wrapping an array of HIP-4 per-side open-interest records
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hip4OpenInterestRecord'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+    ApiResponseHip4OpenInterest:
+      type: object
+      description: API response wrapping a single HIP-4 per-side open-interest record
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Hip4OpenInterestRecord'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
   responses:
     RateLimited:
       description: Rate limit exceeded

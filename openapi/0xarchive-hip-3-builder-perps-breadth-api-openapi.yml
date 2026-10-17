@@ -103,6 +103,39 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
+    ApiMeta:
+      type: object
+      description: Response metadata
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    ApiResponseBreadthSnapshot:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/BreadthSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     Error:
       type: object
       description: Error response
@@ -120,55 +153,6 @@ components:
           type: string
           format: uuid
           description: Unique request ID for support
-    BreadthNamespaceCounts:
-      type: object
-      description: Per-builder-namespace count breakdowns keyed by namespace.
-      required:
-      - eligible
-      - above
-      - at
-      - below
-      properties:
-        eligible:
-          type: object
-          additionalProperties:
-            type: integer
-            format: int32
-            minimum: 0
-          description: Eligible instrument counts by builder namespace.
-        above:
-          type: object
-          additionalProperties:
-            type: integer
-            format: int32
-            minimum: 0
-          description: Above-VWAP counts by builder namespace.
-        at:
-          type: object
-          additionalProperties:
-            type: integer
-            format: int32
-            minimum: 0
-          description: At-VWAP counts by builder namespace.
-        below:
-          type: object
-          additionalProperties:
-            type: integer
-            format: int32
-            minimum: 0
-          description: Below-VWAP counts by builder namespace.
-    ApiResponseBreadthSnapshotArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/BreadthSnapshot'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
     BreadthSnapshot:
       type: object
       description: Aggregate percentage of eligible HIP-3 instruments trading above their current UTC-session VWAP. Per-symbol VWAPs are not served.
@@ -251,39 +235,55 @@ components:
           format: int32
           minimum: 0
           description: Candidates excluded because their price was stale.
-    ApiResponseBreadthSnapshot:
+    ApiResponseBreadthSnapshotArray:
       type: object
       properties:
         success:
           type: boolean
           example: true
         data:
-          $ref: '#/components/schemas/BreadthSnapshot'
+          type: array
+          items:
+            $ref: '#/components/schemas/BreadthSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
-    ApiMeta:
+    BreadthNamespaceCounts:
       type: object
-      description: Response metadata
+      description: Per-builder-namespace count breakdowns keyed by namespace.
+      required:
+      - eligible
+      - above
+      - at
+      - below
       properties:
-        count:
-          type: integer
-          description: Number of records returned
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-        coverage_from:
-          type: string
-          format: date-time
-          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
-        notice:
-          type: string
-          description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+        eligible:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Eligible instrument counts by builder namespace.
+        above:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Above-VWAP counts by builder namespace.
+        at:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: At-VWAP counts by builder namespace.
+        below:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+            minimum: 0
+          description: Below-VWAP counts by builder namespace.
   responses:
     RateLimited:
       description: Rate limit exceeded

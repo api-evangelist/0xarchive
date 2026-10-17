@@ -243,62 +243,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    ApiResponseL4OrderBookArray:
-      type: object
-      required:
-      - success
-      - data
-      - meta
-      properties:
-        success:
-          type: boolean
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/L4OrderBookSnapshot'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-    L4Order:
-      type: object
-      description: Individual resting order in a Hyperliquid-family L4 snapshot.
-      required:
-      - oid
-      - user_address
-      - side
-      - price
-      - size
-      - timestamp
-      properties:
-        oid:
-          type: integer
-          format: int64
-          description: Hyperliquid order identifier.
-          example: 18499128731
-        user_address:
-          type: string
-          description: Address attributed to the resting order.
-          example: '0x0000000000000000000000000000000000000000'
-        side:
-          type: string
-          enum:
-          - B
-          - A
-          description: 'Book side: B for bid or A for ask.'
-          example: B
-        price:
-          type: number
-          description: Venue-native resting order price.
-          example: 105384.5
-        size:
-          type: number
-          description: Venue-native remaining order size.
-          example: 0.824
-        timestamp:
-          type: integer
-          format: int64
-          description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
-          example: 1773273600123
     L4OrderBookSnapshot:
       type: object
       description: Current or reconstructed Hyperliquid-family L4 orderbook snapshot.
@@ -368,23 +312,46 @@ components:
           type: boolean
           description: True only when a reconstructed historical book has best bid greater than or equal to best ask; omitted for clean snapshots.
           example: true
-    Error:
+    L4Order:
       type: object
-      description: Error response
+      description: Individual resting order in a Hyperliquid-family L4 snapshot.
+      required:
+      - oid
+      - user_address
+      - side
+      - price
+      - size
+      - timestamp
       properties:
-        code:
+        oid:
           type: integer
-          description: HTTP status code
-        error:
+          format: int64
+          description: Hyperliquid order identifier.
+          example: 18499128731
+        user_address:
           type: string
-          description: Error message
-        error_code:
+          description: Address attributed to the resting order.
+          example: '0x0000000000000000000000000000000000000000'
+        side:
           type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
+          enum:
+          - B
+          - A
+          description: 'Book side: B for bid or A for ask.'
+          example: B
+        price:
+          type: number
+          description: Venue-native resting order price.
+          example: 105384.5
+        size:
+          type: number
+          description: Venue-native remaining order size.
+          example: 0.824
+        timestamp:
+          type: integer
+          format: int64
+          description: Queue-join timestamp in Unix epoch milliseconds; 0 when unknown.
+          example: 1773273600123
     ApiMeta:
       type: object
       description: Response metadata
@@ -408,6 +375,23 @@ components:
         notice:
           type: string
           description: Human-readable advisory about the response. Currently used when the requested window ends before coverage begins for the symbol; may carry other advisories in future.
+    Error:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
     ApiResponseL4OrderBook:
       type: object
       required:
@@ -420,6 +404,22 @@ components:
           example: true
         data:
           $ref: '#/components/schemas/L4OrderBookSnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ApiResponseL4OrderBookArray:
+      type: object
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/L4OrderBookSnapshot'
         meta:
           $ref: '#/components/schemas/ApiMeta'
   responses:

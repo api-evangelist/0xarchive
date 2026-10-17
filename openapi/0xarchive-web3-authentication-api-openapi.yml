@@ -239,23 +239,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
 components:
   schemas:
-    Web3ErrorResponse:
-      type: object
-      required:
-      - code
-      - error
-      - error_code
-      - request_id
-      properties:
-        code:
-          type: integer
-          format: int32
-        error:
-          type: string
-        error_code:
-          type: string
-        request_id:
-          type: string
     Web3SubscribeResponse:
       type: object
       properties:
@@ -279,28 +262,33 @@ components:
           - string
           - 'null'
           description: On-chain transaction hash for the USDC transfer (if settled)
-    Web3UserInfo:
+    Web3ApiKey:
       type: object
-      required:
-      - id
-      - email
-      - tier
-      - wallet_address
       properties:
         id:
           type: string
           format: uuid
-        email:
+          description: Unique key ID
+        name:
           type: string
-          description: Account email associated with the wallet user.
-        tier:
+          description: Key name
+        key_prefix:
           type: string
-          description: Current subscription tier.
-          example: free
-        wallet_address:
+          description: First characters of the key for identification
+          example: 0xa_live_abc1
+        is_active:
+          type: boolean
+          description: Whether the key is currently active
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Last usage timestamp
+        created_at:
           type: string
-          description: Authenticated wallet address.
-          example: '0x742d35cc6634c0532925a3b844bc9e7595f2bd18'
+          format: date-time
+          description: Creation timestamp
     Web3SubscribeRequest:
       type: object
       required:
@@ -313,45 +301,6 @@ components:
           - pro
           description: Subscription tier to purchase
           example: build
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
-          type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
-    Web3VerifyRequest:
-      type: object
-      required:
-      - message
-      - signature
-      properties:
-        message:
-          type: string
-          description: SIWE message returned by `/v1/auth/web3/challenge` and signed by the wallet.
-        signature:
-          type: string
-          description: 65-byte hex ECDSA signature, with or without 0x prefix.
-          example: '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-    Web3ChallengeResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          description: SIWE message to sign with personal_sign (EIP-191)
-        nonce:
-          type: string
-          description: Single-use nonce (expires after 10 minutes)
     Web3AuthResponse:
       type: object
       description: Successful SIWE verification response for an existing wallet account. The route also sets auth cookies for browser/session flows.
@@ -393,23 +342,23 @@ components:
         wallet_address:
           type: string
           description: The wallet address that owned the key
-    Web3RevokeRequest:
+    Error:
       type: object
-      required:
-      - message
-      - signature
-      - key_id
+      description: Error response
       properties:
-        message:
+        code:
+          type: integer
+          description: HTTP status code
+        error:
           type: string
-          description: The SIWE message from the challenge endpoint
-        signature:
+          description: Error message
+        error_code:
           type: string
-          description: Hex-encoded signature from personal_sign (0x-prefixed)
-        key_id:
+          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
+        request_id:
           type: string
           format: uuid
-          description: UUID of the key to revoke
+          description: Unique request ID for support
     Web3ChallengeRequest:
       type: object
       required:
@@ -429,33 +378,84 @@ components:
         wallet_address:
           type: string
           description: The wallet address
-    Web3ApiKey:
+    Web3UserInfo:
       type: object
+      required:
+      - id
+      - email
+      - tier
+      - wallet_address
       properties:
         id:
           type: string
           format: uuid
-          description: Unique key ID
-        name:
+        email:
           type: string
-          description: Key name
-        key_prefix:
+          description: Account email associated with the wallet user.
+        tier:
           type: string
-          description: First characters of the key for identification
-          example: 0xa_live_abc1
-        is_active:
-          type: boolean
-          description: Whether the key is currently active
-        last_used_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Last usage timestamp
-        created_at:
+          description: Current subscription tier.
+          example: free
+        wallet_address:
           type: string
-          format: date-time
-          description: Creation timestamp
+          description: Authenticated wallet address.
+          example: '0x742d35cc6634c0532925a3b844bc9e7595f2bd18'
+    Web3ChallengeResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message to sign with personal_sign (EIP-191)
+        nonce:
+          type: string
+          description: Single-use nonce (expires after 10 minutes)
+    Web3VerifyRequest:
+      type: object
+      required:
+      - message
+      - signature
+      properties:
+        message:
+          type: string
+          description: SIWE message returned by `/v1/auth/web3/challenge` and signed by the wallet.
+        signature:
+          type: string
+          description: 65-byte hex ECDSA signature, with or without 0x prefix.
+          example: '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+    Web3RevokeRequest:
+      type: object
+      required:
+      - message
+      - signature
+      - key_id
+      properties:
+        message:
+          type: string
+          description: The SIWE message from the challenge endpoint
+        signature:
+          type: string
+          description: Hex-encoded signature from personal_sign (0x-prefixed)
+        key_id:
+          type: string
+          format: uuid
+          description: UUID of the key to revoke
+    Web3ErrorResponse:
+      type: object
+      required:
+      - code
+      - error
+      - error_code
+      - request_id
+      properties:
+        code:
+          type: integer
+          format: int32
+        error:
+          type: string
+        error_code:
+          type: string
+        request_id:
+          type: string
   responses:
     RateLimited:
       description: Rate limit exceeded
