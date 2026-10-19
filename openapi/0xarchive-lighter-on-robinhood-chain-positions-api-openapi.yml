@@ -1,0 +1,2143 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Lighter on Robinhood Chain - Positions API
+  description: 'REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Lighter coverage includes two deployments: Lighter mainnet under /v1/lighter and Lighter on Robinhood Chain under /v1/rh-lighter. Account positions are available for Hyperliquid core, HIP-3, and both Lighter deployments. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.'
+  version: 1.9.0
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Lighter on Robinhood Chain - Positions
+  description: 'Lighter on Robinhood Chain account positions by account index: current and as-of positions, hourly history, the position change log, and market-wide listings. Change log and hourly history from June 26, 2026; live snapshots every 2 minutes. Quoted and settled in USDG.'
+paths:
+  /v1/rh-lighter/accounts/{account_index}/positions:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain account positions
+      description: 'Open positions of one account: the latest live snapshot, or the state at `timestamp`. The first page of a snapshot read without `symbol` also returns the account''s position aggregates. An empty result reports `account_seen`. The change log and hourly history start June 26, 2026; live snapshots refresh every 2 minutes. Values are in USDG. Rows past the trade finalization watermark are preliminary (`finalized: false`). Billed at 1 credit per 1,000 rows returned, minimum 1 credit per request.'
+      operationId: getRhLighterAccountPositions
+      parameters:
+      - name: account_index
+        in: path
+        description: Lighter account index (an integer). Resolve an L1 address on Lighter mainnet with GET /v1/lighter/accounts?l1_address=0x...
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          example: '513030'
+        required: true
+        example: '513030'
+      - name: timestamp
+        in: query
+        description: 'As-of instant: the state after every event before it. An exact hour with a committed snapshot serves that snapshot; any other instant is reconstructed (`meta.source: reconstructed`) and clamped to `meta.built_through`. Omit for the latest live snapshot. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.'
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: symbol
+        in: query
+        description: Only this perpetual (e.g. BTC). Pass it exactly as the instruments route lists it, in uppercase.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 500, max 5000).
+        schema:
+          type: integer
+          default: 500
+          minimum: 1
+          maximum: 5000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain account positions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWalletPositions'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/accounts/{account_index}/positions/history:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain account position history
+      description: 'Hourly position rows of one account in `[start, end)`, one row per open position per committed hour, each with `snapshot_ts`. The change log and hourly history start June 26, 2026; live snapshots refresh every 2 minutes. Values are in USDG. Rows past the trade finalization watermark are preliminary (`finalized: false`). Billed at 1 credit per 1,000 rows returned, minimum 1 credit per request.'
+      operationId: getRhLighterAccountPositionsHistory
+      parameters:
+      - name: account_index
+        in: path
+        description: Lighter account index (an integer). Resolve an L1 address on Lighter mainnet with GET /v1/lighter/accounts?l1_address=0x...
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          example: '513030'
+        required: true
+        example: '513030'
+      - name: start
+        in: query
+        description: Inclusive start. Defaults to 24 hours before `end`. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: end
+        in: query
+        description: Exclusive end. Defaults to now. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: symbol
+        in: query
+        description: Only this perpetual (e.g. BTC). Pass it exactly as the instruments route lists it, in uppercase.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 500, max 5000).
+        schema:
+          type: integer
+          default: 500
+          minimum: 1
+          maximum: 5000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain account position history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePositionArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/accounts/{account_index}/positions/changes:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain account position changes
+      description: 'Position change log of one account in `[start, end)`: every trade, liquidation, deleverage, or settlement leg with the position before and after, in timestamp order. `end` is clamped to `meta.built_through`. A window too large to answer in time returns an error asking for a narrower one. The change log and hourly history start June 26, 2026; live snapshots refresh every 2 minutes. Values are in USDG. Rows past the trade finalization watermark are preliminary (`finalized: false`). Billed at 1 credit per 1,000 rows returned, minimum 1 credit per request.'
+      operationId: getRhLighterAccountPositionChanges
+      parameters:
+      - name: account_index
+        in: path
+        description: Lighter account index (an integer). Resolve an L1 address on Lighter mainnet with GET /v1/lighter/accounts?l1_address=0x...
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          example: '513030'
+        required: true
+        example: '513030'
+      - name: start
+        in: query
+        description: Inclusive start. Defaults to 24 hours before `end`. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: end
+        in: query
+        description: Exclusive end. Defaults to now. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: symbol
+        in: query
+        description: Only this perpetual (e.g. BTC). Pass it exactly as the instruments route lists it, in uppercase.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 500, max 5000).
+        schema:
+          type: integer
+          default: 500
+          minimum: 1
+          maximum: 5000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain account position changes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePositionChangeArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/accounts/{account_index}/account:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain account summary
+      description: 'Position aggregates of one account at the latest live snapshot: totals, long and short value, and the number of open positions. Lighter returns position aggregates only, not balances. Billed at 1 credit per request.'
+      operationId: getRhLighterAccountSummary
+      parameters:
+      - name: account_index
+        in: path
+        description: Lighter account index (an integer). Resolve an L1 address on Lighter mainnet with GET /v1/lighter/accounts?l1_address=0x...
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          example: '513030'
+        required: true
+        example: '513030'
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain account summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAccountSummaryArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/accounts/{account_index}/account/history:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain account summary history
+      description: Hourly position aggregates of one account in `[start, end)`, one point per committed hour (hours with no open position read as zeros). Takes no `symbol` or `dex` filter. Billed at 1 credit per request.
+      operationId: getRhLighterAccountSummaryHistory
+      parameters:
+      - name: account_index
+        in: path
+        description: Lighter account index (an integer). Resolve an L1 address on Lighter mainnet with GET /v1/lighter/accounts?l1_address=0x...
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          example: '513030'
+        required: true
+        example: '513030'
+      - name: start
+        in: query
+        description: Inclusive start. Defaults to 24 hours before `end`. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: end
+        in: query
+        description: Exclusive end. Defaults to now. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 500, max 5000).
+        schema:
+          type: integer
+          default: 500
+          minimum: 1
+          maximum: 5000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain account summary history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAccountSummaryArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/positions/{symbol}:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain market positions
+      description: Every open position in one market at the latest live snapshot, or at the committed hourly snapshot `hour`, sorted by position value, largest first. The first page carries `meta.totals` over the whole filtered set. System accounts are excluded unless `include_system=true`. Billed at 1 credit per 1,000 rows returned, minimum 1 credit per request.
+      operationId: getRhLighterMarketPositions
+      parameters:
+      - name: symbol
+        in: path
+        description: Perpetual symbol on Lighter on Robinhood Chain (e.g. BTC). Spot pairs have no positions. Pass it exactly as the instruments route lists it, in uppercase.
+        schema:
+          type: string
+          example: BTC
+        required: true
+        example: BTC
+      - name: hour
+        in: query
+        description: Committed hourly snapshot to read, as an exact UTC hour in Unix milliseconds. Echoed as `meta.snapshot_ts`. Defaults to the latest live snapshot.
+        schema:
+          type: integer
+          format: int64
+        example: 1789999200000
+      - name: side
+        in: query
+        description: Only long or only short positions.
+        schema:
+          type: string
+          enum:
+          - long
+          - short
+      - name: min_value
+        in: query
+        description: Only positions worth at least this much in USD.
+        schema:
+          type: number
+          minimum: 0
+      - name: include_system
+        in: query
+        description: Include settlement, insurance, and other system accounts (excluded by default).
+        schema:
+          type: boolean
+          default: false
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 100, max 2000).
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 2000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain market positions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseMarketPositionArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The snapshot a market cursor was paging has been replaced or has expired (`error_code` `snapshot_advanced`). Restart pagination without a cursor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 409
+                error_code: snapshot_advanced
+                error: The snapshot this cursor was paging has been replaced or has expired. Restart pagination without a cursor.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/positions/{symbol}/summary:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get Lighter on Robinhood Chain market positions summary
+      description: Long and short counts, sizes, values, average entries, and top-10 concentration for one market. Without `start` and `end`, one point at the latest live snapshot; with them, one point per committed hour in `[start, end)`, at most 168 hours per page. Billed at 1 credit per 1,000 rows returned, minimum 1 credit per request.
+      operationId: getRhLighterMarketPositionsSummary
+      parameters:
+      - name: symbol
+        in: path
+        description: Perpetual symbol on Lighter on Robinhood Chain (e.g. BTC). Spot pairs have no positions. Pass it exactly as the instruments route lists it, in uppercase.
+        schema:
+          type: string
+          example: BTC
+        required: true
+        example: BTC
+      - name: start
+        in: query
+        description: Inclusive start. Defaults to 24 hours before `end`. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: end
+        in: query
+        description: Exclusive end. Defaults to now. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: include_system
+        in: query
+        description: Include settlement, insurance, and other system accounts (excluded by default).
+        schema:
+          type: boolean
+          default: false
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 100, max 2000).
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 2000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Get Lighter on Robinhood Chain market positions summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseMarketPositionsSummaryArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/rh-lighter/positions:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Lighter on Robinhood Chain - Positions
+      summary: Get all Lighter on Robinhood Chain positions
+      description: 'Every open position across all markets at one committed hourly snapshot (default: the latest), for bulk loading. Each row carries `snapshot_ts`. System accounts are excluded unless `include_system=true`. Billed at 1 credit per 1,000 rows returned, minimum 1 credit per request.'
+      operationId: getRhLighterAllPositions
+      parameters:
+      - name: hour
+        in: query
+        description: Committed hourly snapshot to read, as an exact UTC hour in Unix milliseconds. Defaults to the latest committed hour.
+        schema:
+          type: integer
+          format: int64
+        example: 1789999200000
+      - name: include_system
+        in: query
+        description: Include settlement, insurance, and other system accounts (excluded by default).
+        schema:
+          type: boolean
+          default: false
+      - name: limit
+        in: query
+        description: Maximum rows per page (default 1000; max 2000 as JSON, 50,000 as Arrow).
+        schema:
+          type: integer
+          default: 1000
+          minimum: 1
+          maximum: 50000
+      - name: cursor
+        in: query
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page. Keep every other parameter unchanged.'
+        schema:
+          type: string
+      - name: format
+        in: query
+        description: '`arrow` returns an Apache Arrow IPC stream (`application/vnd.apache.arrow.stream`) with up to 50,000 rows per page and the page metadata in the `x-count`, `x-next-cursor`, and `x-schema-version: positions.v1` headers, where Arrow output is enabled for this route; otherwise the response is JSON. Sending `Accept: application/vnd.apache.arrow.stream` has the same effect.'
+        schema:
+          type: string
+          enum:
+          - json
+          - arrow
+      responses:
+        '200':
+          description: Get all Lighter on Robinhood Chain positions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseMarketPositionArray'
+            application/vnd.apache.arrow.stream:
+              schema:
+                type: string
+                format: binary
+                description: Apache Arrow IPC stream of `MarketPosition` rows (schema version `positions.v1`).
+          headers:
+            x-count:
+              schema:
+                type: integer
+              description: 'Arrow responses: rows in this page.'
+            x-next-cursor:
+              schema:
+                type: string
+              description: 'Arrow responses: cursor for the next page, absent on the last page.'
+            x-schema-version:
+              schema:
+                type: string
+              description: 'Arrow responses: `positions.v1`.'
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The snapshot a market cursor was paging has been replaced or has expired (`error_code` `snapshot_advanced`). Restart pagination without a cursor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 409
+                error_code: snapshot_advanced
+                error: The snapshot this cursor was paging has been replaced or has expired. Restart pagination without a cursor.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: Positions, pagination, or an as-of reconstruction are temporarily unavailable (`error_code` `positions_unavailable`, `pagination_unavailable`, or `reconstruction_unavailable`). Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: positions_unavailable
+                error: Account positions are not available right now.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  schemas:
+    PositionChange:
+      type: object
+      description: 'One leg of the position change log: a trade, liquidation, auto-deleverage, or settlement that changed (or touched) a position, with the position before and after. Hyperliquid legs carry `direction`, `closed_pnl`, `crossed`, and `seq`; Lighter legs carry `realized_pnl`, `is_maker`, and the Lighter fields at the end.'
+      required:
+      - timestamp
+      - symbol
+      - coin
+      - side
+      - price
+      - size
+      - start_position
+      - end_position
+      - entry_price_after
+      - event_type
+      - cause
+      - fee
+      - fee_token
+      - trade_id
+      - order_id
+      - opened_at
+      - continuity
+      - finalized
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Execution time (UTC).
+          example: '2026-09-25T14:03:11.482Z'
+        account_index:
+          type: string
+          description: 'Lighter only: account index as a string.'
+          example: '513030'
+        account_kind:
+          type: string
+          description: 'Lighter only: `user`, `insurance`, `settlement`, or `system`.'
+          example: user
+        symbol:
+          type: string
+          description: 'Market symbol (HIP-3: `dex:COIN`).'
+          example: BTC
+        coin:
+          type: string
+          description: Alias of `symbol`.
+          example: BTC
+        dex:
+          type: string
+          description: 'HIP-3 only: dex of the market.'
+          example: xyz
+        side:
+          type: string
+          enum:
+          - B
+          - A
+          description: 'Side of this account in the trade, exactly as on the trades routes: `B` (buy) or `A` (sell).'
+          example: B
+        price:
+          type:
+          - string
+          - 'null'
+          description: Execution price.
+          example: '65010.2'
+        size:
+          type:
+          - string
+          - 'null'
+          description: Traded size in base units.
+          example: '0.25'
+        start_position:
+          type:
+          - string
+          - 'null'
+          description: Signed position size before the leg.
+          example: '-0.5'
+        end_position:
+          type:
+          - string
+          - 'null'
+          description: Signed position size after the leg.
+          example: '-0.25'
+        entry_price_after:
+          type:
+          - string
+          - 'null'
+          description: Average entry price after the leg. Null when the position is flat after it.
+          example: '64210.5'
+        event_type:
+          type: string
+          description: 'Effect on the position: `open`, `increase`, `reduce`, `close`, or `flip`. Lighter also reports `settlement` (the settlement counterparty side of a market settlement) and `unchanged`.'
+          example: reduce
+        cause:
+          type: string
+          description: 'Why the leg happened: `trade`, `liquidation`, `liquidation_counterparty`, `adl`, `settlement`, or `unknown`.'
+          example: trade
+        direction:
+          type: string
+          description: 'Hyperliquid and HIP-3 only: direction label as reported by Hyperliquid (for example `Close Short`).'
+          example: Close Short
+        closed_pnl:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: realized PnL of the leg in USD.'
+          example: '19.9'
+        realized_pnl:
+          type: string
+          description: 'Lighter only: realized PnL of the leg in the quote asset (0 on open and increase).'
+          example: '19.9'
+        fee:
+          type:
+          - string
+          - 'null'
+          description: Fee paid for the leg (negative is a rebate).
+          example: '0.4875'
+        fee_token:
+          type: string
+          description: 'Asset the fee is paid in: USDC on Hyperliquid and Lighter mainnet, USDG on Lighter on Robinhood Chain.'
+          example: USDC
+        crossed:
+          type: boolean
+          description: 'Hyperliquid and HIP-3 only: true when this account was the taker.'
+          example: true
+        is_maker:
+          type: boolean
+          description: 'Lighter only: true when this account was the maker.'
+          example: false
+        trade_id:
+          type: integer
+          format: int64
+          description: Trade ID, shared by both legs of a trade.
+          example: 26121110211
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: Order ID of this account.
+          example: 844421856609148
+        opened_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Start of the position lifecycle this leg belongs to. Null when it opened before coverage.
+        seq:
+          type: integer
+          description: 'Hyperliquid and HIP-3 only: order of legs that share a timestamp.'
+          example: 0
+        block_number:
+          type: integer
+          format: int64
+          description: 'Hyperliquid and HIP-3 only, present when known (from September 17, 2026): block that executed the leg.'
+          example: 745512345
+        event_index:
+          type: integer
+          description: 'Hyperliquid and HIP-3 only, present with `block_number`: execution order within the block.'
+          example: 12
+        continuity:
+          type: string
+          enum:
+          - ok
+          - inferred
+          - first_seen
+          - quarantined
+          description: '`ok` when `start_position` continues the previous leg exactly, `inferred` when it was bridged, `first_seen` for the first leg recorded for the account and market, `quarantined` when the chain is broken and the leg is held out of position state.'
+          example: ok
+        position_size_before:
+          type: string
+          description: 'Lighter only: alias of `start_position`.'
+          example: '-0.5'
+        position_size_after:
+          type: string
+          description: 'Lighter only: alias of `end_position`.'
+          example: '-0.25'
+        fee_rate:
+          type:
+          - string
+          - 'null'
+          description: 'Lighter only: fee rate as a decimal ratio.'
+          example: '0.00002'
+        fee_usdc:
+          type:
+          - string
+          - 'null'
+          description: 'Lighter only: fee in the quote asset, computed from the notional and the fee rate.'
+          example: '0.325'
+        usdc_amount:
+          type: string
+          description: 'Lighter only: notional of the leg in the quote asset.'
+          example: '16252.55'
+        finalized:
+          type: boolean
+          description: True when the leg is final and will not be re-derived.
+          example: true
+    ApiResponseMarketPositionArray:
+      type: object
+      description: Open positions in a market or across markets.
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketPosition'
+        meta:
+          $ref: '#/components/schemas/PositionsMeta'
+    PositionsMeta:
+      type: object
+      description: Response metadata of the account positions routes. Every instant is RFC 3339 UTC with milliseconds and comes from the data, never the request time.
+      required:
+      - count
+      - request_id
+      properties:
+        count:
+          type: integer
+          description: Number of records returned.
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Signed, opaque cursor for the next page, bound to the request; present exactly when `has_more` is `true`. Pass it back with the same parameters. A market cursor pins its snapshot; if that snapshot is replaced or expires the next page answers 409 `snapshot_advanced`.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support.
+        as_of:
+          type: string
+          format: date-time
+          description: 'Instant the returned state describes: the snapshot tick or hour, or the requested as-of time.'
+        snapshot_ts:
+          type: string
+          format: date-time
+          description: Committed snapshot the response was read from. Market routes echo the resolved `hour` here.
+        source:
+          type: string
+          enum:
+          - snapshot
+          - reconstructed
+          - changes
+          description: 'How the rows were produced: `snapshot` (live or hourly snapshot), `reconstructed` (as-of state between snapshots), or `changes` (change log).'
+        quality:
+          type: string
+          description: 'Completeness of the snapshot the response was read from: `complete`, `partial`, or `degraded`. Rows carry their own `quality`. On Lighter and Robinhood Chain, snapshots from the latest day, before the venue''s daily trade reconcile, can read `degraded` while their rows read `preliminary`; they read `complete` once the reconcile has run.'
+        stale:
+          type: boolean
+          description: True on current reads when the latest snapshot is older than 12 minutes; paired with `notice`.
+        built_through:
+          type: string
+          format: date-time
+          description: Every event before this instant is built into the change log and as-of state. Reads are clamped to it.
+        finalized_through:
+          type: string
+          format: date-time
+          description: 'Every event before this instant is final and will not be re-derived (Lighter: the trade finalization watermark). Never later than `built_through`.'
+        requested_end:
+          type: string
+          format: date-time
+          description: The `end` or `timestamp` the caller asked for, echoed when the read was clamped.
+        clamped_to:
+          type: string
+          format: date-time
+          description: Boundary the read was clamped to (`built_through`). Present only when clamped.
+        totals:
+          allOf:
+          - $ref: '#/components/schemas/MarketPositionsSummary'
+          description: 'Market listings, first page only: aggregates over the whole filtered result set, not just this page.'
+        coverage_from:
+          type: string
+          format: date-time
+          description: Coverage start, present with `notice` when the request falls before coverage or the address has no recorded activity.
+        notice:
+          type: string
+          description: 'Human-readable advisory: before coverage, no recorded activity, or a stale snapshot.'
+        has_more:
+          type: boolean
+          description: 'Cursor-paged routes: whether another page follows. `next_cursor` is present exactly when this is `true`. A final page can be empty when the previous page was exactly full; `has_more` is `false` on it.'
+        symbol:
+          type: string
+          description: 'Per-symbol routes: the canonical public symbol the response describes (for example `BTC`, `xyz:TSLA`, `HYPE-USDC`, `#0`).'
+          example: BTC
+        venue:
+          type: string
+          enum:
+          - hyperliquid
+          - hip3
+          - hip4
+          - spot
+          - lighter
+          - rh-lighter
+          description: 'Per-symbol routes: the venue the response describes.'
+          example: hyperliquid
+    ErrorResponse:
+      type: object
+      description: Body of every non-2xx JSON response. `code` repeats the HTTP status, `error_code` is the stable machine-readable code (see `ErrorCode`), `error` is a human-readable message, and `request_id` identifies the request for support. Validation failures add `param` and, where the accepted set is fixed, `valid_values`. A 404 for a datatype the venue does not offer (`unsupported_for_venue`) adds `venue`, `datatype` and `available_on`; any other unknown path answers 404 `route_not_found`.
+      required:
+      - success
+      - code
+      - error_code
+      - error
+      - request_id
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+          description: Always `false` on an error.
+        code:
+          type: integer
+          description: HTTP status code.
+          example: 400
+        error_code:
+          $ref: '#/components/schemas/ErrorCode'
+        error:
+          type: string
+          description: Human-readable message. Wording can change; do not parse it.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support.
+        param:
+          type: string
+          description: The parameter that failed validation, when one did.
+          example: side
+        valid_values:
+          type: array
+          items:
+            type: string
+          description: Accepted values of `param`, when the set is fixed.
+          example:
+          - buy
+          - sell
+        venue:
+          type: string
+          description: '`unsupported_for_venue` only: the venue the request asked.'
+          example: spot
+        datatype:
+          type: string
+          description: '`unsupported_for_venue` only: the datatype the request asked for, as `GET /v1/capabilities` names it.'
+          example: order_flow
+        available_on:
+          type: array
+          description: '`unsupported_for_venue` only: the venues and routes that serve the datatype.'
+          items:
+            type: object
+            required:
+            - venue
+            - route
+            properties:
+              venue:
+                type: string
+                example: hyperliquid
+              route:
+                type: string
+                example: /v1/hyperliquid/orders/{symbol}/flow
+        credits_used:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: credits used this period.'
+        credits_limit:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: the period''s credit allowance.'
+        max_concurrent:
+          type: integer
+          description: '`rate_limited` concurrency refusals only: simultaneous queries the plan allows.'
+        suggestion:
+          type: object
+          description: 'Present when the symbol exists on another venue: where to request it instead.'
+          properties:
+            venue:
+              type: string
+              example: hip3
+            symbol:
+              type: string
+              example: xyz:TSLA
+            endpoint:
+              type: string
+              example: /v1/hyperliquid/hip3/trades/xyz:TSLA
+    MarketPosition:
+      type: object
+      description: 'One open position in a market-wide listing (`/positions/{symbol}` and bulk `/positions`). A lean record: use the wallet or account routes for the full `Position`.'
+      required:
+      - symbol
+      - coin
+      - size
+      - side
+      - entry_price
+      - mark_price
+      - position_value
+      - unrealized_pnl
+      - leverage_type
+      - liquidation_price
+      - quality
+      properties:
+        snapshot_ts:
+          type: string
+          format: date-time
+          description: Hour the row describes. Present on bulk `/positions` rows.
+        user_address:
+          type: string
+          description: 'Hyperliquid and HIP-3 only: wallet address holding the position (lowercase).'
+          example: '0x31ca8395cf837de08b24da3f660e77761dfb974b'
+        account_index:
+          type: string
+          description: 'Lighter only: account index as a string.'
+          example: '513030'
+        account_kind:
+          type: string
+          description: 'Lighter only: `user`, `insurance`, `settlement`, or `system`.'
+          example: user
+        symbol:
+          type: string
+          description: 'Market symbol (HIP-3: `dex:COIN`).'
+          example: BTC
+        coin:
+          type: string
+          description: Alias of `symbol`.
+          example: BTC
+        dex:
+          type: string
+          description: 'HIP-3 only: dex of the market.'
+          example: xyz
+        size:
+          type: string
+          description: Signed position size in base units.
+          example: '12.5'
+        side:
+          type: string
+          enum:
+          - long
+          - short
+          example: long
+        entry_price:
+          type:
+          - string
+          - 'null'
+          description: Average entry price.
+          example: '64210.5'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Mark price.
+          example: '65020.1'
+        position_value:
+          type:
+          - string
+          - 'null'
+          description: Absolute position value in USD. Listings sort by this value, largest first.
+          example: '812751.25'
+        unrealized_pnl:
+          type:
+          - string
+          - 'null'
+          description: Unrealized PnL in USD.
+          example: '10120.2'
+        leverage_type:
+          type: string
+          description: '`cross`, `isolated`, or `unknown` (Lighter: the margin mode).'
+          example: cross
+        liquidation_price:
+          type:
+          - string
+          - 'null'
+          description: Reported liquidation price. Hyperliquid only; null on Lighter.
+          example: '51000'
+        quality:
+          type: string
+          description: Quality of this row. `complete`, `partial` (a mark or entry is missing, so value and PnL fields are null), or `degraded`. Lighter rows can also read `preliminary` (built from real-time trades not yet reconciled), `unreconciled` (a market with no reconciled trades), or `incomplete`. No row reads `complete` when its own data is not complete, or when its snapshot has a problem that could not be pinned to specific rows. A small number of Hyperliquid positions around three short windows in June and July 2025, where Hyperliquid's published fill data has gaps, read `partial`.
+          example: complete
+    Position:
+      type: object
+      description: One open position. Numbers are decimal strings (sizes to the market size precision, prices to the market price precision, USD values to 6 decimals); a flat position serializes as `"0"`. Hyperliquid rows carry `dex` on HIP-3; Lighter rows carry `account_index`, `account_kind`, and the Lighter fields at the end. Fields a source does not report are null, never estimated.
+      required:
+      - symbol
+      - coin
+      - size
+      - side
+      - entry_price
+      - mark_price
+      - mark_time
+      - position_value
+      - unrealized_pnl
+      - return_on_equity
+      - leverage
+      - max_leverage
+      - margin_used
+      - liquidation_price
+      - liquidation_price_status
+      - cum_funding
+      - opened_at
+      - snapshot_as_of
+      - quality
+      properties:
+        snapshot_ts:
+          type: string
+          format: date-time
+          description: Hour the row describes. Present on hourly history rows only.
+        account_index:
+          type: string
+          description: 'Lighter only: account index, serialized as a string because it can exceed JavaScript integers.'
+          example: '281474976710654'
+        account_kind:
+          type: string
+          description: 'Lighter only: `user`, `insurance`, `settlement`, or `system`. Non-user accounts appear in market routes only with `include_system=true`.'
+          example: user
+        symbol:
+          type: string
+          description: 'Market symbol (HIP-3: `dex:COIN`).'
+          example: BTC
+        coin:
+          type: string
+          description: Alias of `symbol`.
+          example: BTC
+        dex:
+          type: string
+          description: 'HIP-3 only: the dex the position belongs to.'
+          example: xyz
+        size:
+          type: string
+          description: Signed position size in base units (negative is short).
+          example: '-0.5'
+        side:
+          type: string
+          enum:
+          - long
+          - short
+          description: Position side.
+          example: short
+        entry_price:
+          type:
+          - string
+          - 'null'
+          description: Average entry price.
+          example: '64210.5'
+        mark_price:
+          type:
+          - string
+          - 'null'
+          description: Mark price used for value and PnL. Null when no mark is available.
+          example: '65020.1'
+        mark_time:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of the mark price.
+        position_value:
+          type:
+          - string
+          - 'null'
+          description: Absolute position value in USD at the mark price.
+          example: '32510.05'
+        unrealized_pnl:
+          type:
+          - string
+          - 'null'
+          description: Unrealized PnL in USD at the mark price.
+          example: '-404.8'
+        return_on_equity:
+          type:
+          - string
+          - 'null'
+          description: Return on equity as a decimal ratio. Hyperliquid snapshot rows only.
+          example: '-0.1245'
+        leverage:
+          $ref: '#/components/schemas/PositionLeverage'
+        max_leverage:
+          type:
+          - integer
+          - 'null'
+          description: Maximum leverage allowed for the market. Hyperliquid snapshot rows only.
+          example: 40
+        margin_used:
+          type:
+          - string
+          - 'null'
+          description: Margin allocated to the position in USD. Hyperliquid snapshot rows only.
+          example: '1625.5'
+        liquidation_price:
+          type:
+          - string
+          - 'null'
+          description: Liquidation price as reported for the position. Hyperliquid snapshot rows only.
+          example: '81250'
+        liquidation_price_status:
+          type: string
+          description: 'How `liquidation_price` should be read: `exact`, `not_published_cross`, `changed_since_snapshot`, or `unavailable` (always `unavailable` on Lighter and on as-of reconstructions).'
+          example: exact
+        cum_funding:
+          $ref: '#/components/schemas/PositionCumulativeFunding'
+        opened_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Start of the current position lifecycle. Null when it opened before coverage.
+        snapshot_as_of:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time the leverage, margin, and funding fields describe, which can differ from the hour. Hyperliquid snapshot rows only.
+        quality:
+          type: string
+          description: Quality of this row. `complete`, `partial` (a mark or entry is missing, so value and PnL fields are null), or `degraded`. Lighter rows can also read `preliminary` (built from real-time trades not yet reconciled), `unreconciled` (a market with no reconciled trades), or `incomplete`. No row reads `complete` when its own data is not complete, or when its snapshot has a problem that could not be pinned to specific rows. A small number of Hyperliquid positions around three short windows in June and July 2025, where Hyperliquid's published fill data has gaps, read `partial`.
+          example: complete
+        initial_margin_fraction:
+          type:
+          - string
+          - 'null'
+          description: 'Lighter only: initial margin fraction at the last trade, as a decimal ratio.'
+          example: '0.05'
+        allocated_margin:
+          type:
+          - string
+          - 'null'
+          description: 'Lighter only: isolated margin allocated to the position.'
+          example: '1200.5'
+        margin_mode:
+          type: string
+          description: 'Lighter only: `cross`, `isolated`, or `unknown`.'
+          example: cross
+        mark_source:
+          type: string
+          description: 'Lighter only: where the mark came from: `mark`, `last_trade`, `stale_mark`, or `none`.'
+          example: mark
+        finalized:
+          type: boolean
+          description: 'Lighter only: true when every trade behind the row is final (reconciled).'
+          example: true
+    PositionLeverage:
+      type: object
+      description: Leverage of a position.
+      required:
+      - type
+      - value
+      properties:
+        type:
+          type: string
+          description: 'Margin type: `cross`, `isolated`, or `unknown`. On Lighter this is the margin mode of the position.'
+          example: cross
+        value:
+          type:
+          - string
+          - 'null'
+          description: Leverage multiple as a decimal string. Null when unknown (Lighter rows and as-of reconstructions).
+          example: '20'
+    ApiResponseMarketPositionsSummaryArray:
+      type: object
+      description: 'Market long/short aggregates: one point now, or one per hour.'
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketPositionsSummary'
+        meta:
+          $ref: '#/components/schemas/PositionsMeta'
+    AccountSummary:
+      type: object
+      description: 'Account summary. Hyperliquid and HIP-3 carry the perp clearinghouse fields of one account (HIP-3: one per dex). Lighter carries position aggregates only (`account_index`, totals, and counts). A total is null when any position in it has no mark, never a partial sum.'
+      required:
+      - total_position_value
+      - total_unrealized_pnl
+      - long_value
+      - short_value
+      - n_positions
+      - quality
+      properties:
+        snapshot_ts:
+          type: string
+          format: date-time
+          description: Hour the row describes. Present on hourly history rows only.
+        account_index:
+          type: string
+          description: 'Lighter only: account index as a string.'
+          example: '513030'
+        dex:
+          type: string
+          description: 'HIP-3 only: dex the account summary belongs to.'
+          example: xyz
+        account_value:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: account value in USD.'
+          example: '125000.5'
+        cross_account_value:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: cross-margin account value in USD.'
+          example: '118000.25'
+        collateral:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: collateral in USD.'
+          example: '100000'
+        total_margin_used:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: total margin used in USD.'
+          example: '20500.75'
+        cross_maintenance_margin_used:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: cross maintenance margin used in USD.'
+          example: '6100.2'
+        withdrawable:
+          type:
+          - string
+          - 'null'
+          description: 'Hyperliquid and HIP-3 only: withdrawable amount in USD. Null outside the periods where it was captured.'
+        total_position_value:
+          type:
+          - string
+          - 'null'
+          description: Sum of absolute position values in USD.
+          example: '412000.5'
+        total_unrealized_pnl:
+          type:
+          - string
+          - 'null'
+          description: Sum of unrealized PnL in USD.
+          example: '2510.25'
+        long_value:
+          type:
+          - string
+          - 'null'
+          description: Value of long positions in USD.
+          example: '300000'
+        short_value:
+          type:
+          - string
+          - 'null'
+          description: Value of short positions in USD.
+          example: '112000.5'
+        n_positions:
+          type: integer
+          description: Number of open positions.
+          example: 4
+        account_mode:
+          type: string
+          description: 'Hyperliquid and HIP-3 only: account abstraction mode, `standard`, `unified`, `portfolio`, `dex_abstraction`, or `unknown`.'
+          example: standard
+        snapshot_as_of:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'Hyperliquid and HIP-3 only: time the clearinghouse fields describe.'
+        quality:
+          type: string
+          description: '`complete`, `partial` (a total is null because a position has no mark), or `degraded`.'
+          example: complete
+    TimeInput:
+      description: 'An instant: Unix milliseconds, or an RFC 3339 string such as `2026-01-01T00:00:00Z` (encode a `+` offset as `%2B`). An unparsable value answers 400 `invalid_time_range`.'
+      oneOf:
+      - type: integer
+        format: int64
+        description: Unix milliseconds.
+        example: 1767225600000
+      - type: string
+        format: date-time
+        description: RFC 3339 instant.
+        example: '2026-01-01T00:00:00Z'
+    ApiResponseAccountSummaryArray:
+      type: object
+      description: 'Account summaries (current: one per account or HIP-3 dex; history: one per hour).'
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountSummary'
+        meta:
+          $ref: '#/components/schemas/PositionsMeta'
+    ApiResponseWalletPositions:
+      type: object
+      description: Positions of one wallet or account.
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WalletPositions'
+        meta:
+          $ref: '#/components/schemas/PositionsMeta'
+    WalletPositions:
+      type: object
+      description: Positions of one wallet or account at one instant.
+      required:
+      - positions
+      - account
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        account:
+          allOf:
+          - $ref: '#/components/schemas/AccountSummary'
+          description: 'Account summary on the first page of a snapshot read. Hyperliquid core: the wallet''s summary when the snapshot holds one. HIP-3: when the request is scoped to one dex. Lighter: position aggregates when no `symbol` filter is set. Null otherwise, on later pages, and on as-of reconstructions.'
+        account_seen:
+          type: string
+          enum:
+          - flat
+          - never_seen
+          - outside_coverage
+          description: 'Present only when `positions` is empty: `flat` (activity is recorded but no position is open), `never_seen` (no recorded activity in the covered history, with `meta.notice` and `meta.coverage_from`), or `outside_coverage` (the requested instant is before coverage).'
+    ErrorCode:
+      type: string
+      description: 'Stable, machine-readable error code. Branch on this value, not on the `error` text.
+
+
+        **Contract codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_parameter` | 400 | A parameter failed to parse or validate. `param` names it and `valid_values` lists accepted values where the set is fixed. |
+
+        | `invalid_symbol` | 400 | The symbol is not listed on this venue. |
+
+        | `invalid_interval` | 400 | The `interval` (bucket width) is not one this route accepts. |
+
+        | `invalid_cursor` | 400 | The `cursor` is malformed, stale, or was issued for other filters. Restart pagination without a cursor. Trades, liquidations, L2 and L4 diffs, order history and TP/SL routes currently return the first page for a malformed cursor instead. |
+
+        | `invalid_time_range` | 400 | `start` is after `end`, or a time value could not be parsed. |
+
+        | `range_before_coverage` | 400 | The whole requested range ends before the first instant this dataset is served from. |
+
+        | `historical_range_exceeded` | 403 | The requested span is longer than the plan allows in one request or replay. |
+
+        | `historical_depth_exceeded` | 403 | The request reaches further back than the plan''s history window. |
+
+        | `unsupported_for_venue` | 404 | The venue does not offer this datatype. The message, `datatype` and `available_on` name where it is served. |
+
+        | `route_not_found` | 404 | No route matches the path or method. `GET /v1/capabilities` lists the routes each venue serves. |
+
+        | `not_found` | 404 | The route exists but the requested resource (for example an incident, endpoint or outcome id) does not. |
+
+        | `unauthorized` | 401 | The API key is missing or invalid. |
+
+        | `forbidden` | 403 | The key is valid but not allowed to make this request. |
+
+        | `insufficient_credits` | 429 | The monthly credit allowance is spent (402 on pay-per-request routes). |
+
+        | `rate_limited` | 429 | Too many requests or concurrent queries. Retry after the interval in the rate-limit headers. |
+
+        | `conflict` | 409 | The request conflicts with the current state of the resource. |
+
+        | `upstream_unavailable` | 503 | A dependency is unavailable or saturated. Retry shortly; the response carries `Retry-After`. |
+
+        | `internal_error` | 500 | An unexpected server error. Quote `request_id` when contacting support. |
+
+
+        **WebSocket only** (sent in `{"type":"error"}` messages, never by REST)
+
+
+        | Code | Where | Meaning |
+
+        |---|---|---|
+
+        | `endpoint_unsupported` | WebSocket | This WebSocket endpoint does not serve the channel or operation. The message names the endpoint that does. |
+
+        | `slow_consumer` | WebSocket | The connection fell behind a stream and messages were dropped. Re-subscribe, or restart the replay, to resynchronise. |
+
+
+        **Route-specific codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `positions_unavailable` | 503 | Account positions are temporarily unavailable for this venue. |
+
+        | `reconstruction_unavailable` | 503 | The as-of positions state for this instant cannot be reconstructed right now. |
+
+        | `snapshot_advanced` | 409 | A positions market cursor pinned a snapshot that has since been replaced or expired. Restart pagination. |
+
+        | `pagination_unavailable` | 503 | The next positions page cannot be served right now. Retry the same cursor shortly. |
+
+        | `api_key_limit_reached` | 403 | The account already holds the maximum number of API keys for its plan. |
+
+        | `wallet_requires_plan` | 402 | A wallet-authenticated key needs an active plan for this request. |
+
+        | `wallet_account_required` | 403 | Wallet sign-in needs an existing account linked to the wallet. |
+
+        | `wallet_free_signup_retired` | 410 | Free wallet sign-up is no longer offered. |
+
+        | `account_disabled` | 403 | The account is disabled. |
+
+        | `oauth_not_permitted` | 403 | This route is not available to OAuth access tokens. |
+
+        | `insufficient_scope` | 403 | The OAuth access token lacks the scope this route requires. |
+
+
+        **Legacy names.** Requests without `0xArchive-Version: 2026-10-01` keep the four names that predate the contract; with the header they receive the contract names instead.
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_query_params` | 400 | Legacy name of `invalid_parameter` (query parameter), or of `invalid_cursor` when the parameter is `cursor`, sent without the version header. |
+
+        | `invalid_path_params` | 400 | Legacy name of `invalid_parameter` (path parameter), sent without the version header. |
+
+        | `history_window_exceeded` | 403 | Legacy name of `historical_depth_exceeded`, sent without the version header. |
+
+        | `request_range_exceeded` | 403 | Legacy name of `historical_range_exceeded`, sent without the version header. |
+
+
+        Treat any value not listed here as a generic error of the HTTP status.'
+      enum:
+      - invalid_parameter
+      - invalid_symbol
+      - invalid_interval
+      - invalid_cursor
+      - invalid_time_range
+      - range_before_coverage
+      - historical_range_exceeded
+      - historical_depth_exceeded
+      - unsupported_for_venue
+      - route_not_found
+      - not_found
+      - unauthorized
+      - forbidden
+      - insufficient_credits
+      - rate_limited
+      - conflict
+      - upstream_unavailable
+      - internal_error
+      - endpoint_unsupported
+      - slow_consumer
+      - positions_unavailable
+      - reconstruction_unavailable
+      - snapshot_advanced
+      - pagination_unavailable
+      - api_key_limit_reached
+      - wallet_requires_plan
+      - wallet_account_required
+      - wallet_free_signup_retired
+      - account_disabled
+      - oauth_not_permitted
+      - insufficient_scope
+      - invalid_query_params
+      - invalid_path_params
+      - history_window_exceeded
+      - request_range_exceeded
+      example: invalid_parameter
+    MarketPositionsSummary:
+      type: object
+      description: Long and short aggregates of every open position in one market at one snapshot. Averages cover only positions with a known entry (`*_positions_with_entry`). Shares are decimal ratios of the side or total value held by the ten largest positions.
+      required:
+      - snapshot_ts
+      - symbol
+      - coin
+      - long_count
+      - short_count
+      - long_size
+      - short_size
+      - long_value
+      - short_value
+      - long_avg_entry_price
+      - short_avg_entry_price
+      - long_positions_with_entry
+      - short_positions_with_entry
+      - long_top10_value_share
+      - short_top10_value_share
+      - top10_value_share
+      - quality
+      properties:
+        snapshot_ts:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Snapshot the aggregates describe.
+        symbol:
+          type: string
+          example: BTC
+        coin:
+          type: string
+          description: Alias of `symbol`.
+          example: BTC
+        dex:
+          type: string
+          description: HIP-3 only.
+          example: xyz
+        long_count:
+          type: integer
+          format: int64
+          example: 18234
+        short_count:
+          type: integer
+          format: int64
+          example: 15102
+        long_size:
+          type: string
+          description: Total long size in base units.
+          example: '8123.45'
+        short_size:
+          type: string
+          description: Total short size in base units.
+          example: '8120.1'
+        long_value:
+          type:
+          - string
+          - 'null'
+          description: Total long value in USD. Null when any long position has no mark.
+          example: '528000000.5'
+        short_value:
+          type:
+          - string
+          - 'null'
+          description: Total short value in USD. Null when any short position has no mark.
+          example: '527800000.25'
+        long_avg_entry_price:
+          type:
+          - string
+          - 'null'
+          description: Size-weighted average entry of long positions with a known entry.
+          example: '63120.4'
+        short_avg_entry_price:
+          type:
+          - string
+          - 'null'
+          description: Size-weighted average entry of short positions with a known entry.
+          example: '66210.9'
+        long_positions_with_entry:
+          type: integer
+          format: int64
+          example: 18230
+        short_positions_with_entry:
+          type: integer
+          format: int64
+          example: 15100
+        long_top10_value_share:
+          type:
+          - string
+          - 'null'
+          description: Share of long value held by the ten largest long positions.
+          example: '0.412345'
+        short_top10_value_share:
+          type:
+          - string
+          - 'null'
+          description: Share of short value held by the ten largest short positions.
+          example: '0.385'
+        top10_value_share:
+          type:
+          - string
+          - 'null'
+          description: Share of total value held by the ten largest positions.
+          example: '0.301'
+        quality:
+          type: string
+          description: '`complete`, `partial`, or `degraded`, from this market''s own rows.'
+          example: complete
+    PositionCumulativeFunding:
+      type: object
+      description: Cumulative funding in USD (decimal strings). Null when not reported, including every Lighter row and as-of reconstructions.
+      required:
+      - all_time
+      - since_open
+      - since_change
+      properties:
+        all_time:
+          type:
+          - string
+          - 'null'
+          description: Funding paid or received over the account lifetime for this coin.
+          example: '-12.345678'
+        since_open:
+          type:
+          - string
+          - 'null'
+          description: Funding since the current position opened.
+          example: '-1.25'
+        since_change:
+          type:
+          - string
+          - 'null'
+          description: Funding since the last change in position size.
+          example: '-0.5'
+    ApiResponsePositionArray:
+      type: object
+      description: Hourly position rows.
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        meta:
+          $ref: '#/components/schemas/PositionsMeta'
+    ApiResponsePositionChangeArray:
+      type: object
+      description: Position change log legs in timestamp order.
+      required:
+      - success
+      - data
+      - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionChange'
+        meta:
+          $ref: '#/components/schemas/PositionsMeta'
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 2
+    ApiVersion:
+      description: The contract version the response was shaped with. Present only when the request sent `0xArchive-Version`.
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
+  responses:
+    Unauthorized:
+      description: 'Authentication required: the API key is missing or invalid.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            code: 401
+            error_code: unauthorized
+            error: Missing authentication credentials. Provide X-API-Key header or Bearer token.
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    NotFound:
+      description: 'Not found. `not_found`: the resource id is unknown. `unsupported_for_venue`: the venue does not offer this datatype (`available_on` names where it is served). `route_not_found`: no route matches the path.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            not_found:
+              value:
+                success: false
+                code: 404
+                error_code: not_found
+                error: Resource not found
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            unsupported_for_venue:
+              value:
+                success: false
+                code: 404
+                error_code: unsupported_for_venue
+                error: Order flow is not offered on Hyperliquid spot. It is available on Hyperliquid (/v1/hyperliquid/orders/{symbol}/flow), HIP-3 (/v1/hyperliquid/hip3/orders/{symbol}/flow) and HIP-4 (/v1/hyperliquid/hip4/orders/{symbol}/flow).
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                venue: spot
+                datatype: order_flow
+                available_on:
+                - venue: hyperliquid
+                  route: /v1/hyperliquid/orders/{symbol}/flow
+                - venue: hip3
+                  route: /v1/hyperliquid/hip3/orders/{symbol}/flow
+                - venue: hip4
+                  route: /v1/hyperliquid/hip4/orders/{symbol}/flow
+            route_not_found:
+              value:
+                success: false
+                code: 404
+                error_code: route_not_found
+                error: No route matches GET /v1/not-a-route. GET /v1/capabilities lists the routes each venue serves.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            current_main:
+              value:
+                code: 404
+                error: No L4 checkpoint available before requested timestamp
+                error_code: not_found
+                request_id: ad7df471-eb8a-477c-bd9f-c685a9825f5b
+                success: false
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Forbidden:
+      description: The request is outside the plan's history window or per-request span, or the key is not allowed to make it.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            historical_depth_exceeded:
+              value:
+                success: false
+                code: 403
+                error_code: historical_depth_exceeded
+                error: 'Your plan includes the most recent 30 days of history: this request starts at 2026-01-01T00:00:00Z, before the earliest allowed timestamp 2026-08-30T00:00:00Z. Requests cannot be chunked across the age boundary.'
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            historical_range_exceeded:
+              value:
+                success: false
+                code: 403
+                error_code: historical_range_exceeded
+                error: Maximum range is 30 days per request on your plan. Requested range is 45 days.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Error:
+      description: Any other error. The body is an `ErrorResponse`; branch on `error_code`. A 503 (`upstream_unavailable`) carries `Retry-After`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            upstream_unavailable:
+              value:
+                success: false
+                code: 503
+                error_code: upstream_unavailable
+                error: The service is temporarily unavailable. Retry shortly.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            internal_error:
+              value:
+                success: false
+                code: 500
+                error_code: internal_error
+                error: Internal server error
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    RateLimited:
+      description: Rate limit, concurrency limit or monthly credits exceeded. See `error_code`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rate_limited:
+              value:
+                success: false
+                code: 429
+                error_code: rate_limited
+                error: Rate limit exceeded
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            insufficient_credits:
+              value:
+                success: false
+                code: 429
+                error_code: insufficient_credits
+                error: Monthly credit limit exceeded. Please upgrade your plan.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                credits_used: 50000
+                credits_limit: 50000
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    BadRequest:
+      description: 'Invalid request: a parameter, symbol, interval, cursor or time range failed validation. See `error_code`.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalid_parameter:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_parameter
+                error: Invalid side 'up'. Use buy or sell.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: side
+                valid_values:
+                - buy
+                - sell
+            invalid_symbol:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_symbol
+                error: The symbol 'ZZZ' does not exist. Please see /v1/hyperliquid/instruments for available symbols.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: symbol
+            invalid_time_range:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_time_range
+                error: start must be <= end
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            legacy_invalid_query_params:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_query_params
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            current_main:
+              value:
+                code: 400
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                error_code: invalid_query_params
+                param: limit
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                success: false
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+  parameters:
+    ApiVersion:
+      name: 0xArchive-Version
+      in: header
+      required: false
+      description: 'Selects the 2026-10 response contract. Send `2026-10-01`; any dated version on or after it selects the same shapes. Without the header every response keeps its existing shape. With it:
+
+
+        - The data quality routes, `/v1/status/coverage` and `/v1/symbols` answer the standard `{success, data, meta}` envelope.
+
+        - Record times that are integer milliseconds by default become RFC 3339 UTC strings with millisecond precision, and the integer moves to a `*_ms` field: L4 resting-order `timestamp` (`timestamp_ms`), CVD buckets, HIP-3 oracle reads, Lighter and Lighter on Robinhood Chain liquidations and liquidation volume. Levels and trigger-levels `snapshot_ts` become RFC 3339 with `snapshot_ts_ms`.
+
+        - Error bodies carry the contract `error_code` names: `invalid_parameter` instead of `invalid_query_params` and `invalid_path_params`, `historical_depth_exceeded` instead of `history_window_exceeded`, and `historical_range_exceeded` instead of `request_range_exceeded`; a malformed cursor that fails to parse answers 400 `invalid_cursor` instead of `invalid_query_params`. With `0xArchive-Version: 2026-10-01`, malformed cursors on trades, liquidations, L2 and L4 diffs, order history, TP/SL and order-flow routes answer 400 `invalid_cursor`. Without the header, the first six route families treat a malformed cursor as no cursor and return the first page; order flow answers 400 `invalid_query_params`. Malformed trade time inputs answer 400 `invalid_time_range` with the header and 400 `invalid_query_params` without it.
+
+
+        The response echoes the selected version in its own `0xArchive-Version` header.'
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

@@ -1,8 +1,8 @@
 openapi: 3.2.0
 info:
   title: 0xArchive HIP-4 Outcomes - Orders API
-  description: REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.
-  version: 1.6.1
+  description: 'REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Lighter coverage includes two deployments: Lighter mainnet under /v1/lighter and Lighter on Robinhood Chain under /v1/rh-lighter. Account positions are available for Hyperliquid core, HIP-3, and both Lighter deployments. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.'
+  version: 1.9.0
   termsOfService: https://0xarchive.io/terms
   contact:
     name: 0xArchive Support
@@ -21,6 +21,8 @@ tags:
   description: 'Order lifecycle events for HIP-4 outcome markets: placements, cancellations, fills, and TP/SL triggers.'
 paths:
   /v1/hyperliquid/hip4/orders/{symbol}/history:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
     get:
       tags:
       - HIP-4 Outcomes - Orders
@@ -38,21 +40,19 @@ paths:
         example: '0'
       - name: start
         in: query
-        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        description: Start timestamp. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
         schema:
-          type: integer
-          format: int64
-          example: 1767225600000
+          $ref: '#/components/schemas/TimeInput'
+        example: 1767225600000
       - name: end
         in: query
-        description: End timestamp, Unix milliseconds (e.g. 1767225600000)
+        description: End timestamp. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
         schema:
-          type: integer
-          format: int64
-          example: 1767225600000
+          $ref: '#/components/schemas/TimeInput'
+        example: 1767225600000
       - name: cursor
         in: query
-        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page.'
         schema:
           type: string
       - name: limit
@@ -64,32 +64,25 @@ paths:
           maximum: 10000
       - name: status
         in: query
-        description: Filter by order status
+        description: 'Keep events whose status equals this value exactly (case-sensitive), as Hyperliquid names it: for example `open`, `filled`, `canceled`, `triggered`, `rejected`, `marginCanceled`, `reduceOnlyCanceled`, `selfTradeCanceled` or `siblingFilledCanceled`.'
         schema:
           type: string
-          enum:
-          - open
-          - filled
-          - canceled
-          - triggered
-          - force_canceled
+          example: filled
       - name: order_type
         in: query
-        description: Filter by order type
+        description: 'Keep events whose order type equals this value exactly (case-sensitive), as Hyperliquid names it: for example `Limit`, `Stop Market`, `Stop Limit`, `Take Profit Market` or `Take Profit Limit`.'
         schema:
           type: string
-          enum:
-          - limit
-          - trigger
-          - tpsl
+          example: Limit
       - name: triggered
         in: query
-        description: Filter by whether order was triggered
+        description: '`true` keeps only events with status `triggered`; `false` keeps every other event. Omit it for all events.'
         schema:
           type: boolean
+        required: false
       - name: user
         in: query
-        description: Filter by user wallet address
+        description: 'Keep events for this wallet address. Exact match: send the address as it appears in responses (lowercase `0x` hex).'
         schema:
           type: string
       responses:
@@ -117,18 +110,33 @@ paths:
                       request_id:
                         type: string
                         format: uuid
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
   /v1/hyperliquid/hip4/orders/{symbol}/flow:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
     get:
       tags:
       - HIP-4 Outcomes - Orders
       summary: Get HIP-4 order flow
-      description: Get per-minute order flow aggregation for a HIP-4 outcome side. Shows order placement and cancellation rates over time.
+      description: 'Get order flow aggregation for a HIP-4 outcome side, in buckets of `interval` (1m by default). Shows order placement and cancellation rates over time.
+
+
+        **Buckets:** each bucket is labelled by its open time in UTC, and buckets open on multiples of the bucket width since the Unix epoch. A bucket with no order events is omitted. A bucket counts only the events inside `[start, end)`, so when `start` or `end` falls inside a bucket, that first or last bucket is partial; `start` and `end` on bucket opens give whole buckets.
+
+
+        **Pagination:** results are oldest first. When `meta.has_more` is `true`, pass the string `meta.next_cursor` unchanged as `cursor` with the same filters to get the next page. Stop when `meta.has_more` is `false`.'
       operationId: getHip4OrderFlow
       parameters:
       - name: symbol
@@ -141,33 +149,32 @@ paths:
         example: '0'
       - name: start
         in: query
-        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        description: 'Start timestamp, inclusive (default: 24 hours before now). Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.'
         schema:
-          type: integer
-          format: int64
-          example: 1767225600000
+          $ref: '#/components/schemas/TimeInput'
+        example: 1767225600000
       - name: end
         in: query
-        description: End timestamp, Unix milliseconds (e.g. 1767225600000)
+        description: 'End timestamp, exclusive (default: now). Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.'
         schema:
-          type: integer
-          format: int64
-          example: 1767225600000
+          $ref: '#/components/schemas/TimeInput'
+        example: 1767225600000
       - name: cursor
         in: query
-        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        description: 'Pagination cursor: use the string `meta.next_cursor` returned when `meta.has_more` is `true`, passed back unchanged with the same filters. Do not parse or construct it. Stop when `meta.has_more` is `false`.'
         schema:
           type: string
       - name: limit
         in: query
-        description: 'Maximum number of results (default: 1000, max: 10000)'
+        description: 'Maximum number of buckets, oldest first (default: 1000, max: 10000)'
         schema:
           type: integer
           default: 1000
           maximum: 10000
-      - name: granularity
+      - name: interval
         in: query
-        description: Aggregation granularity
+        required: false
+        description: 'Bucket width: `1m` (default), `5m`, `15m` or `1h`. Case-sensitive. Any other value answers 400.'
         schema:
           type: string
           enum:
@@ -175,6 +182,19 @@ paths:
           - 5m
           - 15m
           - 1h
+          default: 1m
+      - name: granularity
+        in: query
+        description: Deprecated alias of `interval`. `interval` wins when both are sent.
+        schema:
+          type: string
+          enum:
+          - 1m
+          - 5m
+          - 15m
+          - 1h
+          default: 1m
+        deprecated: true
       responses:
         '200':
           description: Order flow aggregation data
@@ -200,13 +220,22 @@ paths:
                       request_id:
                         type: string
                         format: uuid
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
   /v1/hyperliquid/hip4/orders/{symbol}/tpsl:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
     get:
       tags:
       - HIP-4 Outcomes - Orders
@@ -224,21 +253,19 @@ paths:
         example: '0'
       - name: start
         in: query
-        description: Start timestamp, Unix milliseconds (e.g. 1767225600000)
+        description: Start timestamp. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
         schema:
-          type: integer
-          format: int64
-          example: 1767225600000
+          $ref: '#/components/schemas/TimeInput'
+        example: 1767225600000
       - name: end
         in: query
-        description: End timestamp, Unix milliseconds (e.g. 1767225600000)
+        description: End timestamp. Accepts Unix milliseconds or an RFC 3339 UTC string such as `2026-01-01T00:00:00Z`.
         schema:
-          type: integer
-          format: int64
-          example: 1767225600000
+          $ref: '#/components/schemas/TimeInput'
+        example: 1767225600000
       - name: cursor
         in: query
-        description: Cursor for pagination (use the value from previous response's `next_cursor`)
+        description: 'Opaque pagination cursor: pass `meta.next_cursor` from the previous page unchanged, with the same filters. Omit it for the first page.'
         schema:
           type: string
       - name: limit
@@ -253,6 +280,12 @@ paths:
         description: Filter by user wallet address
         schema:
           type: string
+      - name: triggered
+        in: query
+        required: false
+        description: '`true` keeps only events with status `triggered`; `false` keeps every other event. Omit it for all events.'
+        schema:
+          type: boolean
       responses:
         '200':
           description: TP/SL order events
@@ -278,54 +311,300 @@ paths:
                       request_id:
                         type: string
                         format: uuid
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/hyperliquid/hip4/twap/{symbol}:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - HIP-4 Outcomes - Orders
+      summary: Get HIP-4 TWAP order events
+      description: 'TWAP order status events: `activated`, `waitingForTrigger`, `finished`, `terminated`, `stopped`, and `error`. Each event carries the TWAP size, executed size and notional, duration, and trigger settings. This route returns the events of one HIP-4 outcome side. HIP-4 TWAP orders placed before capture began were not recorded; history starts at the first captured TWAP. Events are ordered oldest first. Page with `meta.next_cursor` until `meta.has_more` is false. A page never ends partway through a millisecond, so it can hold fewer events than `limit`.'
+      operationId: getHip4Twap
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: symbol
+        in: path
+        required: true
+        description: HIP-4 coin id (e.g., `0` for outcome 0 Yes side, `1` for No side). The `#`-prefixed form (`#0`, `#1`) is also accepted.
+        schema:
+          type: string
+          example: '0'
+        example: '0'
+      - name: start
+        in: query
+        description: 'Start of the window: Unix milliseconds or an RFC 3339 timestamp. Defaults to 24 hours ago.'
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: end
+        in: query
+        description: 'End of the window: Unix milliseconds or an RFC 3339 timestamp. Defaults to now.'
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: cursor
+        in: query
+        description: Value of `meta.next_cursor` from the previous page. The next page starts after it.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of events to return (default: 100, max: 1000; larger values are capped at 1000).'
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: TWAP order status events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTwapArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/RateLimited'
-components:
-  schemas:
-    Error:
-      type: object
-      description: Error response
-      properties:
-        code:
+        default:
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /v1/hyperliquid/hip4/twap/user/{user}:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - HIP-4 Outcomes - Orders
+      summary: Get HIP-4 TWAP order events by wallet
+      description: 'TWAP order status events: `activated`, `waitingForTrigger`, `finished`, `terminated`, `stopped`, and `error`. Each event carries the TWAP size, executed size and notional, duration, and trigger settings. This route returns the events of one wallet on HIP-4 outcome markets. HIP-4 TWAP orders placed before capture began were not recorded; history starts at the first captured TWAP. Events are ordered oldest first. Page with `meta.next_cursor` until `meta.has_more` is false. A page never ends partway through a millisecond, so it can hold fewer events than `limit`.'
+      operationId: getHip4UserTwap
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: user
+        in: path
+        required: true
+        description: 'Wallet address: 0x followed by 40 hex characters (case-insensitive).'
+        schema:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{40}$
+          example: '0x31ca8395cf837de08b24da3f660e77761dfb974b'
+        example: '0x31ca8395cf837de08b24da3f660e77761dfb974b'
+      - name: start
+        in: query
+        description: 'Start of the window: Unix milliseconds or an RFC 3339 timestamp. Defaults to 24 hours ago.'
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: end
+        in: query
+        description: 'End of the window: Unix milliseconds or an RFC 3339 timestamp. Defaults to now.'
+        schema:
+          $ref: '#/components/schemas/TimeInput'
+      - name: cursor
+        in: query
+        description: Value of `meta.next_cursor` from the previous page. The next page starts after it.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: 'Maximum number of events to return (default: 100, max: 1000; larger values are capped at 1000).'
+        schema:
           type: integer
-          description: HTTP status code
-        error:
-          type: string
-          description: Error message
-        error_code:
-          type: string
-          description: 'Machine-readable error code. Common values: `invalid_query_params` (a query parameter failed to parse or validate) and `invalid_path_params` (a path parameter failed to parse). Other endpoint-specific codes exist; treat unknown codes as generic errors of the given HTTP status.'
-        request_id:
-          type: string
-          format: uuid
-          description: Unique request ID for support
+          default: 100
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: TWAP order status events for the wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTwapArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 2
+    ApiVersion:
+      description: The contract version the response was shaped with. Present only when the request sent `0xArchive-Version`.
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
   responses:
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            code: 401
-            error: Missing or invalid API key. Provide X-API-Key header.
     BadRequest:
-      description: Invalid request
+      description: 'Invalid request: a parameter, symbol, interval, cursor or time range failed validation. See `error_code`.'
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalid_parameter:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_parameter
+                error: Invalid side 'up'. Use buy or sell.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: side
+                valid_values:
+                - buy
+                - sell
+            invalid_symbol:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_symbol
+                error: The symbol 'ZZZ' does not exist. Please see /v1/hyperliquid/instruments for available symbols.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: symbol
+            invalid_time_range:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_time_range
+                error: start must be <= end
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            legacy_invalid_query_params:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_query_params
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            current_main:
+              value:
+                code: 400
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                error_code: invalid_query_params
+                param: limit
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                success: false
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Unauthorized:
+      description: 'Authentication required: the API key is missing or invalid.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
           example:
-            code: 400
-            error: 'Failed to deserialize query string: limit: invalid digit found in string'
-            error_code: invalid_query_params
+            success: false
+            code: 401
+            error_code: unauthorized
+            error: Missing authentication credentials. Provide X-API-Key header or Bearer token.
             request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Error:
+      description: Any other error. The body is an `ErrorResponse`; branch on `error_code`. A 503 (`upstream_unavailable`) carries `Retry-After`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            upstream_unavailable:
+              value:
+                success: false
+                code: 503
+                error_code: upstream_unavailable
+                error: The service is temporarily unavailable. Retry shortly.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            internal_error:
+              value:
+                success: false
+                code: 500
+                error_code: internal_error
+                error: Internal server error
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Forbidden:
+      description: The request is outside the plan's history window or per-request span, or the key is not allowed to make it.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            historical_depth_exceeded:
+              value:
+                success: false
+                code: 403
+                error_code: historical_depth_exceeded
+                error: 'Your plan includes the most recent 30 days of history: this request starts at 2026-01-01T00:00:00Z, before the earliest allowed timestamp 2026-08-30T00:00:00Z. Requests cannot be chunked across the age boundary.'
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            historical_range_exceeded:
+              value:
+                success: false
+                code: 403
+                error_code: historical_range_exceeded
+                error: Maximum range is 30 days per request on your plan. Requested range is 45 days.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
     RateLimited:
-      description: Rate limit exceeded
+      description: Rate limit, concurrency limit or monthly credits exceeded. See `error_code`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rate_limited:
+              value:
+                success: false
+                code: 429
+                error_code: rate_limited
+                error: Rate limit exceeded
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            insufficient_credits:
+              value:
+                success: false
+                code: 429
+                error_code: insufficient_credits
+                error: Monthly credit limit exceeded. Please upgrade your plan.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                credits_used: 50000
+                credits_limit: 50000
       headers:
         X-RateLimit-Limit:
           schema:
@@ -339,13 +618,466 @@ components:
           schema:
             type: integer
           description: Unix timestamp when limit resets
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+  schemas:
+    ApiResponseTwapArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TwapRecord'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ResponseMeta:
+      type: object
+      description: Response metadata. Every 2xx JSON response carries `meta.request_id`; list payloads add `count`; cursor-paged routes add `has_more` and, when another page follows, `next_cursor`; per-symbol routes add `symbol` and `venue`. Fields that do not apply to a route are omitted.
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        has_more:
+          type: boolean
+          description: 'Cursor-paged routes: whether another page follows. `next_cursor` is present exactly when this is `true`. A final page can be empty when the previous page was exactly full; `has_more` is `false` on it.'
+        next_cursor:
+          type: string
+          description: Opaque cursor for the next page, present exactly when `has_more` is `true`. Pass it back unchanged as `cursor` with the same filters. Do not parse or construct it.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        symbol:
+          type: string
+          description: 'Per-symbol routes: the canonical public symbol the response describes (for example `BTC`, `xyz:TSLA`, `HYPE-USDC`, `#0`).'
+          example: BTC
+        venue:
+          type: string
+          enum:
+          - hyperliquid
+          - hip3
+          - hip4
+          - spot
+          - lighter
+          - rh-lighter
+          description: 'Per-symbol routes: the venue the response describes.'
+          example: hyperliquid
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Used when the requested window ends before coverage begins for the symbol, and on CVD responses that are one page of several; may carry other advisories in future.
+        finalized_through:
+          type: string
+          format: date-time
+          description: 'Two-tier datasets (Lighter trades): data at or before this instant is final; later data is preliminary.'
+        requested_end:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The `end` the request asked for, echoed when it was clamped to `finalized_through`.
+        clamped_to:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The boundary the request's `end` was clamped to, when clamping occurred.
+        preliminary_row_count:
+          type:
+          - integer
+          - 'null'
+          description: Number of preliminary rows in this response, on routes that intentionally serve preliminary data (Lighter `/recent`).
+      required:
+      - request_id
+    ErrorResponse:
+      type: object
+      description: Body of every non-2xx JSON response. `code` repeats the HTTP status, `error_code` is the stable machine-readable code (see `ErrorCode`), `error` is a human-readable message, and `request_id` identifies the request for support. Validation failures add `param` and, where the accepted set is fixed, `valid_values`. A 404 for a datatype the venue does not offer (`unsupported_for_venue`) adds `venue`, `datatype` and `available_on`; any other unknown path answers 404 `route_not_found`.
+      required:
+      - success
+      - code
+      - error_code
+      - error
+      - request_id
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+          description: Always `false` on an error.
+        code:
+          type: integer
+          description: HTTP status code.
+          example: 400
+        error_code:
+          $ref: '#/components/schemas/ErrorCode'
+        error:
+          type: string
+          description: Human-readable message. Wording can change; do not parse it.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support.
+        param:
+          type: string
+          description: The parameter that failed validation, when one did.
+          example: side
+        valid_values:
+          type: array
+          items:
+            type: string
+          description: Accepted values of `param`, when the set is fixed.
           example:
-            code: 429
-            error: Rate limit exceeded
+          - buy
+          - sell
+        venue:
+          type: string
+          description: '`unsupported_for_venue` only: the venue the request asked.'
+          example: spot
+        datatype:
+          type: string
+          description: '`unsupported_for_venue` only: the datatype the request asked for, as `GET /v1/capabilities` names it.'
+          example: order_flow
+        available_on:
+          type: array
+          description: '`unsupported_for_venue` only: the venues and routes that serve the datatype.'
+          items:
+            type: object
+            required:
+            - venue
+            - route
+            properties:
+              venue:
+                type: string
+                example: hyperliquid
+              route:
+                type: string
+                example: /v1/hyperliquid/orders/{symbol}/flow
+        credits_used:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: credits used this period.'
+        credits_limit:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: the period''s credit allowance.'
+        max_concurrent:
+          type: integer
+          description: '`rate_limited` concurrency refusals only: simultaneous queries the plan allows.'
+        suggestion:
+          type: object
+          description: 'Present when the symbol exists on another venue: where to request it instead.'
+          properties:
+            venue:
+              type: string
+              example: hip3
+            symbol:
+              type: string
+              example: xyz:TSLA
+            endpoint:
+              type: string
+              example: /v1/hyperliquid/hip3/trades/xyz:TSLA
+    TimeInput:
+      description: 'An instant: Unix milliseconds, or an RFC 3339 string such as `2026-01-01T00:00:00Z` (encode a `+` offset as `%2B`). An unparsable value answers 400 `invalid_time_range`.'
+      oneOf:
+      - type: integer
+        format: int64
+        description: Unix milliseconds.
+        example: 1767225600000
+      - type: string
+        format: date-time
+        description: RFC 3339 instant.
+        example: '2026-01-01T00:00:00Z'
+    ApiMeta:
+      allOf:
+      - $ref: '#/components/schemas/ResponseMeta'
+      deprecated: true
+      description: Deprecated name of `ResponseMeta`, kept so existing references resolve.
+      type: object
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor for pagination (timestamp). Use this value as the `cursor` parameter to fetch the next page of results.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Used when the requested window ends before coverage begins for the symbol, and on CVD responses that are one page of several; may carry other advisories in future.
+        has_more:
+          type: boolean
+          description: 'Present on cursor-paged routes: true when another page exists. `next_cursor` is present exactly when it is true.'
+        symbol:
+          type: string
+          description: 'Present on per-symbol routes: the symbol the response covers.'
+        venue:
+          type: string
+          description: 'Present on per-symbol routes: the venue the response covers, for example `hyperliquid` or `hip3`.'
+    ErrorCode:
+      type: string
+      description: 'Stable, machine-readable error code. Branch on this value, not on the `error` text.
+
+
+        **Contract codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_parameter` | 400 | A parameter failed to parse or validate. `param` names it and `valid_values` lists accepted values where the set is fixed. |
+
+        | `invalid_symbol` | 400 | The symbol is not listed on this venue. |
+
+        | `invalid_interval` | 400 | The `interval` (bucket width) is not one this route accepts. |
+
+        | `invalid_cursor` | 400 | The `cursor` is malformed, stale, or was issued for other filters. Restart pagination without a cursor. Trades, liquidations, L2 and L4 diffs, order history and TP/SL routes currently return the first page for a malformed cursor instead. |
+
+        | `invalid_time_range` | 400 | `start` is after `end`, or a time value could not be parsed. |
+
+        | `range_before_coverage` | 400 | The whole requested range ends before the first instant this dataset is served from. |
+
+        | `historical_range_exceeded` | 403 | The requested span is longer than the plan allows in one request or replay. |
+
+        | `historical_depth_exceeded` | 403 | The request reaches further back than the plan''s history window. |
+
+        | `unsupported_for_venue` | 404 | The venue does not offer this datatype. The message, `datatype` and `available_on` name where it is served. |
+
+        | `route_not_found` | 404 | No route matches the path or method. `GET /v1/capabilities` lists the routes each venue serves. |
+
+        | `not_found` | 404 | The route exists but the requested resource (for example an incident, endpoint or outcome id) does not. |
+
+        | `unauthorized` | 401 | The API key is missing or invalid. |
+
+        | `forbidden` | 403 | The key is valid but not allowed to make this request. |
+
+        | `insufficient_credits` | 429 | The monthly credit allowance is spent (402 on pay-per-request routes). |
+
+        | `rate_limited` | 429 | Too many requests or concurrent queries. Retry after the interval in the rate-limit headers. |
+
+        | `conflict` | 409 | The request conflicts with the current state of the resource. |
+
+        | `upstream_unavailable` | 503 | A dependency is unavailable or saturated. Retry shortly; the response carries `Retry-After`. |
+
+        | `internal_error` | 500 | An unexpected server error. Quote `request_id` when contacting support. |
+
+
+        **WebSocket only** (sent in `{"type":"error"}` messages, never by REST)
+
+
+        | Code | Where | Meaning |
+
+        |---|---|---|
+
+        | `endpoint_unsupported` | WebSocket | This WebSocket endpoint does not serve the channel or operation. The message names the endpoint that does. |
+
+        | `slow_consumer` | WebSocket | The connection fell behind a stream and messages were dropped. Re-subscribe, or restart the replay, to resynchronise. |
+
+
+        **Route-specific codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `positions_unavailable` | 503 | Account positions are temporarily unavailable for this venue. |
+
+        | `reconstruction_unavailable` | 503 | The as-of positions state for this instant cannot be reconstructed right now. |
+
+        | `snapshot_advanced` | 409 | A positions market cursor pinned a snapshot that has since been replaced or expired. Restart pagination. |
+
+        | `pagination_unavailable` | 503 | The next positions page cannot be served right now. Retry the same cursor shortly. |
+
+        | `api_key_limit_reached` | 403 | The account already holds the maximum number of API keys for its plan. |
+
+        | `wallet_requires_plan` | 402 | A wallet-authenticated key needs an active plan for this request. |
+
+        | `wallet_account_required` | 403 | Wallet sign-in needs an existing account linked to the wallet. |
+
+        | `wallet_free_signup_retired` | 410 | Free wallet sign-up is no longer offered. |
+
+        | `account_disabled` | 403 | The account is disabled. |
+
+        | `oauth_not_permitted` | 403 | This route is not available to OAuth access tokens. |
+
+        | `insufficient_scope` | 403 | The OAuth access token lacks the scope this route requires. |
+
+
+        **Legacy names.** Requests without `0xArchive-Version: 2026-10-01` keep the four names that predate the contract; with the header they receive the contract names instead.
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_query_params` | 400 | Legacy name of `invalid_parameter` (query parameter), or of `invalid_cursor` when the parameter is `cursor`, sent without the version header. |
+
+        | `invalid_path_params` | 400 | Legacy name of `invalid_parameter` (path parameter), sent without the version header. |
+
+        | `history_window_exceeded` | 403 | Legacy name of `historical_depth_exceeded`, sent without the version header. |
+
+        | `request_range_exceeded` | 403 | Legacy name of `historical_range_exceeded`, sent without the version header. |
+
+
+        Treat any value not listed here as a generic error of the HTTP status.'
+      enum:
+      - invalid_parameter
+      - invalid_symbol
+      - invalid_interval
+      - invalid_cursor
+      - invalid_time_range
+      - range_before_coverage
+      - historical_range_exceeded
+      - historical_depth_exceeded
+      - unsupported_for_venue
+      - route_not_found
+      - not_found
+      - unauthorized
+      - forbidden
+      - insufficient_credits
+      - rate_limited
+      - conflict
+      - upstream_unavailable
+      - internal_error
+      - endpoint_unsupported
+      - slow_consumer
+      - positions_unavailable
+      - reconstruction_unavailable
+      - snapshot_advanced
+      - pagination_unavailable
+      - api_key_limit_reached
+      - wallet_requires_plan
+      - wallet_account_required
+      - wallet_free_signup_retired
+      - account_disabled
+      - oauth_not_permitted
+      - insufficient_scope
+      - invalid_query_params
+      - invalid_path_params
+      - history_window_exceeded
+      - request_range_exceeded
+      example: invalid_parameter
+    TwapRecord:
+      type: object
+      description: One TWAP order status event.
+      required:
+      - timestamp
+      - block_time
+      - block_number
+      - twap_id
+      - status
+      - coin
+      - user_address
+      - side
+      - size
+      - executed_size
+      - executed_notional
+      - minutes
+      - reduce_only
+      - randomize
+      - started_at
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: When the status event happened (RFC 3339, UTC).
+        block_time:
+          type: string
+          format: date-time
+          description: Time of the block that carried the event (RFC 3339, UTC).
+        block_number:
+          type: integer
+          format: int64
+          description: Hyperliquid block number.
+        twap_id:
+          type: integer
+          format: int64
+          description: TWAP order ID. Every event of one TWAP carries the same ID.
+        status:
+          type: string
+          description: '`activated`, `waitingForTrigger`, `finished`, `terminated`, `stopped`, or `error`.'
+          example: activated
+        coin:
+          type: string
+          description: Market symbol.
+          example: HYPE
+        user_address:
+          type: string
+          description: Wallet that placed the TWAP, lowercase.
+        side:
+          type: string
+          enum:
+          - B
+          - A
+          description: '`B` (buy) or `A` (sell).'
+        size:
+          type: number
+          description: Total TWAP size, in base units.
+        executed_size:
+          type: number
+          description: Size filled so far, in base units.
+        executed_notional:
+          type: number
+          description: Notional filled so far, in quote units.
+        minutes:
+          type: integer
+          description: TWAP duration in minutes.
+        reduce_only:
+          type: boolean
+          description: True for a reduce-only TWAP.
+        randomize:
+          type: boolean
+          description: True when slice timing is randomized.
+        started_at:
+          type: string
+          format: date-time
+          description: When the TWAP started (RFC 3339, UTC).
+        trigger_px:
+          type: number
+          description: Activation trigger price. Omitted for a TWAP without a trigger.
+        trigger_above:
+          type: boolean
+          description: True when the TWAP activates at or above `trigger_px`. Omitted for a TWAP without a trigger.
+        stop_px:
+          type: number
+          description: 'Price bound that ends the TWAP: the highest price for a buy, the lowest for a sell. Omitted when not set.'
+  parameters:
+    ApiVersion:
+      name: 0xArchive-Version
+      in: header
+      required: false
+      description: 'Selects the 2026-10 response contract. Send `2026-10-01`; any dated version on or after it selects the same shapes. Without the header every response keeps its existing shape. With it:
+
+
+        - The data quality routes, `/v1/status/coverage` and `/v1/symbols` answer the standard `{success, data, meta}` envelope.
+
+        - Record times that are integer milliseconds by default become RFC 3339 UTC strings with millisecond precision, and the integer moves to a `*_ms` field: L4 resting-order `timestamp` (`timestamp_ms`), CVD buckets, HIP-3 oracle reads, Lighter and Lighter on Robinhood Chain liquidations and liquidation volume. Levels and trigger-levels `snapshot_ts` become RFC 3339 with `snapshot_ts_ms`.
+
+        - Error bodies carry the contract `error_code` names: `invalid_parameter` instead of `invalid_query_params` and `invalid_path_params`, `historical_depth_exceeded` instead of `history_window_exceeded`, and `historical_range_exceeded` instead of `request_range_exceeded`; a malformed cursor that fails to parse answers 400 `invalid_cursor` instead of `invalid_query_params`. With `0xArchive-Version: 2026-10-01`, malformed cursors on trades, liquidations, L2 and L4 diffs, order history, TP/SL and order-flow routes answer 400 `invalid_cursor`. Without the header, the first six route families treat a malformed cursor as no cursor and return the first page; order flow answers 400 `invalid_query_params`. Malformed trade time inputs answer 400 `invalid_time_range` with the header and 400 `invalid_query_params` without it.
+
+
+        The response echoes the selected version in its own `0xArchive-Version` header.'
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

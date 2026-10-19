@@ -1,0 +1,930 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Webhooks - Previews API
+  description: 'REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Lighter coverage includes two deployments: Lighter mainnet under /v1/lighter and Lighter on Robinhood Chain under /v1/rh-lighter. Account positions are available for Hyperliquid core, HIP-3, and both Lighter deployments. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.'
+  version: 1.9.0
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Webhooks - Previews
+  description: Evaluate a would-be subscription against history before creating it. Nothing is stored and no delivery is sent. Available on every plan, including Free.
+paths:
+  /v1/webhooks/subscriptions/dry-run:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    post:
+      tags:
+      - Webhooks - Previews
+      summary: Dry-run a webhook subscription
+      description: Which occurrences in the last `lookback_s` seconds would this configuration have delivered? The configuration is validated and normalised exactly as a create, then evaluated against recent history. Nothing is stored and no delivery is sent. Available for `account.fill`, `account.transfer` and `market.liquidation`; another type is refused with the list of the ones that work. An address scoped type needs at least one watched wallet to report on. Authenticate with an API key or a signed-in dashboard session. Available on every plan, including Free, and metered like the market data it returns. At most six estimates and dry-runs a minute per account, shared between the two.
+      operationId: dryRunWebhookSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookDryRunRequest'
+      responses:
+        '200':
+          description: Occurrences the configuration would have delivered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookDryRun'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: The dry-run could not be produced right now. Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: upstream_unavailable
+                error: dry-run is temporarily unavailable
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        '504':
+          description: The scan ran out of time before it could answer. Narrow the window or the configuration and try again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 504
+                error_code: upstream_unavailable
+                error: dry-run timed out before it could scan the whole window; try a shorter lookback_s
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/webhooks/subscriptions/estimate:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    post:
+      tags:
+      - Webhooks - Previews
+      summary: Estimate a webhook subscription
+      description: How often would this configuration have fired over the last `lookback_days`? Returns the total, a count per day of the window, the median and busiest day, the distribution of the event's primary metric, a ladder of what the daily rate would be at other thresholds, and a sample of real matches, so a threshold can be chosen against history rather than guessed. The configuration is validated and normalised exactly as a create. Nothing is stored and no delivery is sent. Available for `account.fill`, `account.transfer`, `account.liquidated`, `market.liquidation`, `market.pga_payment`, `hip4.settlement`, `market.liquidation_burst`, `market.oi_delta`, `oracle.jump` and `market.funding_flip`; another type is refused with the list of the ones that work. An address scoped type needs at least one watched wallet to report on. Authenticate with an API key or a signed-in dashboard session. Available on every plan, including Free, and metered like the market data it returns. At most six estimates and dry-runs a minute per account, shared between the two.
+      operationId: estimateWebhookSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEstimateRequest'
+      responses:
+        '200':
+          description: How often the configuration would have fired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookEstimate'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          description: The estimate could not be produced right now. Retry shortly.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 503
+                error_code: upstream_unavailable
+                error: estimate is temporarily unavailable
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      description: Body of every non-2xx JSON response. `code` repeats the HTTP status, `error_code` is the stable machine-readable code (see `ErrorCode`), `error` is a human-readable message, and `request_id` identifies the request for support. Validation failures add `param` and, where the accepted set is fixed, `valid_values`. A 404 for a datatype the venue does not offer (`unsupported_for_venue`) adds `venue`, `datatype` and `available_on`; any other unknown path answers 404 `route_not_found`.
+      required:
+      - success
+      - code
+      - error_code
+      - error
+      - request_id
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+          description: Always `false` on an error.
+        code:
+          type: integer
+          description: HTTP status code.
+          example: 400
+        error_code:
+          $ref: '#/components/schemas/ErrorCode'
+        error:
+          type: string
+          description: Human-readable message. Wording can change; do not parse it.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support.
+        param:
+          type: string
+          description: The parameter that failed validation, when one did.
+          example: side
+        valid_values:
+          type: array
+          items:
+            type: string
+          description: Accepted values of `param`, when the set is fixed.
+          example:
+          - buy
+          - sell
+        venue:
+          type: string
+          description: '`unsupported_for_venue` only: the venue the request asked.'
+          example: spot
+        datatype:
+          type: string
+          description: '`unsupported_for_venue` only: the datatype the request asked for, as `GET /v1/capabilities` names it.'
+          example: order_flow
+        available_on:
+          type: array
+          description: '`unsupported_for_venue` only: the venues and routes that serve the datatype.'
+          items:
+            type: object
+            required:
+            - venue
+            - route
+            properties:
+              venue:
+                type: string
+                example: hyperliquid
+              route:
+                type: string
+                example: /v1/hyperliquid/orders/{symbol}/flow
+        credits_used:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: credits used this period.'
+        credits_limit:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: the period''s credit allowance.'
+        max_concurrent:
+          type: integer
+          description: '`rate_limited` concurrency refusals only: simultaneous queries the plan allows.'
+        suggestion:
+          type: object
+          description: 'Present when the symbol exists on another venue: where to request it instead.'
+          properties:
+            venue:
+              type: string
+              example: hip3
+            symbol:
+              type: string
+              example: xyz:TSLA
+            endpoint:
+              type: string
+              example: /v1/hyperliquid/hip3/trades/xyz:TSLA
+    WebhookEstimateRequest:
+      type: object
+      description: A would-be subscription to evaluate against history. Same shape as a create, without the endpoint, plus the window.
+      required:
+      - event_type
+      properties:
+        event_type:
+          type: string
+          description: Event type to evaluate.
+          example: market.liquidation
+        config:
+          allOf:
+          - $ref: '#/components/schemas/WebhookSubscriptionConfig'
+          description: Rule configuration to evaluate. `filters` is accepted as an alias.
+        filters:
+          allOf:
+          - $ref: '#/components/schemas/WebhookSubscriptionConfig'
+          description: Alias of `config`. Send one or the other.
+        lookback_days:
+          type: integer
+          format: int64
+          description: Days of history to evaluate, ending now. Between 1 and 30; a value outside that range is refused with a 400. Some event types evaluate a shorter window (for example 7 days for `account.fill`); the response's `days` and `basis.note` then say so.
+          default: 7
+          minimum: 1
+          maximum: 30
+          example: 7
+    WebhookEstimateDayCount:
+      type: object
+      description: One 24 hour bin of the estimate window.
+      required:
+      - date
+      - count
+      properties:
+        date:
+          type: string
+          format: date
+          description: UTC date the bin ends on.
+          example: '2026-09-19'
+        count:
+          type: integer
+          format: int64
+          description: Occurrences that would have been delivered in the bin.
+          example: 12
+    WebhookSubscriptionCondition:
+      type: object
+      description: One condition on an event metric. The operator vocabulary is grouped by the metric's type; see `operators` on the event type.
+      required:
+      - metric
+      - op
+      properties:
+        metric:
+          type: string
+          description: A metric declared by the event type.
+          example: notional_usd
+        op:
+          type: string
+          enum:
+          - greater_than
+          - greater_than_or_equal
+          - less_than
+          - less_than_or_equal
+          - equal
+          - not_equal
+          - between
+          - not_between
+          - in
+          - not_in
+          - contains
+          - not_contains
+          - starts_with
+          - ends_with
+          - before
+          - after
+          - is_empty
+          - is_not_empty
+          description: Comparison to apply. Symbol spellings such as `>=` are accepted on the way in and stored in the canonical spelling shown here.
+          example: greater_than_or_equal
+        value:
+          description: What to compare against. A number, string, boolean or RFC 3339 timestamp for a single value comparison; a two entry `[low, high]` list for `between` and `not_between`; a non-empty list for `in` and `not_in`. Omitted for `is_empty` and `is_not_empty`.
+          example: 100000
+    ErrorCode:
+      type: string
+      description: 'Stable, machine-readable error code. Branch on this value, not on the `error` text.
+
+
+        **Contract codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_parameter` | 400 | A parameter failed to parse or validate. `param` names it and `valid_values` lists accepted values where the set is fixed. |
+
+        | `invalid_symbol` | 400 | The symbol is not listed on this venue. |
+
+        | `invalid_interval` | 400 | The `interval` (bucket width) is not one this route accepts. |
+
+        | `invalid_cursor` | 400 | The `cursor` is malformed, stale, or was issued for other filters. Restart pagination without a cursor. Trades, liquidations, L2 and L4 diffs, order history and TP/SL routes currently return the first page for a malformed cursor instead. |
+
+        | `invalid_time_range` | 400 | `start` is after `end`, or a time value could not be parsed. |
+
+        | `range_before_coverage` | 400 | The whole requested range ends before the first instant this dataset is served from. |
+
+        | `historical_range_exceeded` | 403 | The requested span is longer than the plan allows in one request or replay. |
+
+        | `historical_depth_exceeded` | 403 | The request reaches further back than the plan''s history window. |
+
+        | `unsupported_for_venue` | 404 | The venue does not offer this datatype. The message, `datatype` and `available_on` name where it is served. |
+
+        | `route_not_found` | 404 | No route matches the path or method. `GET /v1/capabilities` lists the routes each venue serves. |
+
+        | `not_found` | 404 | The route exists but the requested resource (for example an incident, endpoint or outcome id) does not. |
+
+        | `unauthorized` | 401 | The API key is missing or invalid. |
+
+        | `forbidden` | 403 | The key is valid but not allowed to make this request. |
+
+        | `insufficient_credits` | 429 | The monthly credit allowance is spent (402 on pay-per-request routes). |
+
+        | `rate_limited` | 429 | Too many requests or concurrent queries. Retry after the interval in the rate-limit headers. |
+
+        | `conflict` | 409 | The request conflicts with the current state of the resource. |
+
+        | `upstream_unavailable` | 503 | A dependency is unavailable or saturated. Retry shortly; the response carries `Retry-After`. |
+
+        | `internal_error` | 500 | An unexpected server error. Quote `request_id` when contacting support. |
+
+
+        **WebSocket only** (sent in `{"type":"error"}` messages, never by REST)
+
+
+        | Code | Where | Meaning |
+
+        |---|---|---|
+
+        | `endpoint_unsupported` | WebSocket | This WebSocket endpoint does not serve the channel or operation. The message names the endpoint that does. |
+
+        | `slow_consumer` | WebSocket | The connection fell behind a stream and messages were dropped. Re-subscribe, or restart the replay, to resynchronise. |
+
+
+        **Route-specific codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `positions_unavailable` | 503 | Account positions are temporarily unavailable for this venue. |
+
+        | `reconstruction_unavailable` | 503 | The as-of positions state for this instant cannot be reconstructed right now. |
+
+        | `snapshot_advanced` | 409 | A positions market cursor pinned a snapshot that has since been replaced or expired. Restart pagination. |
+
+        | `pagination_unavailable` | 503 | The next positions page cannot be served right now. Retry the same cursor shortly. |
+
+        | `api_key_limit_reached` | 403 | The account already holds the maximum number of API keys for its plan. |
+
+        | `wallet_requires_plan` | 402 | A wallet-authenticated key needs an active plan for this request. |
+
+        | `wallet_account_required` | 403 | Wallet sign-in needs an existing account linked to the wallet. |
+
+        | `wallet_free_signup_retired` | 410 | Free wallet sign-up is no longer offered. |
+
+        | `account_disabled` | 403 | The account is disabled. |
+
+        | `oauth_not_permitted` | 403 | This route is not available to OAuth access tokens. |
+
+        | `insufficient_scope` | 403 | The OAuth access token lacks the scope this route requires. |
+
+
+        **Legacy names.** Requests without `0xArchive-Version: 2026-10-01` keep the four names that predate the contract; with the header they receive the contract names instead.
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_query_params` | 400 | Legacy name of `invalid_parameter` (query parameter), or of `invalid_cursor` when the parameter is `cursor`, sent without the version header. |
+
+        | `invalid_path_params` | 400 | Legacy name of `invalid_parameter` (path parameter), sent without the version header. |
+
+        | `history_window_exceeded` | 403 | Legacy name of `historical_depth_exceeded`, sent without the version header. |
+
+        | `request_range_exceeded` | 403 | Legacy name of `historical_range_exceeded`, sent without the version header. |
+
+
+        Treat any value not listed here as a generic error of the HTTP status.'
+      enum:
+      - invalid_parameter
+      - invalid_symbol
+      - invalid_interval
+      - invalid_cursor
+      - invalid_time_range
+      - range_before_coverage
+      - historical_range_exceeded
+      - historical_depth_exceeded
+      - unsupported_for_venue
+      - route_not_found
+      - not_found
+      - unauthorized
+      - forbidden
+      - insufficient_credits
+      - rate_limited
+      - conflict
+      - upstream_unavailable
+      - internal_error
+      - endpoint_unsupported
+      - slow_consumer
+      - positions_unavailable
+      - reconstruction_unavailable
+      - snapshot_advanced
+      - pagination_unavailable
+      - api_key_limit_reached
+      - wallet_requires_plan
+      - wallet_account_required
+      - wallet_free_signup_retired
+      - account_disabled
+      - oauth_not_permitted
+      - insufficient_scope
+      - invalid_query_params
+      - invalid_path_params
+      - history_window_exceeded
+      - request_range_exceeded
+      example: invalid_parameter
+    WebhookDryRun:
+      type: object
+      description: Which occurrences in the requested window a would-be subscription would have delivered. Nothing is stored and no delivery is sent.
+      required:
+      - event_type
+      - window
+      - matched
+      - truncated
+      - occurrences
+      properties:
+        event_type:
+          type: string
+          description: Event type that was evaluated.
+          example: market.liquidation
+        window:
+          $ref: '#/components/schemas/WebhookPreviewWindow'
+        matched:
+          type: integer
+          description: Occurrences that matched inside the window, before `limit` is applied.
+          example: 37
+        truncated:
+          type: boolean
+          description: True when fewer occurrences are returned than matched, or when a scan hit its row cap and the window was narrowed.
+          example: false
+        occurrences:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookPreviewOccurrence'
+          description: Newest first, at most `limit`.
+        notes:
+          type: array
+          items:
+            type: string
+          description: Advisories about the scan, for example a venue that could not be read. Omitted when there are none.
+    WebhookEstimate:
+      type: object
+      description: How often a would-be subscription would have fired over the requested window. Nothing is stored and no delivery is sent.
+      required:
+      - event_type
+      - window
+      - days
+      - total
+      - per_day
+      - per_day_p50
+      - per_day_max
+      - ladder
+      - sample
+      - basis
+      properties:
+        event_type:
+          type: string
+          description: Event type that was evaluated.
+          example: market.liquidation
+        window:
+          $ref: '#/components/schemas/WebhookPreviewWindow'
+        days:
+          type: integer
+          format: int64
+          description: Days the answer covers. Shorter than requested when the event type carries a shorter cap.
+          example: 7
+        total:
+          type: integer
+          format: int64
+          description: Occurrences that would have been delivered across the window.
+          example: 84
+        per_day:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEstimateDayCount'
+          description: One entry per day, oldest first, zero filled. The last entry ends at the moment of the request.
+        per_day_p50:
+          type: number
+          description: Median deliveries a day across the window.
+          example: 11
+        per_day_max:
+          type: integer
+          format: int64
+          description: Busiest day in the window.
+          example: 26
+        primary_metric:
+          type:
+          - string
+          - 'null'
+          description: The metric the ladder and the distribution are about. Null when the type has none.
+          example: notional_usd
+        ladder:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEstimateRung'
+          description: Ascending. Empty when there is no primary metric.
+        distribution:
+          allOf:
+          - $ref: '#/components/schemas/WebhookEstimateDistribution'
+          description: Quantiles of the primary metric. Null when the type has no primary metric or nothing matched.
+        sample:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookPreviewOccurrence'
+          description: Newest matches first, in the same shape the dry-run returns.
+        basis:
+          $ref: '#/components/schemas/WebhookEstimateBasis'
+    WebhookEstimateBasis:
+      type: object
+      description: How the estimate was produced, so the numbers can be read for what they are.
+      required:
+      - mode
+      properties:
+        mode:
+          type: string
+          enum:
+          - exact
+          - sampled
+          - replayed
+          description: '`exact` counted every occurrence in the window. `sampled` scaled the counts from a capped scan, and the note says by how much. `replayed` re-ran a windowed rule over history at your own parameters.'
+          example: exact
+        note:
+          type:
+          - string
+          - 'null'
+          description: What qualifies the numbers, when anything does.
+    WebhookSubscriptionConfig:
+      type: object
+      description: 'What a subscription matches on. Every key is checked against the event type''s catalog declaration, so an unknown key, an undeclared parameter or a condition on an undeclared metric is refused rather than ignored. The stored config is the normalised form: venues and addresses lowercased, declared parameters filled in at their defaults, and operators written in their canonical spelling.'
+      properties:
+        venue:
+          description: Venue or venues to match, from the event type's `venues` list. Accepts a single string, a pipe separated string or a list. Omit to match every covered venue.
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+          example: hyperliquid
+        symbols:
+          type: array
+          items:
+            type: string
+          description: Instrument symbols to match. Omit to match every symbol.
+          example:
+          - BTC
+          - ETH
+        addresses:
+          type: array
+          items:
+            type: string
+          description: Wallets to match, for an address scoped event type. Every address must already be on your watched list. Omit to match all of them.
+          example:
+          - '0x6b9e773128f453f5c2c60935ee2de2cbc5390a24'
+        params:
+          type: object
+          additionalProperties: true
+          description: Parameter values for the event type, keyed by the parameter names it declares. A declared parameter you leave out is stored at its default. A declared parameter may also be written at the top level of the config.
+          example:
+            max_age_s: 3600
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookSubscriptionCondition'
+          description: Conditions on the event's metrics, all of which must hold for a delivery. At most 16 per subscription.
+        min_notional_usd:
+          type: number
+          description: Shorthand for a `notional_usd` at-or-above condition, kept for compatibility. It is stored as a condition, and it is mirrored back here as the loosest notional lower bound the config carries.
+          example: 100000
+    WebhookPreviewOccurrence:
+      type: object
+      description: One occurrence that would have been delivered, in the shape the delivered payload carries.
+      required:
+      - observed_at_estimate
+      - data
+      properties:
+        observed_at_estimate:
+          type: string
+          format: date-time
+          description: The occurrence's own timestamp. A real delivery's `observed_at` is this plus the time it takes to see the occurrence.
+        data:
+          type: object
+          additionalProperties: true
+          description: The occurrence body, the same `data` a delivery would carry.
+    WebhookDryRunRequest:
+      type: object
+      description: A would-be subscription to evaluate against recent history. Same shape as a create, without the endpoint, plus the window.
+      required:
+      - event_type
+      properties:
+        event_type:
+          type: string
+          description: Event type to evaluate.
+          example: market.liquidation
+        config:
+          allOf:
+          - $ref: '#/components/schemas/WebhookSubscriptionConfig'
+          description: Rule configuration to evaluate. `filters` is accepted as an alias.
+        filters:
+          allOf:
+          - $ref: '#/components/schemas/WebhookSubscriptionConfig'
+          description: Alias of `config`. Send one or the other.
+        lookback_s:
+          type: integer
+          format: int64
+          description: Seconds of history to scan, ending now. Between 60 and 86400 (24 hours); a value outside that range is refused with a 400.
+          default: 3600
+          minimum: 60
+          maximum: 86400
+          example: 3600
+        limit:
+          type: integer
+          format: int64
+          description: Occurrences to return, newest first. Between 1 and 200; a value outside that range is refused with a 400.
+          default: 100
+          minimum: 1
+          maximum: 200
+          example: 100
+    ApiResponseWebhookEstimate:
+      type: object
+      description: API response containing a subscription estimate.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WebhookEstimate'
+    WebhookEstimateDistribution:
+      type: object
+      description: Quantiles of the primary metric over the matched occurrences, for choosing a threshold against real history.
+      required:
+      - n
+      - p50
+      - p90
+      - p99
+      - max
+      properties:
+        n:
+          type: integer
+          format: int64
+          description: Occurrences the quantiles are computed over.
+          example: 842
+        p50:
+          type: number
+          description: Median.
+          example: 18400
+        p90:
+          type: number
+          description: 90th percentile.
+          example: 132000
+        p99:
+          type: number
+          description: 99th percentile.
+          example: 910000
+        max:
+          type: number
+          description: Largest value seen.
+          example: 4210000
+    ApiResponseWebhookDryRun:
+      type: object
+      description: API response containing a subscription dry-run.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WebhookDryRun'
+    WebhookPreviewWindow:
+      type: object
+      description: The window a preview vouches for. It can start later than the one that was asked for when a scan reached its row cap.
+      required:
+      - from
+      - to
+      properties:
+        from:
+          type: string
+          format: date-time
+          description: Start of the window the answer covers.
+        to:
+          type: string
+          format: date-time
+          description: End of the window, which is the moment of the request.
+    WebhookEstimateRung:
+      type: object
+      description: 'One rung of the threshold ladder: the daily rate the same configuration would have had at a different threshold.'
+      required:
+      - value
+      - per_day
+      properties:
+        value:
+          type: number
+          description: Threshold on the primary metric.
+          example: 250000
+        per_day:
+          type: number
+          description: Deliveries a day at that threshold, everything else unchanged.
+          example: 3.4
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 2
+    ApiVersion:
+      description: The contract version the response was shaped with. Present only when the request sent `0xArchive-Version`.
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
+  responses:
+    Unauthorized:
+      description: 'Authentication required: the API key is missing or invalid.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            code: 401
+            error_code: unauthorized
+            error: Missing authentication credentials. Provide X-API-Key header or Bearer token.
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Error:
+      description: Any other error. The body is an `ErrorResponse`; branch on `error_code`. A 503 (`upstream_unavailable`) carries `Retry-After`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            upstream_unavailable:
+              value:
+                success: false
+                code: 503
+                error_code: upstream_unavailable
+                error: The service is temporarily unavailable. Retry shortly.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            internal_error:
+              value:
+                success: false
+                code: 500
+                error_code: internal_error
+                error: Internal server error
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    RateLimited:
+      description: Rate limit, concurrency limit or monthly credits exceeded. See `error_code`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rate_limited:
+              value:
+                success: false
+                code: 429
+                error_code: rate_limited
+                error: Rate limit exceeded
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            insufficient_credits:
+              value:
+                success: false
+                code: 429
+                error_code: insufficient_credits
+                error: Monthly credit limit exceeded. Please upgrade your plan.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                credits_used: 50000
+                credits_limit: 50000
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    BadRequest:
+      description: 'Invalid request: a parameter, symbol, interval, cursor or time range failed validation. See `error_code`.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalid_parameter:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_parameter
+                error: Invalid side 'up'. Use buy or sell.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: side
+                valid_values:
+                - buy
+                - sell
+            invalid_symbol:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_symbol
+                error: The symbol 'ZZZ' does not exist. Please see /v1/hyperliquid/instruments for available symbols.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: symbol
+            invalid_time_range:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_time_range
+                error: start must be <= end
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            legacy_invalid_query_params:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_query_params
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            current_main:
+              value:
+                code: 400
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                error_code: invalid_query_params
+                param: limit
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                success: false
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+  parameters:
+    ApiVersion:
+      name: 0xArchive-Version
+      in: header
+      required: false
+      description: 'Selects the 2026-10 response contract. Send `2026-10-01`; any dated version on or after it selects the same shapes. Without the header every response keeps its existing shape. With it:
+
+
+        - The data quality routes, `/v1/status/coverage` and `/v1/symbols` answer the standard `{success, data, meta}` envelope.
+
+        - Record times that are integer milliseconds by default become RFC 3339 UTC strings with millisecond precision, and the integer moves to a `*_ms` field: L4 resting-order `timestamp` (`timestamp_ms`), CVD buckets, HIP-3 oracle reads, Lighter and Lighter on Robinhood Chain liquidations and liquidation volume. Levels and trigger-levels `snapshot_ts` become RFC 3339 with `snapshot_ts_ms`.
+
+        - Error bodies carry the contract `error_code` names: `invalid_parameter` instead of `invalid_query_params` and `invalid_path_params`, `historical_depth_exceeded` instead of `history_window_exceeded`, and `historical_range_exceeded` instead of `request_range_exceeded`; a malformed cursor that fails to parse answers 400 `invalid_cursor` instead of `invalid_query_params`. With `0xArchive-Version: 2026-10-01`, malformed cursors on trades, liquidations, L2 and L4 diffs, order history, TP/SL and order-flow routes answer 400 `invalid_cursor`. Without the header, the first six route families treat a malformed cursor as no cursor and return the first page; order flow answers 400 `invalid_query_params`. Malformed trade time inputs answer 400 `invalid_time_range` with the header and 400 `invalid_query_params` without it.
+
+
+        The response echoes the selected version in its own `0xArchive-Version` header.'
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

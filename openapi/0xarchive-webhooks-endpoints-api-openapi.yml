@@ -1,0 +1,1072 @@
+openapi: 3.2.0
+info:
+  title: 0xArchive Webhooks - Endpoints API
+  description: 'REST API for current and historical market data from Hyperliquid and Lighter. Hyperliquid coverage includes core perpetuals, Spot, HIP-3 builder perpetuals, and HIP-4 outcome markets. Lighter coverage includes two deployments: Lighter mainnet under /v1/lighter and Lighter on Robinhood Chain under /v1/rh-lighter. Account positions are available for Hyperliquid core, HIP-3, and both Lighter deployments. Coverage and access requirements vary by route. See https://docs.0xarchive.io/ for authentication, limits, and examples.'
+  version: 1.9.0
+  termsOfService: https://0xarchive.io/terms
+  contact:
+    name: 0xArchive Support
+    url: https://0xarchive.io
+    email: support@0xarchive.io
+  license:
+    name: Proprietary
+    url: https://0xarchive.io/terms
+servers:
+- url: https://api.0xarchive.io
+  description: Production API
+security:
+- ApiKeyAuth: []
+tags:
+- name: Webhooks - Endpoints
+  description: Delivery destinations, their signing secrets and their health. A secret is returned when an endpoint is created and when it is rotated, and never on a list.
+paths:
+  /v1/webhooks/endpoints:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    get:
+      tags:
+      - Webhooks - Endpoints
+      summary: List webhook endpoints
+      description: 'Your delivery destinations, oldest first. The signing secret is never returned here: it is shown once when an endpoint is created and again when it is rotated. Authenticate with an API key or a signed-in dashboard session. Costs no credits.'
+      operationId: listWebhookEndpoints
+      responses:
+        '200':
+          description: Your webhook delivery endpoints
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookEndpointArray'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags:
+      - Webhooks - Endpoints
+      summary: Create a webhook endpoint
+      description: Register an HTTPS destination and get its signing secret. The secret is returned in this response and in a rotation, and nowhere else, so store it now. Destinations that resolve to a private or internal address are refused, at creation and again on every delivery. A plan without webhook delivery, or one already at its endpoint cap, is refused with the reason and the way forward. Authenticate with an API key or a signed-in dashboard session. Costs no credits. Deliveries are signed with the secret in the `0xa-signature` header (see the `delivery` callback).
+      operationId: createWebhookEndpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEndpointCreateRequest'
+      responses:
+        '200':
+          description: The new endpoint and its signing secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookEndpointCreated'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+      callbacks:
+        delivery:
+          '{$request.body#/url}':
+            post:
+              summary: Webhook delivery
+              description: How 0xArchive delivers an event to a `json`, `discord` or `slack` endpoint. Any 2xx response acknowledges it. Redirects are not followed. Each attempt times out after 10 seconds. A failed delivery is retried after 5 s, 30 s, 2 min, 10 min, 1 h and then hourly, for up to 24 hours; a `Retry-After` header on a non-2xx response (1 to 300 seconds) replaces the next step. After at least 10 consecutive failures spanning six hours the endpoint is `auto_disabled`. Telegram endpoints receive a chat message instead, without these headers.
+              operationId: receiveWebhookDelivery
+              parameters:
+              - name: 0xa-signature
+                in: header
+                required: true
+                description: Signature of the delivery, in the form `t=<unix seconds>,v1=<hex>`. `v1` is the lowercase hex HMAC-SHA256 of the string `<t>.<raw body>`, keyed with the endpoint's signing secret (the full `whsec_...` string as UTF-8 bytes). Verify over the raw request bytes before parsing them. For 24 hours after a secret rotation the header carries two `v1` values, `t=<t>,v1=<new secret>,v1=<previous secret>`; accept the delivery when either matches. `t` is set on each attempt, so compare it with your clock to reject replays.
+                schema:
+                  type: string
+                  example: t=1767225600,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd
+              - name: 0xa-event-id
+                in: header
+                required: true
+                description: Event identifier; equals the body `id` and is stable across retries.
+                schema:
+                  type: string
+                  format: uuid
+              - name: 0xa-event-type
+                in: header
+                required: true
+                description: Event type; equals the body `type`.
+                schema:
+                  type: string
+                  example: market.liquidation
+              - name: User-Agent
+                in: header
+                required: false
+                description: '`0xArchive-Webhooks/1.0`.'
+                schema:
+                  type: string
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/WebhookDeliveryEnvelope'
+              responses:
+                2XX:
+                  description: Delivered. The response body is ignored.
+                default:
+                  description: Not delivered; the event is retried on the schedule above.
+  /v1/webhooks/endpoints/{id}:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    delete:
+      tags:
+      - Webhooks - Endpoints
+      summary: Delete a webhook endpoint
+      description: Remove a delivery destination and every subscription pointing at it. Authenticate with an API key or a signed-in dashboard session. Costs no credits.
+      operationId: deleteWebhookEndpoint
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Endpoint identifier.
+        schema:
+          type: string
+          format: uuid
+          example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+        example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+      responses:
+        '200':
+          description: The endpoint was deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookAck'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/webhooks/endpoints/{id}/rotate:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    post:
+      tags:
+      - Webhooks - Endpoints
+      summary: Rotate a webhook endpoint secret
+      description: Issue a new signing secret for the endpoint and return it. The previous secret keeps verifying for 24 hours, so a receiver can accept both while it rolls over. This and endpoint creation are the only responses that carry a secret. Authenticate with an API key or a signed-in dashboard session. Costs no credits.
+      operationId: rotateWebhookEndpointSecret
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Endpoint identifier.
+        schema:
+          type: string
+          format: uuid
+          example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+        example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+      responses:
+        '200':
+          description: The new signing secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookEndpointSecret'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/webhooks/endpoints/{id}/enable:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    post:
+      tags:
+      - Webhooks - Endpoints
+      summary: Enable a webhook endpoint
+      description: Put an endpoint back into service after you switched it off, or after a long run of failed deliveries switched it off for you. Deliveries resume on the next matching event; nothing that happened while it was off is replayed. Authenticate with an API key or a signed-in dashboard session. Costs no credits.
+      operationId: enableWebhookEndpoint
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Endpoint identifier.
+        schema:
+          type: string
+          format: uuid
+          example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+        example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+      responses:
+        '200':
+          description: The endpoint is active again
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookAck'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+  /v1/webhooks/endpoints/{id}/test:
+    parameters:
+    - $ref: '#/components/parameters/ApiVersion'
+    post:
+      tags:
+      - Webhooks - Endpoints
+      summary: Send a test delivery
+      description: 'Queue a `webhook.test` event to the endpoint so you can confirm your receiver and your signature verification work end to end. The delivery appears in the endpoint''s delivery log like any other. It is a real signed delivery, so it is priced like one: it counts against today''s delivery budget, and it is refused on a plan without webhook delivery or once that budget is spent. A refusal here never pauses a subscription. Authenticate with an API key or a signed-in dashboard session. Costs no credits.'
+      operationId: testWebhookEndpoint
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Endpoint identifier.
+        schema:
+          type: string
+          format: uuid
+          example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+        example: 3c1f0a52-8d6b-4f0e-9b1a-6f2c4d8e9a10
+      responses:
+        '200':
+          description: The test delivery was queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseWebhookDeliveryQueued'
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Today's delivery budget is already spent, so the test event was not queued. Send it after the budget resets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                code: 409
+                error_code: conflict
+                error: The account is at today's limit of 5000 webhook deliveries. A test event counts against that limit, so it would not be sent. The daily allowance resets at 2026-09-21 00:00 UTC.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+          headers:
+            0xArchive-Version:
+              $ref: '#/components/headers/ApiVersion'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  schemas:
+    ApiResponseWebhookEndpointCreated:
+      type: object
+      description: API response containing a newly created endpoint and its signing secret.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WebhookEndpointCreated'
+        note:
+          type: string
+          description: That the secret is shown once.
+          example: Store the secret now; it is not shown again.
+    ErrorResponse:
+      type: object
+      description: Body of every non-2xx JSON response. `code` repeats the HTTP status, `error_code` is the stable machine-readable code (see `ErrorCode`), `error` is a human-readable message, and `request_id` identifies the request for support. Validation failures add `param` and, where the accepted set is fixed, `valid_values`. A 404 for a datatype the venue does not offer (`unsupported_for_venue`) adds `venue`, `datatype` and `available_on`; any other unknown path answers 404 `route_not_found`.
+      required:
+      - success
+      - code
+      - error_code
+      - error
+      - request_id
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+          description: Always `false` on an error.
+        code:
+          type: integer
+          description: HTTP status code.
+          example: 400
+        error_code:
+          $ref: '#/components/schemas/ErrorCode'
+        error:
+          type: string
+          description: Human-readable message. Wording can change; do not parse it.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support.
+        param:
+          type: string
+          description: The parameter that failed validation, when one did.
+          example: side
+        valid_values:
+          type: array
+          items:
+            type: string
+          description: Accepted values of `param`, when the set is fixed.
+          example:
+          - buy
+          - sell
+        venue:
+          type: string
+          description: '`unsupported_for_venue` only: the venue the request asked.'
+          example: spot
+        datatype:
+          type: string
+          description: '`unsupported_for_venue` only: the datatype the request asked for, as `GET /v1/capabilities` names it.'
+          example: order_flow
+        available_on:
+          type: array
+          description: '`unsupported_for_venue` only: the venues and routes that serve the datatype.'
+          items:
+            type: object
+            required:
+            - venue
+            - route
+            properties:
+              venue:
+                type: string
+                example: hyperliquid
+              route:
+                type: string
+                example: /v1/hyperliquid/orders/{symbol}/flow
+        credits_used:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: credits used this period.'
+        credits_limit:
+          type: integer
+          format: int64
+          description: '`insufficient_credits` only: the period''s credit allowance.'
+        max_concurrent:
+          type: integer
+          description: '`rate_limited` concurrency refusals only: simultaneous queries the plan allows.'
+        suggestion:
+          type: object
+          description: 'Present when the symbol exists on another venue: where to request it instead.'
+          properties:
+            venue:
+              type: string
+              example: hip3
+            symbol:
+              type: string
+              example: xyz:TSLA
+            endpoint:
+              type: string
+              example: /v1/hyperliquid/hip3/trades/xyz:TSLA
+    ApiResponseWebhookAck:
+      type: object
+      description: API response for a webhook management call that returns nothing beyond confirmation.
+      properties:
+        success:
+          type: boolean
+          example: true
+      required:
+      - success
+    WebhookDeliveryQueued:
+      type: object
+      description: A delivery that has just been queued.
+      required:
+      - delivery_id
+      - event_id
+      properties:
+        delivery_id:
+          type: string
+          format: uuid
+          description: Delivery identifier. Read it back from the endpoint's delivery log.
+        event_id:
+          type: string
+          format: uuid
+          description: Event identifier carried in the delivered payload.
+    ResponseMeta:
+      type: object
+      description: Response metadata. Every 2xx JSON response carries `meta.request_id`; list payloads add `count`; cursor-paged routes add `has_more` and, when another page follows, `next_cursor`; per-symbol routes add `symbol` and `venue`. Fields that do not apply to a route are omitted.
+      properties:
+        count:
+          type: integer
+          description: Number of records returned
+        has_more:
+          type: boolean
+          description: 'Cursor-paged routes: whether another page follows. `next_cursor` is present exactly when this is `true`. A final page can be empty when the previous page was exactly full; `has_more` is `false` on it.'
+        next_cursor:
+          type: string
+          description: Opaque cursor for the next page, present exactly when `has_more` is `true`. Pass it back unchanged as `cursor` with the same filters. Do not parse or construct it.
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request ID for support
+        symbol:
+          type: string
+          description: 'Per-symbol routes: the canonical public symbol the response describes (for example `BTC`, `xyz:TSLA`, `HYPE-USDC`, `#0`).'
+          example: BTC
+        venue:
+          type: string
+          enum:
+          - hyperliquid
+          - hip3
+          - hip4
+          - spot
+          - lighter
+          - rh-lighter
+          description: 'Per-symbol routes: the venue the response describes.'
+          example: hyperliquid
+        coverage_from:
+          type: string
+          format: date-time
+          description: Earliest coverage for the requested symbol and data type. Present only when the requested window ends before coverage begins.
+        notice:
+          type: string
+          description: Human-readable advisory about the response. Used when the requested window ends before coverage begins for the symbol, and on CVD responses that are one page of several; may carry other advisories in future.
+        finalized_through:
+          type: string
+          format: date-time
+          description: 'Two-tier datasets (Lighter trades): data at or before this instant is final; later data is preliminary.'
+        requested_end:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The `end` the request asked for, echoed when it was clamped to `finalized_through`.
+        clamped_to:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The boundary the request's `end` was clamped to, when clamping occurred.
+        preliminary_row_count:
+          type:
+          - integer
+          - 'null'
+          description: Number of preliminary rows in this response, on routes that intentionally serve preliminary data (Lighter `/recent`).
+      required:
+      - request_id
+    WebhookEndpointCreated:
+      type: object
+      description: A newly created endpoint, including the signing secret. This is one of the two responses that carry the secret; the other is a rotation. Store it now, because it is not shown again.
+      required:
+      - id
+      - url
+      - description
+      - format
+      - status
+      - consecutive_failures
+      - created_at
+      - secret
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Endpoint identifier.
+        url:
+          type: string
+          format: uri
+          description: HTTPS destination that receives deliveries.
+          example: https://example.com/hooks/0xarchive
+        description:
+          type: string
+          description: Your own label for the endpoint.
+          example: Trading desk alerts
+        format:
+          type: string
+          enum:
+          - json
+          - discord
+          - slack
+          - telegram
+          description: 'How deliveries are rendered. `json`: the signed JSON envelope (`WebhookDeliveryEnvelope`). `discord` and `slack`: a chat message in that service''s webhook format, still signed. `telegram`: a message posted to a connected Telegram chat; Telegram endpoints are created by connecting a chat, not by URL, and their deliveries carry no signature.'
+          example: json
+        status:
+          type: string
+          enum:
+          - active
+          - disabled
+          - auto_disabled
+          description: '`active` is serving. `auto_disabled` means a long run of failed deliveries switched it off; bring it back with the enable route, which also resets the failure count. `disabled` is reserved.'
+          example: active
+        consecutive_failures:
+          type: integer
+          format: int32
+          description: Failed attempts since the last success. Resets to zero on a delivery that lands.
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+          description: When the endpoint was created.
+        secret:
+          type: string
+          description: Signing secret for this endpoint. Every delivery is signed with it, and your receiver verifies the signature against it.
+          example: whsec_6f1c0b2a4d8e5f3a9c7b1e0d2f4a6c8b1d3e5f7a9c0b2d4e6f8a1c3b5d7e9f0a
+    ApiResponseWebhookEndpointArray:
+      type: object
+      description: API response containing your webhook delivery endpoints.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEndpoint'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+      required:
+      - success
+      - data
+      - meta
+    WebhookEndpointCreateRequest:
+      type: object
+      description: A new delivery destination.
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: HTTPS destination that will receive deliveries. Destinations that resolve to a private or internal address are refused.
+          example: https://example.com/hooks/0xarchive
+        description:
+          type: string
+          description: Your own label for the endpoint.
+          default: ''
+          example: Trading desk alerts
+        format:
+          type: string
+          enum:
+          - json
+          - discord
+          - slack
+          description: 'Delivery format. Omit it to detect from the URL: a Discord webhook URL becomes `discord`, a Slack incoming-webhook URL becomes `slack`, anything else `json`. Case-insensitive. Telegram endpoints are created by connecting a chat, not here.'
+          example: json
+    WebhookDeliveryEnvelope:
+      type: object
+      description: Body of a webhook delivery to a `json` endpoint. The same `id` is sent on every retry and redelivery of the event; use it (or the `0xa-event-id` header) to deduplicate. Delivery is at least once.
+      required:
+      - id
+      - type
+      - schema_version
+      - observed_at
+      - data
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Event identifier, stable across retries and redeliveries. Equals the `0xa-event-id` header.
+        type:
+          type: string
+          description: Event type from the catalog. Equals the `0xa-event-type` header.
+          example: market.liquidation
+        schema_version:
+          type: integer
+          description: Version of the `data` shape for this event type.
+          example: 1
+        observed_at:
+          type: string
+          format: date-time
+          description: When the event was detected.
+        late_ms:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          description: How long after the underlying occurrence the event was detected, in milliseconds. Null when the occurrence carries no timestamp; absent on test, export and some operational events.
+        late:
+          type: boolean
+          description: True when `late_ms` exceeds ten minutes. Absent where `late_ms` is absent.
+        data:
+          type: object
+          additionalProperties: true
+          description: Event payload. Its fields are the metrics the catalog declares for the event type.
+    ErrorCode:
+      type: string
+      description: 'Stable, machine-readable error code. Branch on this value, not on the `error` text.
+
+
+        **Contract codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_parameter` | 400 | A parameter failed to parse or validate. `param` names it and `valid_values` lists accepted values where the set is fixed. |
+
+        | `invalid_symbol` | 400 | The symbol is not listed on this venue. |
+
+        | `invalid_interval` | 400 | The `interval` (bucket width) is not one this route accepts. |
+
+        | `invalid_cursor` | 400 | The `cursor` is malformed, stale, or was issued for other filters. Restart pagination without a cursor. Trades, liquidations, L2 and L4 diffs, order history and TP/SL routes currently return the first page for a malformed cursor instead. |
+
+        | `invalid_time_range` | 400 | `start` is after `end`, or a time value could not be parsed. |
+
+        | `range_before_coverage` | 400 | The whole requested range ends before the first instant this dataset is served from. |
+
+        | `historical_range_exceeded` | 403 | The requested span is longer than the plan allows in one request or replay. |
+
+        | `historical_depth_exceeded` | 403 | The request reaches further back than the plan''s history window. |
+
+        | `unsupported_for_venue` | 404 | The venue does not offer this datatype. The message, `datatype` and `available_on` name where it is served. |
+
+        | `route_not_found` | 404 | No route matches the path or method. `GET /v1/capabilities` lists the routes each venue serves. |
+
+        | `not_found` | 404 | The route exists but the requested resource (for example an incident, endpoint or outcome id) does not. |
+
+        | `unauthorized` | 401 | The API key is missing or invalid. |
+
+        | `forbidden` | 403 | The key is valid but not allowed to make this request. |
+
+        | `insufficient_credits` | 429 | The monthly credit allowance is spent (402 on pay-per-request routes). |
+
+        | `rate_limited` | 429 | Too many requests or concurrent queries. Retry after the interval in the rate-limit headers. |
+
+        | `conflict` | 409 | The request conflicts with the current state of the resource. |
+
+        | `upstream_unavailable` | 503 | A dependency is unavailable or saturated. Retry shortly; the response carries `Retry-After`. |
+
+        | `internal_error` | 500 | An unexpected server error. Quote `request_id` when contacting support. |
+
+
+        **WebSocket only** (sent in `{"type":"error"}` messages, never by REST)
+
+
+        | Code | Where | Meaning |
+
+        |---|---|---|
+
+        | `endpoint_unsupported` | WebSocket | This WebSocket endpoint does not serve the channel or operation. The message names the endpoint that does. |
+
+        | `slow_consumer` | WebSocket | The connection fell behind a stream and messages were dropped. Re-subscribe, or restart the replay, to resynchronise. |
+
+
+        **Route-specific codes**
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `positions_unavailable` | 503 | Account positions are temporarily unavailable for this venue. |
+
+        | `reconstruction_unavailable` | 503 | The as-of positions state for this instant cannot be reconstructed right now. |
+
+        | `snapshot_advanced` | 409 | A positions market cursor pinned a snapshot that has since been replaced or expired. Restart pagination. |
+
+        | `pagination_unavailable` | 503 | The next positions page cannot be served right now. Retry the same cursor shortly. |
+
+        | `api_key_limit_reached` | 403 | The account already holds the maximum number of API keys for its plan. |
+
+        | `wallet_requires_plan` | 402 | A wallet-authenticated key needs an active plan for this request. |
+
+        | `wallet_account_required` | 403 | Wallet sign-in needs an existing account linked to the wallet. |
+
+        | `wallet_free_signup_retired` | 410 | Free wallet sign-up is no longer offered. |
+
+        | `account_disabled` | 403 | The account is disabled. |
+
+        | `oauth_not_permitted` | 403 | This route is not available to OAuth access tokens. |
+
+        | `insufficient_scope` | 403 | The OAuth access token lacks the scope this route requires. |
+
+
+        **Legacy names.** Requests without `0xArchive-Version: 2026-10-01` keep the four names that predate the contract; with the header they receive the contract names instead.
+
+
+        | Code | HTTP | Meaning |
+
+        |---|---|---|
+
+        | `invalid_query_params` | 400 | Legacy name of `invalid_parameter` (query parameter), or of `invalid_cursor` when the parameter is `cursor`, sent without the version header. |
+
+        | `invalid_path_params` | 400 | Legacy name of `invalid_parameter` (path parameter), sent without the version header. |
+
+        | `history_window_exceeded` | 403 | Legacy name of `historical_depth_exceeded`, sent without the version header. |
+
+        | `request_range_exceeded` | 403 | Legacy name of `historical_range_exceeded`, sent without the version header. |
+
+
+        Treat any value not listed here as a generic error of the HTTP status.'
+      enum:
+      - invalid_parameter
+      - invalid_symbol
+      - invalid_interval
+      - invalid_cursor
+      - invalid_time_range
+      - range_before_coverage
+      - historical_range_exceeded
+      - historical_depth_exceeded
+      - unsupported_for_venue
+      - route_not_found
+      - not_found
+      - unauthorized
+      - forbidden
+      - insufficient_credits
+      - rate_limited
+      - conflict
+      - upstream_unavailable
+      - internal_error
+      - endpoint_unsupported
+      - slow_consumer
+      - positions_unavailable
+      - reconstruction_unavailable
+      - snapshot_advanced
+      - pagination_unavailable
+      - api_key_limit_reached
+      - wallet_requires_plan
+      - wallet_account_required
+      - wallet_free_signup_retired
+      - account_disabled
+      - oauth_not_permitted
+      - insufficient_scope
+      - invalid_query_params
+      - invalid_path_params
+      - history_window_exceeded
+      - request_range_exceeded
+      example: invalid_parameter
+    ApiResponseWebhookEndpointSecret:
+      type: object
+      description: API response containing a rotated signing secret.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WebhookEndpointSecret'
+        note:
+          type: string
+          description: How long the previous secret keeps verifying.
+          example: Previous secret remains valid for 24 hours.
+    WebhookEndpoint:
+      type: object
+      description: 'A delivery destination. The signing secret is not part of this shape: it is returned once when the endpoint is created and again when it is rotated, and never on a list.'
+      required:
+      - id
+      - url
+      - description
+      - format
+      - status
+      - consecutive_failures
+      - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Endpoint identifier.
+        url:
+          type: string
+          format: uri
+          description: HTTPS destination that receives deliveries.
+          example: https://example.com/hooks/0xarchive
+        description:
+          type: string
+          description: Your own label for the endpoint.
+          example: Trading desk alerts
+        format:
+          type: string
+          enum:
+          - json
+          - discord
+          - slack
+          - telegram
+          description: 'How deliveries are rendered. `json`: the signed JSON envelope (`WebhookDeliveryEnvelope`). `discord` and `slack`: a chat message in that service''s webhook format, still signed. `telegram`: a message posted to a connected Telegram chat; Telegram endpoints are created by connecting a chat, not by URL, and their deliveries carry no signature.'
+          example: json
+        status:
+          type: string
+          enum:
+          - active
+          - disabled
+          - auto_disabled
+          description: '`active` is serving. `auto_disabled` means a long run of failed deliveries switched it off; bring it back with the enable route, which also resets the failure count. `disabled` is reserved.'
+          example: active
+        consecutive_failures:
+          type: integer
+          format: int32
+          description: Failed attempts since the last success. Resets to zero on a delivery that lands.
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+          description: When the endpoint was created.
+    WebhookEndpointSecret:
+      type: object
+      description: A freshly rotated signing secret.
+      required:
+      - secret
+      properties:
+        secret:
+          type: string
+          description: The new signing secret. The previous one keeps verifying for 24 hours so a receiver can roll over without dropping deliveries.
+          example: whsec_6f1c0b2a4d8e5f3a9c7b1e0d2f4a6c8b1d3e5f7a9c0b2d4e6f8a1c3b5d7e9f0a
+    ApiResponseWebhookDeliveryQueued:
+      type: object
+      description: API response containing a newly queued delivery.
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/WebhookDeliveryQueued'
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+        example: 2
+    ApiVersion:
+      description: The contract version the response was shaped with. Present only when the request sent `0xArchive-Version`.
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
+  responses:
+    Unauthorized:
+      description: 'Authentication required: the API key is missing or invalid.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            code: 401
+            error_code: unauthorized
+            error: Missing authentication credentials. Provide X-API-Key header or Bearer token.
+            request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    NotFound:
+      description: 'Not found. `not_found`: the resource id is unknown. `unsupported_for_venue`: the venue does not offer this datatype (`available_on` names where it is served). `route_not_found`: no route matches the path.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            not_found:
+              value:
+                success: false
+                code: 404
+                error_code: not_found
+                error: Resource not found
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            unsupported_for_venue:
+              value:
+                success: false
+                code: 404
+                error_code: unsupported_for_venue
+                error: Order flow is not offered on Hyperliquid spot. It is available on Hyperliquid (/v1/hyperliquid/orders/{symbol}/flow), HIP-3 (/v1/hyperliquid/hip3/orders/{symbol}/flow) and HIP-4 (/v1/hyperliquid/hip4/orders/{symbol}/flow).
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                venue: spot
+                datatype: order_flow
+                available_on:
+                - venue: hyperliquid
+                  route: /v1/hyperliquid/orders/{symbol}/flow
+                - venue: hip3
+                  route: /v1/hyperliquid/hip3/orders/{symbol}/flow
+                - venue: hip4
+                  route: /v1/hyperliquid/hip4/orders/{symbol}/flow
+            route_not_found:
+              value:
+                success: false
+                code: 404
+                error_code: route_not_found
+                error: No route matches GET /v1/not-a-route. GET /v1/capabilities lists the routes each venue serves.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            current_main:
+              value:
+                code: 404
+                error: No L4 checkpoint available before requested timestamp
+                error_code: not_found
+                request_id: ad7df471-eb8a-477c-bd9f-c685a9825f5b
+                success: false
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    Error:
+      description: Any other error. The body is an `ErrorResponse`; branch on `error_code`. A 503 (`upstream_unavailable`) carries `Retry-After`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            upstream_unavailable:
+              value:
+                success: false
+                code: 503
+                error_code: upstream_unavailable
+                error: The service is temporarily unavailable. Retry shortly.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            internal_error:
+              value:
+                success: false
+                code: 500
+                error_code: internal_error
+                error: Internal server error
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    RateLimited:
+      description: Rate limit, concurrency limit or monthly credits exceeded. See `error_code`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rate_limited:
+              value:
+                success: false
+                code: 429
+                error_code: rate_limited
+                error: Rate limit exceeded
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            insufficient_credits:
+              value:
+                success: false
+                code: 429
+                error_code: insufficient_credits
+                error: Monthly credit limit exceeded. Please upgrade your plan.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                credits_used: 50000
+                credits_limit: 50000
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests per second limit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests this second
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when limit resets
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+    BadRequest:
+      description: 'Invalid request: a parameter, symbol, interval, cursor or time range failed validation. See `error_code`.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalid_parameter:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_parameter
+                error: Invalid side 'up'. Use buy or sell.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: side
+                valid_values:
+                - buy
+                - sell
+            invalid_symbol:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_symbol
+                error: The symbol 'ZZZ' does not exist. Please see /v1/hyperliquid/instruments for available symbols.
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                param: symbol
+            invalid_time_range:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_time_range
+                error: start must be <= end
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            legacy_invalid_query_params:
+              value:
+                success: false
+                code: 400
+                error_code: invalid_query_params
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+            current_main:
+              value:
+                code: 400
+                error: 'Failed to deserialize query string: limit: invalid digit found in string'
+                error_code: invalid_query_params
+                param: limit
+                request_id: 3f2a9c71-5b0e-4d68-9a4c-7e1d2b6f8a05
+                success: false
+      headers:
+        0xArchive-Version:
+          $ref: '#/components/headers/ApiVersion'
+  parameters:
+    ApiVersion:
+      name: 0xArchive-Version
+      in: header
+      required: false
+      description: 'Selects the 2026-10 response contract. Send `2026-10-01`; any dated version on or after it selects the same shapes. Without the header every response keeps its existing shape. With it:
+
+
+        - The data quality routes, `/v1/status/coverage` and `/v1/symbols` answer the standard `{success, data, meta}` envelope.
+
+        - Record times that are integer milliseconds by default become RFC 3339 UTC strings with millisecond precision, and the integer moves to a `*_ms` field: L4 resting-order `timestamp` (`timestamp_ms`), CVD buckets, HIP-3 oracle reads, Lighter and Lighter on Robinhood Chain liquidations and liquidation volume. Levels and trigger-levels `snapshot_ts` become RFC 3339 with `snapshot_ts_ms`.
+
+        - Error bodies carry the contract `error_code` names: `invalid_parameter` instead of `invalid_query_params` and `invalid_path_params`, `historical_depth_exceeded` instead of `history_window_exceeded`, and `historical_range_exceeded` instead of `request_range_exceeded`; a malformed cursor that fails to parse answers 400 `invalid_cursor` instead of `invalid_query_params`. With `0xArchive-Version: 2026-10-01`, malformed cursors on trades, liquidations, L2 and L4 diffs, order history, TP/SL and order-flow routes answer 400 `invalid_cursor`. Without the header, the first six route families treat a malformed cursor as no cursor and return the first page; order flow answers 400 `invalid_query_params`. Malformed trade time inputs answer 400 `invalid_time_range` with the header and 400 `invalid_query_params` without it.
+
+
+        The response echoes the selected version in its own `0xArchive-Version` header.'
+      schema:
+        type: string
+        enum:
+        - '2026-10-01'
+        example: '2026-10-01'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication. Get yours at https://0xarchive.io/dashboard
+externalDocs:
+  description: 0xArchive Developer Docs
+  url: https://docs.0xarchive.io/
+x-0xarchive-docs-language-overlay:
+  name: data-quality-supported-venue-language
+  reason: Public OpenAPI language must describe supported venue-family coverage instead of broad exchange coverage.
+  updated_at: '2026-05-24'
+  remove_when: Public source OpenAPI uses supported venue-family wording for data-quality coverage and latency descriptions.
+x-0xarchive-docs-overlay:
+  name: hyperliquid-spot
+  reason: Hyperliquid Spot routes are included in the local REST contract.
+  source: live endpoint behavior and public CLI/MCP/Skill surface truth
+  updated_at: '2026-05-08'
+  remove_when: Public source contract includes the same Spot route family.

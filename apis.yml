@@ -89,8 +89,9 @@ tags_raw:
 - A2A
 apis:
 - name: 0xArchive WebSocket API
-  description: Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid
-    and Lighter. Clients authenticate during the handshake with a bearer API key.
+  description: >-
+    Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid and
+    Lighter. Clients authenticate during the handshake with a bearer API key.
   image: https://0xarchive.io/logo-mark.svg
   humanURL: https://docs.0xarchive.io/websocket
   baseURL: wss://api.0xarchive.io/ws
@@ -118,8 +119,9 @@ apis:
   - type: Documentation
     url: https://docs.0xarchive.io/websocket/real-time
 - name: 0xArchive Hosted MCP
-  description: Read-only market-data discovery and retrieval for MCP clients. Hosted MCP uses client-managed
-    OAuth and requires no 0xArchive API key.
+  description: >-
+    Read-only market-data discovery and retrieval for MCP clients. Hosted MCP uses client-managed OAuth
+    and requires no 0xArchive API key.
   image: https://0xarchive.io/logo-mark.svg
   humanURL: https://docs.0xarchive.io/mcp-server
   baseURL: https://mcp.0xarchive.io/mcp
@@ -204,8 +206,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-breadth-api
   name: 0xArchive HIP-3 Builder Perps - Breadth API
-  description: 'HIP-3 market breadth snapshots: percentage of eligible instruments trading above their
-    current UTC-session VWAP.'
+  description: >-
+    HIP-3 market breadth snapshots: percentage of eligible instruments trading above their current UTC-session
+    VWAP.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -257,8 +260,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-candles-api
   name: 0xArchive HIP-3 Builder Perps - Candles API
-  description: 'HIP-3 Builder Perps OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. Coverage
-    is symbol-specific; verify the selected market before choosing a time range.'
+  description: >-
+    HIP-3 Builder Perps OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. Coverage is symbol-specific;
+    verify the selected market before choosing a time range.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -362,8 +366,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-full-depth-l2-order-book-api
   name: 0xArchive HIP-3 Builder Perps - Full-Depth L2 Order Book API
-  description: Full-depth aggregated L2 order book snapshots, checkpoint history, and diffs for HIP-3
-    builder perps derived from L4 data. Full-depth checkpoints and diffs where available.
+  description: >-
+    Full-depth aggregated L2 order book snapshots, checkpoint history, and diffs for HIP-3 builder perps
+    derived from L4 data. Full-depth checkpoints and diffs where available.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags: []
@@ -416,8 +421,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-funding-api
   name: 0xArchive HIP-3 Builder Perps - Funding API
-  description: HIP-3 Builder Perps funding rate history. Coverage is symbol-specific; inspect `/v1/symbols`
-    `coverage_by_type.funding` before choosing a time range.
+  description: >-
+    HIP-3 Builder Perps funding rate history. Coverage is symbol-specific; inspect `/v1/symbols` `coverage_by_type.funding`
+    before choosing a time range.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -469,8 +475,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-instruments-api
   name: 0xArchive HIP-3 Builder Perps - Instruments API
-  description: HIP-3 Builder Perps instrument discovery. Use this route with `/v1/symbols` `coverage_by_type`
-    to resolve the current inventory and schema-specific dates.
+  description: >-
+    HIP-3 Builder Perps instrument discovery. Use this route with `/v1/symbols` `coverage_by_type` to
+    resolve the current inventory and schema-specific dates.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -575,8 +582,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-liquidations-api
   name: 0xArchive HIP-3 Builder Perps - Liquidations API
-  description: HIP-3 Builder Perps liquidation-related fills. Coverage is symbol-specific; verify the
-    selected market before choosing a time range.
+  description: >-
+    HIP-3 Builder Perps liquidation-related fills. Coverage is symbol-specific; verify the selected market
+    before choosing a time range.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -628,8 +636,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-open-interest-api
   name: 0xArchive HIP-3 Builder Perps - Open Interest API
-  description: HIP-3 Builder Perps historical open interest data. Coverage is symbol-specific; inspect
-    `/v1/symbols` `coverage_by_type.oi` before choosing a time range.
+  description: >-
+    HIP-3 Builder Perps historical open interest data. Coverage is symbol-specific; inspect `/v1/symbols`
+    `coverage_by_type.oi` before choosing a time range.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -681,8 +690,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-oracle-api
   name: 0xArchive HIP-3 Builder Perps - Oracle API
-  description: The HIP-3 Builder Perps - Oracle API from 0xArchive — 2 operation(s) for hip-3 builder
-    perps - oracle.
+  description: >-
+    The HIP-3 Builder Perps - Oracle API from 0xArchive — 2 operation(s) for hip-3 builder perps - oracle.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -734,8 +743,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-order-book-api
   name: 0xArchive HIP-3 Builder Perps - Order Book API
-  description: HIP-3 Builder Perps venue-native L2 order book snapshots. Native Hyperliquid source snapshots
-    are capped at 20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
+  description: >-
+    HIP-3 Builder Perps venue-native L2 order book snapshots. Native Hyperliquid source snapshots are
+    capped at 20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -839,7 +849,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-trades-api
   name: 0xArchive HIP-3 Builder Perps - Trades API
-  description: HIP-3 Builder Perps historical trade/fill data. Coverage is symbol-specific; inspect `/v1/symbols`
+  description: >-
+    HIP-3 Builder Perps historical trade/fill data. Coverage is symbol-specific; inspect `/v1/symbols`
     `coverage_by_type.trades` before choosing a time range.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
@@ -892,8 +903,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-3-builder-perps-wallets-api
   name: 0xArchive HIP-3 Builder Perps - Wallets API
-  description: The HIP-3 Builder Perps - Wallets API from 0xArchive — 1 operation(s) for hip-3 builder
-    perps - wallets.
+  description: >-
+    The HIP-3 Builder Perps - Wallets API from 0xArchive — 1 operation(s) for hip-3 builder perps - wallets.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1049,8 +1060,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-candles-api
   name: 0xArchive HIP-4 Outcomes - Candles API
-  description: OHLCV candles for HIP-4 outcome sides. Prices are implied probabilities (0..1); quote_volume
-    in USDH.
+  description: >-
+    OHLCV candles for HIP-4 outcome sides. Prices are implied probabilities (0..1); quote_volume in USDH.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1102,8 +1113,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-convenience-api
   name: 0xArchive HIP-4 Outcomes - Convenience API
-  description: 'HIP-4 convenience endpoints: freshness, summary, and price history. `mark_price` for HIP-4
-    is an implied probability in [0,1], not a USD price.'
+  description: >-
+    HIP-4 convenience endpoints: freshness, summary, and price history. `mark_price` for HIP-4 is an implied
+    probability in [0,1], not a USD price.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1155,8 +1167,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-instruments-api
   name: 0xArchive HIP-4 Outcomes - Instruments API
-  description: 'HIP-4 per-side instrument discovery (one row per `#N` coin). Each outcome has two sides:
-    side 0 (Yes) and side 1 (No). Coins are `#`-prefixed. Data from May 2026.'
+  description: >-
+    HIP-4 per-side instrument discovery (one row per `#N` coin). Each outcome has two sides: side 0 (Yes)
+    and side 1 (No). Coins are `#`-prefixed. Data from May 2026.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1208,8 +1221,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-open-interest-api
   name: 0xArchive HIP-4 Outcomes - Open Interest API
-  description: HIP-4 outcome markets per-side open interest history. Display/paired/parity aggregates
-    live on the `/outcomes/{outcome_id}` detail endpoint, not here. Data from May 2026.
+  description: >-
+    HIP-4 outcome markets per-side open interest history. Display/paired/parity aggregates live on the
+    `/outcomes/{outcome_id}` detail endpoint, not here. Data from May 2026.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1261,8 +1275,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-order-book-api
   name: 0xArchive HIP-4 Outcomes - Order Book API
-  description: HIP-4 outcome markets L2 and L4 order book snapshots and diffs. Coins are referenced by
-    numeric id (0, 1, 10, 11, ...); the `#`-prefixed form is also accepted. Data from May 2026.
+  description: >-
+    HIP-4 outcome markets L2 and L4 order book snapshots and diffs. Coins are referenced by numeric id
+    (0, 1, 10, 11, ...); the `#`-prefixed form is also accepted. Data from May 2026.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1314,8 +1329,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-orders-api
   name: 0xArchive HIP-4 Outcomes - Orders API
-  description: 'Order lifecycle events for HIP-4 outcome markets: placements, cancellations, fills, and
-    TP/SL triggers.'
+  description: >-
+    Order lifecycle events for HIP-4 outcome markets: placements, cancellations, fills, and TP/SL triggers.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1367,8 +1382,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-outcomes-api
   name: 0xArchive HIP-4 Outcomes - Outcomes API
-  description: HIP-4 outcome market discovery (one row per outcome, both sides combined). Use these to
-    enumerate live and settled binary outcome markets. Data from May 2026.
+  description: >-
+    HIP-4 outcome market discovery (one row per outcome, both sides combined). Use these to enumerate
+    live and settled binary outcome markets. Data from May 2026.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1420,8 +1436,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hip-4-outcomes-questions-api
   name: 0xArchive HIP-4 Outcomes - Questions API
-  description: The HIP-4 Outcomes - Questions API from 0xArchive — 2 operation(s) for hip-4 outcomes -
-    questions.
+  description: >-
+    The HIP-4 Outcomes - Questions API from 0xArchive — 2 operation(s) for hip-4 outcomes - questions.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1629,8 +1645,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-full-depth-l2-order-book-api
   name: 0xArchive Hyperliquid - Full-Depth L2 Order Book API
-  description: Full-depth aggregated L2 order book snapshots, checkpoint history, and diffs for Hyperliquid
-    perpetuals derived from L4 data. Full-depth checkpoints and diffs where available.
+  description: >-
+    Full-depth aggregated L2 order book snapshots, checkpoint history, and diffs for Hyperliquid perpetuals
+    derived from L4 data. Full-depth checkpoints and diffs where available.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1734,8 +1751,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-instruments-api
   name: 0xArchive Hyperliquid - Instruments API
-  description: Hyperliquid available trading instruments and their specifications. Authenticated inventory
-    contains 232 core perpetual rows.
+  description: >-
+    Hyperliquid available trading instruments and their specifications. Authenticated inventory contains
+    232 core perpetual rows.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1787,8 +1805,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-l4-order-book-api
   name: 0xArchive Hyperliquid - L4 Order Book API
-  description: Individual resting-order (L4) book state for Hyperliquid perpetuals, including price, size,
-    order ID, wallet attribution, queue priority, diffs, and checkpoints.
+  description: >-
+    Individual resting-order (L4) book state for Hyperliquid perpetuals, including price, size, order
+    ID, wallet attribution, queue priority, diffs, and checkpoints.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1840,8 +1859,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-liquidations-api
   name: 0xArchive Hyperliquid - Liquidations API
-  description: Hyperliquid liquidation events with user attribution. The observed global floor is July
-    27, 2025; exact starts vary by symbol.
+  description: >-
+    Hyperliquid liquidation events with user attribution. The observed global floor is July 27, 2025;
+    exact starts vary by symbol.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1945,8 +1965,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-order-book-api
   name: 0xArchive Hyperliquid - Order Book API
-  description: Hyperliquid venue-native L2 order book snapshots. Native Hyperliquid source snapshots are
-    capped at 20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
+  description: >-
+    Hyperliquid venue-native L2 order book snapshots. Native Hyperliquid source snapshots are capped at
+    20 levels per side; use the full-depth L2 routes for full-depth aggregated L2.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -1998,8 +2019,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-orders-api
   name: 0xArchive Hyperliquid - Orders API
-  description: 'Order lifecycle events for Hyperliquid perpetuals: placements, cancellations, fills, and
-    TP/SL triggers.'
+  description: >-
+    Order lifecycle events for Hyperliquid perpetuals: placements, cancellations, fills, and TP/SL triggers.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2155,8 +2176,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-spot-order-book-api
   name: 0xArchive Hyperliquid Spot - Order Book API
-  description: The Hyperliquid Spot - Order Book API from 0xArchive — 1 operation(s) for hyperliquid spot
-    - order book.
+  description: >-
+    The Hyperliquid Spot - Order Book API from 0xArchive — 1 operation(s) for hyperliquid spot - order
+    book.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2208,7 +2230,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-hyperliquid-trades-api
   name: 0xArchive Hyperliquid - Trades API
-  description: Hyperliquid historical trade/fill data with full execution details. Data from April 2023.
+  description: >-
+    Hyperliquid historical trade/fill data with full execution details. Data from April 2023.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2312,7 +2335,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-legacy-api
   name: 0xArchive Legacy API
-  description: Deprecated endpoints that default to Hyperliquid. Use the exchange-specific endpoints (`/v1/hyperliquid/*`,
+  description: >-
+    Deprecated endpoints that default to Hyperliquid. Use the exchange-specific endpoints (`/v1/hyperliquid/*`,
     `/v1/lighter/*`, `/v1/hyperliquid/hip3/*`) instead.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
@@ -2365,8 +2389,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-lighter-candles-api
   name: 0xArchive Lighter - Candles API
-  description: 'Lighter OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. Data from August
-    2025.'
+  description: >-
+    Lighter OHLCV candle data. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. Data from August 2025.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2626,7 +2650,8 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-lighter-liquidations-api
   name: 0xArchive Lighter - Liquidations API
-  description: The Lighter - Liquidations API from 0xArchive — 2 operation(s) for lighter - liquidations.
+  description: >-
+    The Lighter - Liquidations API from 0xArchive — 2 operation(s) for lighter - liquidations.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2730,8 +2755,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-lighter-order-book-api
   name: 0xArchive Lighter - Order Book API
-  description: Lighter L2 order book snapshots with configurable granularity. Checkpoint history starts
-    January 29, 2026; 30s/10s/1s start January 30, 2026; tick reconstruction available.
+  description: >-
+    Lighter L2 order book snapshots with configurable granularity. Checkpoint history starts January 29,
+    2026; 30s/10s/1s start January 30, 2026; tick reconstruction available.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2783,8 +2809,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-lighter-trades-api
   name: 0xArchive Lighter - Trades API
-  description: Lighter historical fill data across more than 200 markets. Served history begins August
-    27, 2025, with exact starts varying by market.
+  description: >-
+    Lighter historical fill data across more than 200 markets. Served history begins August 27, 2025,
+    with exact starts varying by market.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2888,8 +2915,9 @@ apis:
     url: packages/0xarchive-packages.yml
 - aid: 0xarchive:0xarchive-web3-authentication-api
   name: 0xArchive Web3 Authentication API
-  description: SIWE authentication for existing wallet accounts and autonomous paid wallet access via
-    x402. Standard Free accounts are created through the browser signup flow.
+  description: >-
+    SIWE authentication for existing wallet accounts and autonomous paid wallet access via x402. Standard
+    Free accounts are created through the browser signup flow.
   humanURL: https://docs.0xarchive.io/rest-api
   baseURL: https://api.0xarchive.io
   tags:
@@ -2939,6 +2967,240 @@ apis:
     url: cli/0xarchive-cli.yml
   - type: SDKs
     url: packages/0xarchive-packages.yml
+- aid: 0xarchive:0xarchive-hip-3-builder-perps-positions-api
+  name: 0xArchive HIP-3 Builder Perps - Positions API
+  description: >-
+    HIP-3 builder perpetual positions by wallet address, optionally scoped to one dex: current and as-of
+    positions, account summaries per dex, hourly history, the position change log, and market-wide listings.
+    Change log from October 13, 2025; hourly history from June 7, 2026 18:00 UTC (later for some dexes);
+    live snapshots every 5 minutes.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - HIP-3 Builder Perps - Positions
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hip-3-builder-perps-positions-api-openapi.yml
+- aid: 0xarchive:0xarchive-hyperliquid-breadth-api
+  name: 0xArchive Hyperliquid - Breadth API
+  description: >-
+    Hyperliquid core perpetual breadth snapshots: percentage of eligible instruments trading above their
+    current UTC-session VWAP. Core perpetual namespace maps are always empty.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Hyperliquid - Breadth
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-breadth-api-openapi.yml
+- aid: 0xarchive:0xarchive-hyperliquid-positions-api
+  name: 0xArchive Hyperliquid - Positions API
+  description: >-
+    Hyperliquid core perpetual positions by wallet address: current and as-of positions, account summaries,
+    hourly history, the position change log, and market-wide listings. Change log from May 25, 2025 15:00
+    UTC; hourly history from June 7, 2026 18:00 UTC; live snapshots every 5 minutes.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Hyperliquid - Positions
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-hyperliquid-positions-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-candles-api
+  name: 0xArchive Lighter on Robinhood Chain - Candles API
+  description: >-
+    Lighter on Robinhood Chain OHLCV candles derived from canonical trades from June 26, 2026. Intervals:
+    1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. The route answers with an error until candles are enabled for this
+    deployment.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Candles
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-candles-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-convenience-api
+  name: 0xArchive Lighter on Robinhood Chain - Convenience API
+  description: 'Lighter on Robinhood Chain convenience endpoints: freshness, summary, and price history.'
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Convenience
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-convenience-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-funding-api
+  name: 0xArchive Lighter on Robinhood Chain - Funding API
+  description: >-
+    Lighter on Robinhood Chain funding rate history for perpetual markets from August 22, 2026 18:43 UTC.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Funding
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-funding-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-instruments-api
+  name: 0xArchive Lighter on Robinhood Chain - Instruments API
+  description: >-
+    Lighter on Robinhood Chain is the second Lighter deployment: 84 USDG-quoted markets, 57 perpetuals
+    and 27 spot. Perpetual symbols are uppercase (BTC); spot pairs are dashed (AAPL-USDG). Symbols can
+    match Lighter mainnet symbols but name different markets.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Instruments
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-instruments-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-liquidations-api
+  name: 0xArchive Lighter on Robinhood Chain - Liquidations API
+  description: >-
+    Lighter on Robinhood Chain liquidation events and aggregated liquidation volume from June 26, 2026
+    20:10:26 UTC. Rows from before live capture began on August 22, 2026 carry `source: "bucket"` and
+    an empty `raw_json`, and live-captured rows carry `source: "ws"` and the venue's raw JSON. The earlier
+    rows were backfilled from the venue's finalized export.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Liquidations
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-liquidations-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-open-interest-api
+  name: 0xArchive Lighter on Robinhood Chain - Open Interest API
+  description: >-
+    Lighter on Robinhood Chain open interest for perpetual markets from August 22, 2026 18:43 UTC.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Open Interest
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-open-interest-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-order-book-api
+  name: 0xArchive Lighter on Robinhood Chain - Order Book API
+  description: >-
+    Lighter on Robinhood Chain L2 order book snapshots and history from August 22, 2026 18:43 UTC. L3
+    order-level data is not captured on this deployment.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Order Book
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-order-book-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-positions-api
+  name: 0xArchive Lighter on Robinhood Chain - Positions API
+  description: >-
+    Lighter on Robinhood Chain account positions by account index: current and as-of positions, hourly
+    history, the position change log, and market-wide listings. Change log and hourly history from June
+    26, 2026; live snapshots every 2 minutes. Quoted and settled in USDG.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Positions
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-positions-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-on-robinhood-chain-trades-api
+  name: 0xArchive Lighter on Robinhood Chain - Trades API
+  description: >-
+    Lighter on Robinhood Chain trade history from the venue launch on June 26, 2026 20:10:26 UTC. History
+    is canonical up to `meta.finalized_through`, about a day behind; `/recent` serves the preliminary
+    tier.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter on Robinhood Chain - Trades
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-on-robinhood-chain-trades-api-openapi.yml
+- aid: 0xarchive:0xarchive-lighter-positions-api
+  name: 0xArchive Lighter - Positions API
+  description: >-
+    Lighter mainnet account positions by account index: current and as-of positions, hourly history, the
+    position change log, market-wide listings, and an L1 address resolver. Change log and hourly history
+    from January 17, 2025; live snapshots every 2 minutes.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Lighter - Positions
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-lighter-positions-api-openapi.yml
+- aid: 0xarchive:0xarchive-webhooks-catalog-and-limits-api
+  name: 0xArchive Webhooks - Catalog and Limits API
+  description: >-
+    The served webhook event catalog and what a plan allows. Read these before creating anything: the
+    catalog is what a subscription is validated against, and the limits report is read from the same place
+    the caps are enforced from.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Webhooks - Catalog and Limits
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-webhooks-catalog-and-limits-api-openapi.yml
+- aid: 0xarchive:0xarchive-webhooks-deliveries-api
+  name: 0xArchive Webhooks - Deliveries API
+  description: >-
+    The delivery log for an endpoint, and repeating a delivery that has already been attempted.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Webhooks - Deliveries
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-webhooks-deliveries-api-openapi.yml
+- aid: 0xarchive:0xarchive-webhooks-endpoints-api
+  name: 0xArchive Webhooks - Endpoints API
+  description: >-
+    Delivery destinations, their signing secrets and their health. A secret is returned when an endpoint
+    is created and when it is rotated, and never on a list.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Webhooks - Endpoints
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-webhooks-endpoints-api-openapi.yml
+- aid: 0xarchive:0xarchive-webhooks-previews-api
+  name: 0xArchive Webhooks - Previews API
+  description: >-
+    Evaluate a would-be subscription against history before creating it. Nothing is stored and no delivery
+    is sent. Available on every plan, including Free.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Webhooks - Previews
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-webhooks-previews-api-openapi.yml
+- aid: 0xarchive:0xarchive-webhooks-subscriptions-api
+  name: 0xArchive Webhooks - Subscriptions API
+  description: >-
+    Rules: one event type and one configuration delivered to one endpoint, including the pause state a
+    rule carries and the routes that clear it.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Webhooks - Subscriptions
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-webhooks-subscriptions-api-openapi.yml
+- aid: 0xarchive:0xarchive-webhooks-watched-addresses-api
+  name: 0xArchive Webhooks - Watched Addresses API
+  description: >-
+    Wallets that address scoped event types report on. Only a wallet on this list may be named in a subscription
+    configuration.
+  humanURL: https://docs.0xarchive.io/websocket
+  baseURL: wss://api.0xarchive.io/ws
+  tags:
+  - Webhooks - Watched Addresses
+  properties:
+  - type: OpenAPI
+    url: openapi/0xarchive-webhooks-watched-addresses-api-openapi.yml
 common:
 - type: CapabilityMap
   url: capabilities/0xarchive-capability-edges.yml
