@@ -38,36 +38,6 @@ edges:
     detected: '2026-10-18'
   detected_by: sweep-official-sdks.py
   first_seen: '2026-10-18'
-- partner_name: npm registry
-  partner: npm
-  partner_match: register
-  type: register
-  direction: provider-built
-  category: official CLI (npm registry)
-  evidence: https://www.npmjs.com/package/@0xarchive/cli
-  channel: package-registry
-  relationship: distribution-channel
-  contract_reference:
-    register: npm registry (public package index)
-    spec_file: null
-    packages:
-    - name: '@0xarchive/cli'
-      version: 1.11.0
-      released: '2026-10-08'
-      released_field: modified
-      lapsed: false
-      page: https://www.npmjs.com/package/@0xarchive/cli
-      cli: bin oxa
-      repo_leg: domain:0xarchive.io
-      publisher_leg: org:0xarchive
-      matched_by: domain
-    current: true
-    signal_note: 'the provider''s own command-line tool on a package manager: distribution, not an integration;
-      lapsed = no release in 24 months or deprecated / disabled by the manager'
-    detected_by: sweep-official-clis.py
-    detected: '2026-10-20'
-  detected_by: sweep-official-clis.py
-  first_seen: '2026-10-20'
 - partner_name: MCP Registry
   partner: mcp
   partner_match: register
@@ -83,7 +53,7 @@ edges:
     registered_name: io.0xarchive/mcp
     register_id: io.0xarchive/mcp
     detected_by: sweep-agent-tools.py
-    detected: '2026-10-15'
+    detected: '2026-10-19'
   mcp_registry:
     servers:
     - io.0xarchive/mcp
@@ -129,25 +99,93 @@ edges:
     matched_domain: 0xarchive.io
     matched_by: own-domain
     detected_by: sweep-ai-agents.py
-    detected: '2026-10-15'
+    detected: '2026-10-19'
   detected_by: sweep-ai-agents.py
   first_seen: '2026-10-15'
+- partner_name: npm registry
+  partner: npm
+  partner_match: register
+  type: register
+  direction: provider-built
+  category: official CLI (npm registry)
+  evidence: https://www.npmjs.com/package/@0xarchive/cli
+  channel: package-registry
+  relationship: distribution-channel
+  contract_reference:
+    register: npm registry (public package index)
+    spec_file: null
+    packages:
+    - name: '@0xarchive/cli'
+      version: 1.11.0
+      released: '2026-10-08'
+      released_field: modified
+      lapsed: false
+      page: https://www.npmjs.com/package/@0xarchive/cli
+      cli: bin oxa
+      repo_leg: domain:0xarchive.io
+      publisher_leg: org:0xarchive
+      matched_by: domain
+    current: true
+    signal_note: 'the provider''s own command-line tool on a package manager: distribution, not an integration;
+      lapsed = no release in 24 months or deprecated / disabled by the manager'
+    detected_by: sweep-official-clis.py
+    detected: '2026-10-20'
+  detected_by: sweep-official-clis.py
+  first_seen: '2026-10-20'
+- partner_name: Agent Skills (own GitHub org)
+  partner: null
+  partner_match: register
+  type: register
+  direction: provider-built
+  category: Agent Skills package
+  evidence: https://github.com/0xArchiveIO/0xarchive-skill
+  channel: provider-built
+  relationship: compatible
+  shape: agent-skills
+  evidence_kind: own-repo
+  degree: skill-repo
+  report_only: true
+  agent_skills:
+    org: 0xarchiveio
+    current: true
+    repos:
+    - repo: 0xArchiveIO/0xarchive-skill
+      archived: false
+      lapsed: false
+      pushed: '2026-10-05'
+  contract_reference:
+    register: 'provider''s own GitHub org (GitHub REST API: repo + git tree holds SKILL.md)'
+    spec_file: null
+    standard: Agent Skills (agentskills.io)
+    role: agent-skills-repo
+    matched_org: 0xarchiveio
+    matched_by: org-profile-domain:0xarchive.io
+    detected_by: sweep-agent-skills.py
+    detected: '2026-10-20'
+  detected_by: sweep-agent-skills.py
+  first_seen: '2026-10-20'
 generated: '2026-10-14'
 method: searched
 checked:
 - https://a2aregistry.org/api/agents
 - https://api.nuget.org/v3
-- https://cdn.winget.microsoft.com/cache
 - https://crates.io/api/v1
-- https://formulae.brew.sh/api/cask.json
-- https://formulae.brew.sh/api/formula.json
-- https://github.com/ScoopInstaller/Extras
-- https://github.com/ScoopInstaller/Main
 - https://proxy.golang.org
 - https://pypi.org/pypi
 - https://registry.modelcontextprotocol.io/v0/servers
 - https://registry.npmjs.org
 - https://repo1.maven.org/maven2
 - https://rubygems.org/api/v1
+- https://cdn.winget.microsoft.com/cache
+- https://formulae.brew.sh/api/cask.json
+- https://formulae.brew.sh/api/formula.json
+- https://github.com/ScoopInstaller/Extras
+- https://github.com/ScoopInstaller/Main
+- https://api.github.com
+- https://claude-plugins.dev/sitemap.xml
+- https://github.com/VoltAgent/awesome-agent-skills
+- https://officialskills.sh/sitemap.xml
+- https://skillsmp.com/sitemap.xml
+- https://www.skills.sh/sitemap.xml
 source:
 - https://a2aregistry.org/api/agents
