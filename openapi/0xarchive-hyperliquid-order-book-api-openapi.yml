@@ -790,3 +790,9 @@ x-0xarchive-docs-overlay:
   source: live endpoint behavior and public CLI/MCP/Skill surface truth
   updated_at: '2026-05-08'
   remove_when: Public source contract includes the same Spot route family.
+x-provenance:
+  method: harvested
+  publisher: 0xArchive
+  source: https://0xarchive.io/openapi.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)

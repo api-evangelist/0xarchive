@@ -21,6 +21,9 @@ artifacts:
   authentication/0xarchive-authentication.yml:
     method: searched
     evidence: declared in the artifact
+  capabilities/0xarchive-capability-edges.yml:
+    method: unknown
+    evidence: no authorship recorded
   changelog/0xarchive-changelog.yml:
     method: searched
     evidence: declared in the artifact
@@ -42,73 +45,13 @@ artifacts:
   front-door-ai/2026-09-17.yml:
     method: unknown
     evidence: no authorship recorded
-  kin/checks-2026-09-24T161608.yml:
+  integrations/0xarchive-integration-edges.yml:
+    method: unknown
+    evidence: no authorship recorded
+  integrations/_index.yml:
     method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-01T222808.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-02T211804.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-02T224043.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-03T161828.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-03T174231.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-04T062714.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-04T212454.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-04T224856.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-05T055819.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-05T072335.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-05T144739.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-05T195450.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-05T211839.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-06T011047.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-06T211804.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-06T224210.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-07T200636.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-07T213054.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-08T214843.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-08T232836.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-10T204815.yml:
-    method: generated
-    evidence: Kin Score snapshot written by score.rb
-  kin/score-2026-09-10T222408.yml:
+    evidence: carries an API Evangelist house phrase
+  kin/checks-2026-10-11T110117.yml:
     method: generated
     evidence: Kin Score snapshot written by score.rb
   kin/score-2026-09-12T062655.yml:
@@ -192,6 +135,21 @@ artifacts:
   kin/score-2026-09-24T161608.yml:
     method: generated
     evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-09-25T210408.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-09-25T232841.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-10-03T000835.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-10-03T024842.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-10-11T110117.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
   lifecycle/0xarchive-lifecycle.yml:
     method: searched
     evidence: declared in the artifact
@@ -246,6 +204,9 @@ artifacts:
   openapi/0xarchive-hip-3-builder-perps-orders-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-hip-3-builder-perps-positions-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-hip-3-builder-perps-trades-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
@@ -285,6 +246,9 @@ artifacts:
   openapi/0xarchive-hip-4-outcomes-trades-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-hyperliquid-breadth-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-hyperliquid-candles-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
@@ -313,6 +277,9 @@ artifacts:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-hyperliquid-orders-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-hyperliquid-positions-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-hyperliquid-spot-api-openapi.yml:
@@ -351,10 +318,40 @@ artifacts:
   openapi/0xarchive-lighter-liquidations-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-candles-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-convenience-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-funding-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-instruments-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-liquidations-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-open-interest-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-order-book-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-positions-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-on-robinhood-chain-trades-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-lighter-open-interest-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-lighter-order-book-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-lighter-positions-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/0xarchive-lighter-trades-api-openapi.yml:
@@ -366,19 +363,187 @@ artifacts:
   openapi/0xarchive-web3-authentication-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
-  openapi/_original/0xarchive-openapi-original.json:
-    method: harvested
-    evidence: found in openapi/_original/; the fetch URL and bytes were not recorded, so byte-identity
-      to the provider's source is unverified
+  openapi/0xarchive-webhooks-catalog-and-limits-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-webhooks-deliveries-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-webhooks-endpoints-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-webhooks-previews-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-webhooks-subscriptions-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/0xarchive-webhooks-watched-addresses-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   openapi/_original/0xarchive-openapi.json:
     method: harvested
-    evidence: found in openapi/_original/; the fetch URL and bytes were not recorded, so byte-identity
-      to the provider's source is unverified
-  openapi/_original/0xarchive-openapi.json.archived.txt:
-    method: harvested
-    evidence: found in openapi/_original/; the fetch URL and bytes were not recorded, so byte-identity
-      to the provider's source is unverified
+    evidence: byte-identical to https://0xarchive.io/openapi.json (sha256 27076f55595f, fetched 2026-10-19)
+  overlays/0xarchive-data-quality-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-breadth-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-candles-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-convenience-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-full-depth-l2-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-funding-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-instruments-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-l4-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-liquidations-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-open-interest-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-oracle-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-orders-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-trades-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-builder-perps-wallets-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-liquidations-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-3-orders-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-candles-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-convenience-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-instruments-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-open-interest-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-orders-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-outcomes-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-questions-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hip-4-outcomes-trades-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-candles-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-convenience-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-full-depth-l2-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-funding-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-instruments-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-l4-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-liquidations-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-open-interest-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-orders-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-spot-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-spot-candles-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-spot-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-trades-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-hyperliquid-wallets-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-legacy-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-candles-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-convenience-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-funding-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-instruments-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-l3-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-liquidations-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-open-interest-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-order-book-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-lighter-trades-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
   overlays/0xarchive-openapi-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-system-api-phrasing-overlay.yaml:
+    method: generated
+    evidence: declared in the artifact
+  overlays/0xarchive-web3-authentication-api-phrasing-overlay.yaml:
     method: generated
     evidence: declared in the artifact
   packages/0xarchive-packages.yml:
