@@ -191,17 +191,24 @@ The permissions the API asks for.
 
 - [0Xarchive Scopes](https://apis.io/scopes/0xarchive/0xarchive-scopes/)
 
-#### Plans and pricing (1)
+#### Plans and pricing (2)
 
 Published plans, tiers and prices.
 
 - [0Xarchive Plans Pricing](https://apis.io/plans/0xarchive/0xarchive-plans-pricing/)
+- [0Xarchive Price Estimates](https://apis.io/plans/0xarchive/0xarchive-price-estimates/)
 
 #### Rate limits (1)
 
 Published request limits.
 
 - [0Xarchive Rate Limits](https://apis.io/rate-limits/0xarchive/0xarchive-rate-limits/)
+
+#### FinOps (1)
+
+What the API costs to run, by operation.
+
+- [0Xarchive Finops](https://apis.io/finops/0xarchive/0xarchive-finops/)
 
 ## Where to find this API
 
