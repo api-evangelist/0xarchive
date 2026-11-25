@@ -72,7 +72,7 @@
 
 Everything profiled for 0xArchive is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/0xarchive/](https://apis.io/providers/0xarchive/)** — or go straight to one of the APIs or properties below.
 
-### APIs (55)
+### APIs (74)
 
 - [0xArchive WebSocket API](https://apis.io/apis/0xarchive/0xarchive-websocket-api/) — Real-time subscriptions for supported Hyperliquid channels and historical replay for Hyperliquid and Lighter. Clients authenticate during the handshake with…
 - [0xArchive Hosted MCP](https://apis.io/apis/0xarchive/0xarchive-hosted-mcp/) — Read-only market-data discovery and retrieval for MCP clients. Hosted MCP uses client-managed OAuth and requires no 0xArchive API key.
@@ -129,6 +129,25 @@ Everything profiled for 0xArchive is published on APIs.io rather than in this re
 - [0xArchive Lighter - Trades API](https://apis.io/apis/0xarchive/0xarchive-lighter-trades-api/) — Lighter historical fill data across more than 200 markets. Served history begins August 27, 2025, with exact starts varying by market.
 - [0xArchive System API](https://apis.io/apis/0xarchive/0xarchive-system-api/) — Health checks and system status
 - [0xArchive Web3 Authentication API](https://apis.io/apis/0xarchive/0xarchive-web3-authentication-api/) — SIWE authentication for existing wallet accounts and autonomous paid wallet access via x402. Standard Free accounts are created through the browser signup flow.
+- [0xArchive HIP-3 Builder Perps - Positions API](https://apis.io/apis/0xarchive/0xarchive-hip-3-builder-perps-positions-api/) — HIP-3 builder perpetual positions by wallet address, optionally scoped to one dex: current and as-of positions, account summaries per dex, hourly history,…
+- [0xArchive Hyperliquid - Breadth API](https://apis.io/apis/0xarchive/0xarchive-hyperliquid-breadth-api/) — Hyperliquid core perpetual breadth snapshots: percentage of eligible instruments trading above their current UTC-session VWAP. Core perpetual namespace maps…
+- [0xArchive Hyperliquid - Positions API](https://apis.io/apis/0xarchive/0xarchive-hyperliquid-positions-api/) — Hyperliquid core perpetual positions by wallet address: current and as-of positions, account summaries, hourly history, the position change log, and…
+- [0xArchive Lighter on Robinhood Chain - Candles API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-candles-api/) — Lighter on Robinhood Chain OHLCV candles derived from canonical trades from June 26, 2026. Intervals: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w. The route answers…
+- [0xArchive Lighter on Robinhood Chain - Convenience API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-convenience-api/) — Lighter on Robinhood Chain convenience endpoints: freshness, summary, and price history.
+- [0xArchive Lighter on Robinhood Chain - Funding API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-funding-api/) — Lighter on Robinhood Chain funding rate history for perpetual markets from August 22, 2026 18:43 UTC.
+- [0xArchive Lighter on Robinhood Chain - Instruments API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-instruments-api/) — Lighter on Robinhood Chain is the second Lighter deployment: 84 USDG-quoted markets, 57 perpetuals and 27 spot. Perpetual symbols are uppercase (BTC); spot…
+- [0xArchive Lighter on Robinhood Chain - Liquidations API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-liquidations-api/) — Lighter on Robinhood Chain liquidation events and aggregated liquidation volume from June 26, 2026 20:10:26 UTC. Rows from before live capture began on…
+- [0xArchive Lighter on Robinhood Chain - Open Interest API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-open-interest-api/) — Lighter on Robinhood Chain open interest for perpetual markets from August 22, 2026 18:43 UTC.
+- [0xArchive Lighter on Robinhood Chain - Order Book API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-order-book-api/) — Lighter on Robinhood Chain L2 order book snapshots and history from August 22, 2026 18:43 UTC. L3 order-level data is not captured on this deployment.
+- [0xArchive Lighter on Robinhood Chain - Positions API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-positions-api/) — Lighter on Robinhood Chain account positions by account index: current and as-of positions, hourly history, the position change log, and market-wide…
+- [0xArchive Lighter on Robinhood Chain - Trades API](https://apis.io/apis/0xarchive/0xarchive-lighter-on-robinhood-chain-trades-api/) — Lighter on Robinhood Chain trade history from the venue launch on June 26, 2026 20:10:26 UTC. History is canonical up to `meta.finalized_through`, about a…
+- [0xArchive Lighter - Positions API](https://apis.io/apis/0xarchive/0xarchive-lighter-positions-api/) — Lighter mainnet account positions by account index: current and as-of positions, hourly history, the position change log, market-wide listings, and an L1…
+- [0xArchive Webhooks - Catalog and Limits API](https://apis.io/apis/0xarchive/0xarchive-webhooks-catalog-and-limits-api/) — The served webhook event catalog and what a plan allows. Read these before creating anything: the catalog is what a subscription is validated against, and…
+- [0xArchive Webhooks - Deliveries API](https://apis.io/apis/0xarchive/0xarchive-webhooks-deliveries-api/) — The delivery log for an endpoint, and repeating a delivery that has already been attempted.
+- [0xArchive Webhooks - Endpoints API](https://apis.io/apis/0xarchive/0xarchive-webhooks-endpoints-api/) — Delivery destinations, their signing secrets and their health. A secret is returned when an endpoint is created and when it is rotated, and never on a list.
+- [0xArchive Webhooks - Previews API](https://apis.io/apis/0xarchive/0xarchive-webhooks-previews-api/) — Evaluate a would-be subscription against history before creating it. Nothing is stored and no delivery is sent. Available on every plan, including Free.
+- [0xArchive Webhooks - Subscriptions API](https://apis.io/apis/0xarchive/0xarchive-webhooks-subscriptions-api/) — Rules: one event type and one configuration delivered to one endpoint, including the pause state a rule carries and the routes that clear it.
+- [0xArchive Webhooks - Watched Addresses API](https://apis.io/apis/0xarchive/0xarchive-webhooks-watched-addresses-api/) — Wallets that address scoped event types report on. Only a wallet on this list may be named in a subscription configuration.
 
 ### Published properties
 
@@ -146,69 +165,75 @@ Model Context Protocol servers that expose the API to agents.
 
 - [0xArchive MCP](https://apis.io/servers/0xarchive/0xarchive-mcp/)
 
-#### Overlays (54)
+#### Overlays (55)
 
 OpenAPI overlays, including conversational phrasing for each operation.
 
-- [0Xarchive Data Quality Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-data-quality-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Breadth Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-breadth-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Candles Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-candles-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Convenience Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-convenience-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Full Depth L2 Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-full-depth-l2-order-book-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Funding Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-funding-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Instruments Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-instruments-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps L4 Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-l4-order-book-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Liquidations Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-liquidations-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Open Interest Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-open-interest-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Oracle Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-oracle-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-order-book-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Orders Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-orders-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Trades Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-trades-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Builder Perps Wallets Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-wallets-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Liquidations Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-liquidations-api-phrasing-overlay/)
-- [0Xarchive Hip 3 Orders Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-orders-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Candles Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-candles-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Convenience Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-convenience-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Instruments Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-instruments-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Open Interest Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-open-interest-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-order-book-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Orders Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-orders-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Outcomes Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-outcomes-api-phrasing-overlay/)
-- [0Xarchive Hip 4 Outcomes Questions Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-questions-api-phrasing-overlay/)
-- …and 29 more published on APIs.io
+- [0xArchive Data Quality Api Certification Overlay](https://apis.io/overlays/0xarchive/0xarchive-data-quality-api-certification-overlay/)
+- [0xArchive Data Quality Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-data-quality-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Breadth Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-breadth-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Candles Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-candles-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Convenience Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-convenience-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Full Depth L2 Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-full-depth-l2-order-book-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Funding Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-funding-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Instruments Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-instruments-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps L4 Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-l4-order-book-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Liquidations Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-liquidations-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Open Interest Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-open-interest-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Oracle Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-oracle-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-order-book-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Orders Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-orders-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Trades Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-trades-api-phrasing-overlay/)
+- [0xArchive Hip 3 Builder Perps Wallets Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-builder-perps-wallets-api-phrasing-overlay/)
+- [0xArchive Hip 3 Liquidations Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-liquidations-api-phrasing-overlay/)
+- [0xArchive Hip 3 Orders Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-3-orders-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Candles Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-candles-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Convenience Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-convenience-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Instruments Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-instruments-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Open Interest Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-open-interest-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Order Book Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-order-book-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Orders Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-orders-api-phrasing-overlay/)
+- [0xArchive Hip 4 Outcomes Outcomes Api Phrasing Overlay](https://apis.io/overlays/0xarchive/0xarchive-hip-4-outcomes-outcomes-api-phrasing-overlay/)
+- …and 30 more published on APIs.io
+
+#### Governance rules (1)
+
+Spectral rulesets for the provider's contracts.
+
+- [0xArchive API Rules](https://apis.io/rules/0xarchive/0xarchive-rules/)
 
 #### Security (3)
 
 Authentication, trust centre, and vulnerability disclosure.
 
-- [0Xarchive Authentication](https://apis.io/security/0xarchive/0xarchive-authentication/)
-- [0Xarchive Domain Security](https://apis.io/security/0xarchive/0xarchive-domain-security/)
-- [0Xarchive Vulnerability Disclosure](https://apis.io/security/0xarchive/0xarchive-vulnerability-disclosure/)
+- [0xArchive Authentication](https://apis.io/security/0xarchive/0xarchive-authentication/)
+- [0xArchive Domain Security](https://apis.io/security/0xarchive/0xarchive-domain-security/)
+- [0xArchive Vulnerability Disclosure](https://apis.io/security/0xarchive/0xarchive-vulnerability-disclosure/)
 
 #### OAuth scopes (1)
 
 The permissions the API asks for.
 
-- [0Xarchive Scopes](https://apis.io/scopes/0xarchive/0xarchive-scopes/)
+- [0xArchive Scopes](https://apis.io/scopes/0xarchive/0xarchive-scopes/)
 
 #### Plans and pricing (2)
 
 Published plans, tiers and prices.
 
-- [0Xarchive Plans Pricing](https://apis.io/plans/0xarchive/0xarchive-plans-pricing/)
-- [0Xarchive Price Estimates](https://apis.io/plans/0xarchive/0xarchive-price-estimates/)
+- [0xArchive Plans Pricing](https://apis.io/plans/0xarchive/0xarchive-plans-pricing/)
+- [0xArchive Price Estimates](https://apis.io/plans/0xarchive/0xarchive-price-estimates/)
 
 #### Rate limits (1)
 
 Published request limits.
 
-- [0Xarchive Rate Limits](https://apis.io/rate-limits/0xarchive/0xarchive-rate-limits/)
+- [0xArchive Rate Limits](https://apis.io/rate-limits/0xarchive/0xarchive-rate-limits/)
 
 #### FinOps (1)
 
 What the API costs to run, by operation.
 
-- [0Xarchive Finops](https://apis.io/finops/0xarchive/0xarchive-finops/)
+- [0xArchive Finops](https://apis.io/finops/0xarchive/0xarchive-finops/)
 
 ## Where to find this API
 
@@ -231,18 +256,18 @@ Links to the company's own pages. This repository publishes no copy of their spe
 
 ## API Evangelist rating
 
-**Kin Score 71.7** — exemplar · rubric 0.25.0 · scored 2026-10-23
+**Kin Score 74.9** — exemplar · rubric 0.28.1 · scored 2026-11-21
 
 | Facet | Score |
 |---|---|
 | Discoverability | 91.7 |
-| Contract quality | 63.7 |
-| Contract governance | 18.2 |
-| Operational transparency | 71.1 |
+| Contract quality | 67.1 |
+| Contract governance | 31.8 |
+| Operational transparency | 66.7 |
 | Developer ergonomics | 85.7 |
-| Access clarity | 76.3 |
+| Access clarity | 83.0 |
 
-**Agent readiness 68.7** — agent-ready (gated down from agent-native)
+**Agent readiness 68.9** — agent-ready (gated down from agent-native)
 
 | Agent-readiness dimension | Result |
 |---|---|
@@ -258,15 +283,19 @@ Links to the company's own pages. This repository publishes no copy of their spe
 | Event Surface Described | yes |
 | Agent Skills | yes |
 | Well Known Catalog | yes |
-| Consent Identity | — |
+| Consent Identity | signal |
 | Agent Card | — |
 | Dry Run Mode | — |
 | Delegated Identity | served (partial credit) |
 | Protected Resource Metadata | verified |
 | Dynamic Client Registration | yes |
 | Agentic Commerce | — |
-| Pagination Ratio | paginated |
+| Pagination Ratio | partial |
 | Operation Distinctiveness | distinct |
+| MCP Tool Quality | na |
+| Onboarding Descriptor | yes |
+| Dns Aid Index | na |
+| Markdown Negotiation | yes |
 
 **Regulatory alignment 43.5** — Securities & Market Data
 
